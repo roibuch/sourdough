@@ -90,6 +90,7 @@
 
         .tabs {
             display: flex;
+            flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 24px;
             padding: 6px;
@@ -101,7 +102,8 @@
 
         .tab {
             flex: 1;
-            padding: 14px 16px;
+            min-width: 100px;
+            padding: 14px 12px;
             border: none;
             border-radius: 12px;
             background: transparent;
@@ -265,6 +267,41 @@
 
         button.calc-btn:active {
             transform: translateY(0);
+        }
+
+        .schedule-table-wrap {
+            overflow-x: auto;
+            margin-top: 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+
+        table.schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+            background: #fff;
+        }
+
+        table.schedule-table th,
+        table.schedule-table td {
+            padding: 12px 14px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+
+        table.schedule-table th {
+            background: rgba(184, 149, 106, 0.15);
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        table.schedule-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table.schedule-table tbody tr:hover td {
+            background: rgba(184, 149, 106, 0.06);
         }
 
         .results {
@@ -463,7 +500,7 @@
     <div class="container">
         <header>
             <h1>🌾 מחשבון ומדריך מחמצת</h1>
-            <p class="subtitle">חישוב כמויות בצק, תכנון האכלה מהמקרר ויחסים לפי הזמן עד לאוטוליזה — הכל במקום אחד, בלי עומס.</p>
+            <p class="subtitle">חישוב בצק, תכנון מחמצת מהמקרר וטבלאות זמני התפחה — במקום אחד.</p>
         </header>
 
         <div class="tabs" role="tablist" aria-label="אזורי האפליקציה">
@@ -588,6 +625,78 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="card">
+                    <h2>טבלאות עזר — זמנים משוערים</h2>
+                    <p class="hint">הערכות לפי חדר טיפוסי; המחמצת, הקמח והלישה משפיעים — תמיד עדיפה תחושת הבצק על פני הטבלה.</p>
+                    <h3 style="margin: 18px 0 0; font-size: 1.05rem; color: var(--accent);">התפחה ראשונית (Bulk) לפי טמפרטורה</h3>
+                    <div class="schedule-table-wrap">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">טמפ׳ חדר (°C)</th>
+                                    <th scope="col">זמן Bulk משוער</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>18</td><td>כ־5–8 שעות</td></tr>
+                                <tr><td>20</td><td>כ־4–6 שעות</td></tr>
+                                <tr><td>22</td><td>כ־3.5–5 שעות</td></tr>
+                                <tr><td>24</td><td>כ־3–4 שעות</td></tr>
+                                <tr><td>26</td><td>כ־2.5–3.5 שעות</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 style="margin: 22px 0 0; font-size: 1.05rem; color: var(--accent);">מחמצת לשיא (יחס 1:קמח:מים, הידרציה ~100%)</h3>
+                    <div class="schedule-table-wrap">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">יחס (ב־~22°C)</th>
+                                    <th scope="col">זמן לשיא משוער</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>1 : 1 : 1</td><td>כ־4–6 שעות</td></tr>
+                                <tr><td>1 : 2 : 2</td><td>כ־6–8 שעות</td></tr>
+                                <tr><td>1 : 3 : 3</td><td>כ־8–12 שעות</td></tr>
+                                <tr><td>1 : 4 : 4 ומעלה</td><td>כ־12–16+ שעות</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 style="margin: 22px 0 0; font-size: 1.05rem; color: var(--accent);">התפחה איטית במקרר (Retard)</h3>
+                    <div class="schedule-table-wrap">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">טווח</th>
+                                    <th scope="col">הערות</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>8–12 שעות</td><td>חמוץ מתון, קרום דק יחסית</td></tr>
+                                <tr><td>12–18 שעות</td><td>טעמים עמוקים, נפוץ בבית</td></tr>
+                                <tr><td>18–24+ שעות</td><td>חמוץ חזק; ודאו שלא «עוברים» תפיחה</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <h3 style="margin: 22px 0 0; font-size: 1.05rem; color: var(--accent);">מלח ואחוזי נוזלים (תזכורת מהירה)</h3>
+                    <div class="schedule-table-wrap">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">נושא</th>
+                                    <th scope="col">טווח נפוץ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>מלח מול קמח</td><td>1.8% – 2.2% (2% מקובל)</td></tr>
+                                <tr><td>מחמצת מול קמח</td><td>15% – 25% (20% מקובל)</td></tr>
+                                <tr><td>הידרציה כוללת</td><td>65% – 80% (לחם «פתוח» יותר = יותר מים)</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <!-- פאנל מחמצת -->
@@ -642,7 +751,7 @@
         </main>
 
         <footer>
-            Sourdough Master — ללא שמירת נתונים בדפדפן (הכל מקומי בדף זה).
+            Sourdough Master — הכל רץ מקומית בדפדפן; אין שמירת נתונים בשרת.
         </footer>
     </div>
 
