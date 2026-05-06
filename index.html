@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#c9a87c">
+    <title>Sourdough Master | מחשבון ומדריך מחמצת</title>
+    <style>
+        :root {
+            --bg: #faf6f0;
+            --bg-pattern: #f0e8dc;
+            --surface: #fffcfa;
+            --primary: #b8956a;
+            --primary-dark: #8b6914;
+            --accent: #6b4f3a;
+            --text: #3d2e26;
+            --text-muted: #6b5c52;
+            --border: #e8dfd4;
+            --success-bg: #eef6ec;
+            --success-border: #a8c99a;
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --shadow: 0 4px 24px rgba(61, 46, 38, 0.08);
+            --shadow-hover: 0 8px 32px rgba(61, 46, 38, 0.12);
+            --focus-ring: 0 0 0 3px rgba(184, 149, 106, 0.45);
+            --font: "Segoe UI", "Heebo", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse 120% 80% at 50% -20%, rgba(201, 168, 124, 0.18), transparent),
+                radial-gradient(var(--bg-pattern) 1px, transparent 1px);
+            background-size: 100% 100%, 24px 24px;
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.65;
+            min-height: 100vh;
+        }
+
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            right: 16px;
+            background: var(--accent);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            z-index: 100;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .skip-link:focus {
+            top: 16px;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 28px 20px 56px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        h1 {
+            font-size: clamp(1.75rem, 5vw, 2.35rem);
+            color: var(--accent);
+            margin: 0 0 12px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin: 0;
+            max-width: 32em;
+            margin-inline: auto;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 6px;
+            background: rgba(255, 252, 250, 0.85);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 12px;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--accent);
+            background: rgba(184, 149, 106, 0.12);
+        }
+
+        .tab[aria-selected="true"] {
+            background: var(--surface);
+            color: var(--accent);
+            box-shadow: 0 2px 12px rgba(61, 46, 38, 0.08);
+        }
+
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+            animation: fadeIn 0.25s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            box-shadow: var(--shadow);
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            border-top: 4px solid var(--primary);
+        }
+
+        .card h2 {
+            margin: 0 0 8px;
+            font-size: 1.25rem;
+            color: var(--accent);
+        }
+
+        .card .hint {
+            margin: 0 0 22px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--accent);
+        }
+
+        input[type="number"],
+        input[type="range"],
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 1.05rem;
+            text-align: center;
+            font-family: inherit;
+            color: var(--text);
+            background: #fff;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: var(--focus-ring);
+        }
+
+        .range-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .range-row input[type="range"] {
+            flex: 1;
+            padding: 0;
+            height: 8px;
+            accent-color: var(--primary-dark);
+        }
+
+        .range-value {
+            min-width: 3.2em;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .checkbox-row input {
+            width: 1.15em;
+            height: 1.15em;
+            accent-color: var(--primary-dark);
+        }
+
+        .checkbox-row label {
+            margin: 0;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        button.calc-btn {
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            border: none;
+            padding: 16px 24px;
+            font-size: 1.1rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            width: 100%;
+            font-weight: 700;
+            font-family: inherit;
+            transition: transform 0.15s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(139, 105, 20, 0.35);
+        }
+
+        button.calc-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(139, 105, 20, 0.4);
+        }
+
+        button.calc-btn:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            display: none;
+            margin-top: 26px;
+            padding: 22px;
+            border-radius: var(--radius-md);
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+        }
+
+        .results.visible {
+            display: block;
+        }
+
+        .results h3 {
+            margin: 0 0 18px;
+            color: var(--accent);
+            text-align: center;
+            font-size: 1.35rem;
+        }
+
+        .ingredients-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .ingredient-item {
+            background: var(--surface);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .ingredient-item span {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .ingredient-item strong {
+            display: block;
+            font-size: 1.35rem;
+            color: var(--text);
+            margin-top: 6px;
+        }
+
+        .starter-result-box {
+            margin-top: 20px;
+            padding: 18px;
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+        }
+
+        .starter-result-box h4 {
+            margin: 0 0 12px;
+            font-size: 1.05rem;
+            color: var(--accent);
+        }
+
+        .starter-metrics {
+            display: grid;
+            gap: 10px;
+        }
+
+        .starter-metrics p {
+            margin: 0;
+            font-size: 0.98rem;
+        }
+
+        .starter-metrics strong {
+            color: var(--primary-dark);
+        }
+
+        .ratio-pill {
+            display: inline-block;
+            background: rgba(184, 149, 106, 0.2);
+            color: var(--accent);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120px);
+            background: var(--accent);
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            box-shadow: var(--shadow-hover);
+            z-index: 200;
+            opacity: 0;
+            transition: transform 0.35s ease, opacity 0.35s ease;
+            max-width: calc(100% - 32px);
+            text-align: center;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .guide-section {
+            display: none;
+        }
+
+        .guide-section.visible {
+            display: block;
+        }
+
+        .guide-section > h2 {
+            text-align: center;
+            color: var(--accent);
+            margin: 32px 0 24px;
+            font-size: 1.4rem;
+        }
+
+        .step {
+            display: flex;
+            margin-bottom: 18px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 20px 22px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            border-right: 4px solid var(--primary);
+        }
+
+        .step-icon {
+            font-size: 2rem;
+            margin-left: 18px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            min-width: 52px;
+            line-height: 1.2;
+        }
+
+        .step-content h4 {
+            margin: 0 0 8px;
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        .step-content p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.98rem;
+        }
+
+        .highlight {
+            background: linear-gradient(180deg, transparent 60%, rgba(255, 216, 168, 0.55) 60%);
+            padding: 0 4px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 16px 48px;
+            }
+
+            .card {
+                padding: 22px 18px;
+            }
+
+            .step {
+                flex-direction: column;
+            }
+
+            .step-icon {
+                margin-left: 0;
+                margin-bottom: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a class="skip-link" href="#main">דלג לתוכן</a>
+
+    <div class="container">
+        <header>
+            <h1>🌾 מחשבון ומדריך מחמצת</h1>
+            <p class="subtitle">חישוב כמויות בצק, תכנון האכלה מהמקרר ויחסים לפי הזמן עד לאוטוליזה — הכל במקום אחד, בלי עומס.</p>
+        </header>
+
+        <div class="tabs" role="tablist" aria-label="אזורי האפליקציה">
+            <button type="button" class="tab" role="tab" id="tab-dough" aria-selected="true" aria-controls="panel-dough" data-panel="panel-dough">חישוב בצק</button>
+            <button type="button" class="tab" role="tab" id="tab-starter" aria-selected="false" aria-controls="panel-starter" data-panel="panel-starter">מחמצת מהמקרר</button>
+        </div>
+
+        <main id="main">
+            <!-- פאנל בצק -->
+            <div class="panel active" id="panel-dough" role="tabpanel" aria-labelledby="tab-dough">
+                <div class="card">
+                    <h2>מתכון הבצק</h2>
+                    <p class="hint">הזינו משקל בצק סופי ואחוזים — הקמח תמיד 100% (בסיס לשאר החישוב).</p>
+                    <div class="input-grid">
+                        <div class="input-group full">
+                            <label for="totalWeight">משקל הבצק הסופי הרצוי (גרם)</label>
+                            <input type="number" id="totalWeight" placeholder="למשל 1000" min="1" step="1" inputmode="numeric">
+                        </div>
+                        <div class="input-group">
+                            <label for="waterPct">מים (%)</label>
+                            <input type="number" id="waterPct" value="73" min="1" max="120" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="starterPct">מחמצת (%)</label>
+                            <input type="number" id="starterPct" value="20" min="1" max="80" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="saltPct">מלח (%)</label>
+                            <input type="number" id="saltPct" value="2" min="0.5" max="5" step="0.1">
+                        </div>
+                    </div>
+
+                    <button type="button" class="calc-btn" id="btnCalcDough">חשב מרכיבים והכן מדריך</button>
+
+                    <div class="results" id="results" aria-live="polite">
+                        <h3>המרכיבים שלך</h3>
+                        <div class="ingredients-list">
+                            <div class="ingredient-item">
+                                <span>קמח (100%)</span>
+                                <strong id="resFlour">0 גרם</strong>
+                            </div>
+                            <div class="ingredient-item">
+                                <span>מים</span>
+                                <strong id="resWater">0 גרם</strong>
+                            </div>
+                            <div class="ingredient-item">
+                                <span>מחמצת</span>
+                                <strong id="resStarter">0 גרם</strong>
+                            </div>
+                            <div class="ingredient-item">
+                                <span>מלח</span>
+                                <strong id="resSalt">0 גרם</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="guide-section" id="guideSection" aria-label="מדריך שלבים">
+                    <h2>המדריך שלך — שלב אחר שלב</h2>
+
+                    <div class="step">
+                        <div class="step-icon" aria-hidden="true">🦠</div>
+                        <div class="step-content">
+                            <h4>1. האכלת המחמצת</h4>
+                            <p>הוצא את המחמצת מהמקרר והאכל אותה. למתכון זה תצטרך <span class="highlight" id="guideStarter">0 גרם</span> מחמצת פעילה בשיא. עבור תכנון מדויק — השתמשו בלשונית «מחמצת מהמקרר». חכי עד כפילות נפח (בדרך כלל 4–8 שעות, תלוי בטמפרטורה ובחוזק המחמצת).</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-icon" aria-hidden="true">🥣</div>
+                        <div class="step-content">
+                            <h4>2. אוטוליזה (Autolyse)</h4>
+                            <p>כשהמחמצת כמעט בשיאה, מערבבים בקערה את <span class="highlight" id="guideFlour">0 גרם</span> קמח עם <span class="highlight" id="guideWater">0 גרם</span> מים (בלי מחמצת ומלח). מכסים ונותנים לבצק לנוח כ־30–60 דקות. השלב מסייע לגלוטן ולעבודה נוחה יותר.</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-icon" aria-hidden="true">🤲</div>
+                        <div class="step-content">
+                            <h4>3. הוספת מחמצת ומלח</h4>
+                            <p>אחרי האוטוליזה מוסיפים <span class="highlight" id="guideStarter2">0 גרם</span> מחמצת ו־<span class="highlight" id="guideSalt">0 גרם</span> מלח. לשים עד אחידות מלאה.</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-icon" aria-hidden="true">🔄</div>
+                        <div class="step-content">
+                            <h4>4. קיפולים (Stretch &amp; Fold)</h4>
+                            <p>בשעות הראשונות להתפחה — 3–4 סטים בפרקי זמן של כ־30–45 דקות, לפי תחושת הבצק. כשהבצק חזק ואלסטי — אפשר להפסיק.</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-icon" aria-hidden="true">⏳</div>
+                        <div class="step-content">
+                            <h4>5. תפיחה ראשונית ועיצוב</h4>
+                            <p>המשך Bulk Fermentation (עוד בערך 2–4 שעות, לפי חום החדר) עד גידול בנפח ורעדה קלה. אז עיצוב והעברה לבנטון או קערה מקומחת.</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-icon" aria-hidden="true">❄️</div>
+                        <div class="step-content">
+                            <h4>6. התפחה איטית במקרר</h4>
+                            <p>כיסוי הדוק נגד ייבוש, והקרה של 8–20 שעות לטעמים עמוקים ולשליטה בתפיחה.</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-icon" aria-hidden="true">🔥</div>
+                        <div class="step-content">
+                            <h4>7. אפייה</h4>
+                            <p>חימום מראש (למשל ~250°C), אדים בתחילה, <b>לא טורבו</b> אם התנור נוטה לשרוף. לאחר קרום ראשוני — הורדת חום והמשך עד צבע עמוק.</p>
+                        </div>
+                    </div>
+
+                    <div class="step">
+                        <div class="step-icon" aria-hidden="true">🍞</div>
+                        <div class="step-content">
+                            <h4>8. קירור</h4>
+                            <p>לפחות 2–3 שעות על רשת לפני חיתוך — אחרת פנים דביקים.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- פאנל מחמצת -->
+            <div class="panel" id="panel-starter" role="tabpanel" aria-labelledby="tab-starter" hidden>
+                <div class="card">
+                    <h2>כמה לשלוף מהמקרר ואיך להאכיל</h2>
+                    <p class="hint">מחשבים כמה מחמצת קרה צריך כבסיס להאכלה, ויחס 1:קמח:מים שמתאים לזמן שיש עד שתרצו להתחיל אוטוליזה (הערכות לחדר ~22°C; התאימו לפי המחמצת שלכם).</p>
+
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="useRecipeStarter" checked>
+                        <label for="useRecipeStarter">השתמש בכמות המחמצת מהחישוב בלשונית «חישוב בצק»</label>
+                    </div>
+
+                    <div class="input-grid">
+                        <div class="input-group full" id="wrapManualStarter">
+                            <label for="manualStarterG">כמות מחמצת נדרשת לבצק (גרם)</label>
+                            <input type="number" id="manualStarterG" placeholder="למשל 160" min="1" step="1" inputmode="numeric" disabled>
+                        </div>
+                        <div class="input-group">
+                            <label for="keepInJarG">לשמור בצנצנת אחרי (גרם)</label>
+                            <input type="number" id="keepInJarG" value="30" min="0" step="1" inputmode="numeric">
+                        </div>
+                        <div class="input-group">
+                            <label for="roomTemp">טמפרטורת חדר (°C)</label>
+                            <input type="number" id="roomTemp" value="22" min="16" max="30" step="1">
+                        </div>
+                        <div class="input-group full">
+                            <label for="hoursToAutolyse">זמן עד שתרצו להתחיל אוטוליזה (שעות): <span class="range-value" id="hoursLabel">8</span></label>
+                            <div class="range-row">
+                                <input type="range" id="hoursToAutolyse" min="2" max="16" step="0.5" value="8">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="calc-btn" id="btnCalcStarter">חשב שליפה מהמקרר והאכלה</button>
+
+                    <div class="results" id="starterResults" aria-live="polite">
+                        <h3>תכנון האכלה</h3>
+                        <div class="starter-result-box">
+                            <h4>יחס מומלץ (מחמצת : קמח : מים)</h4>
+                            <p><span class="ratio-pill" id="ratioPill">1 : 3 : 3</span></p>
+                            <p id="ratioExplain" style="margin-top:12px; font-size:0.95rem; color: var(--text-muted);"></p>
+                        </div>
+                        <div class="starter-result-box">
+                            <h4>מה לשלוף מהמקרר</h4>
+                            <div class="starter-metrics" id="starterMetrics"></div>
+                        </div>
+                        <p style="margin:16px 0 0; font-size:0.88rem; color: var(--text-muted);">המלצות הן הערכה בלבד — מחמצות חזקות יגיעו לשיא מהר יותר; בחדר קר יותר כדאי לבחור יחס «נמוך» יותר (יותר מחמצת ביחס) או להאריך זמן.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            Sourdough Master — ללא שמירת נתונים בדפדפן (הכל מקומי בדף זה).
+        </footer>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <script>
+        (function () {
+            let lastStarterForRecipe = 0;
+
+            function showToast(msg) {
+                var el = document.getElementById('toast');
+                el.textContent = msg;
+                el.classList.add('show');
+                clearTimeout(showToast._t);
+                showToast._t = setTimeout(function () { el.classList.remove('show'); }, 3200);
+            }
+
+            function calculateDough() {
+                var totalWeight = parseFloat(document.getElementById('totalWeight').value);
+                var waterPct = parseFloat(document.getElementById('waterPct').value) / 100;
+                var starterPct = parseFloat(document.getElementById('starterPct').value) / 100;
+                var saltPct = parseFloat(document.getElementById('saltPct').value) / 100;
+
+                if (!totalWeight || totalWeight <= 0) {
+                    showToast('נא להזין משקל בצק תקין.');
+                    return;
+                }
+
+                var totalPct = 1 + waterPct + starterPct + saltPct;
+                var flour = totalWeight / totalPct;
+                var water = flour * waterPct;
+                var starter = flour * starterPct;
+                var salt = flour * saltPct;
+
+                var rFlour = Math.round(flour);
+                var rWater = Math.round(water);
+                var rStarter = Math.round(starter);
+                var rSalt = Math.round(salt);
+
+                lastStarterForRecipe = rStarter;
+
+                document.getElementById('resFlour').textContent = rFlour + ' גרם';
+                document.getElementById('resWater').textContent = rWater + ' גרם';
+                document.getElementById('resStarter').textContent = rStarter + ' גרם';
+                document.getElementById('resSalt').textContent = rSalt + ' גרם';
+
+                document.getElementById('guideStarter').textContent = rStarter + ' גרם';
+                document.getElementById('guideStarter2').textContent = rStarter + ' גרם';
+                document.getElementById('guideFlour').textContent = rFlour + ' גרם';
+                document.getElementById('guideWater').textContent = rWater + ' גרם';
+                document.getElementById('guideSalt').textContent = rSalt + ' גרם';
+
+                document.getElementById('results').classList.add('visible');
+                document.getElementById('guideSection').classList.add('visible');
+
+                setTimeout(function () {
+                    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
+            }
+
+            /** התאמת שעות "אפקטיביות" לטמפרטורה (קירור = צריך יחס נמוך יותר / פחות דילול) */
+            function effectiveHoursForRatio(hours, tempC) {
+                var adj = hours;
+                if (tempC < 20) adj += (20 - tempC) * 0.35;
+                if (tempC > 24) adj -= (tempC - 24) * 0.25;
+                return Math.max(2, adj);
+            }
+
+            /** בוחר יחס 1:a:a לפי שעות עד אוטוליזה */
+            function pickRatio(effH) {
+                var steps = [
+                    { maxH: 3.5, a: 1, note: 'התפחה מהירה — מתאים כשיש מעט זמן עד האוטוליזה.' },
+                    { maxH: 5, a: 2, note: 'איזון נפוץ ליום אפייה רגיל.' },
+                    { maxH: 7, a: 3, note: 'דילול בינוני — מתאים ללילה קצר או בוקר מאוחר.' },
+                    { maxH: 10, a: 4, note: 'דילול גבוה — מתאים כשיש זמן ארוך עד ערבוב קמח ומים.' },
+                    { maxH: 999, a: 5, note: 'דילול גבוה במיוחד — מתאים למתכננים הרבה שעות מראש; ודאו שהמחמצת מספיק חזקה.' }
+                ];
+                for (var i = 0; i < steps.length; i++) {
+                    if (effH <= steps[i].maxH) {
+                        return { a: steps[i].a, note: steps[i].note };
+                    }
+                }
+                return { a: 5, note: steps[steps.length - 1].note };
+            }
+
+            function calculateStarter() {
+                var useRecipe = document.getElementById('useRecipeStarter').checked;
+                var needG = useRecipe ? lastStarterForRecipe : parseFloat(document.getElementById('manualStarterG').value);
+                var keepG = parseFloat(document.getElementById('keepInJarG').value) || 0;
+                var tempC = parseFloat(document.getElementById('roomTemp').value);
+                if (isNaN(tempC)) tempC = 22;
+
+                var hours = parseFloat(document.getElementById('hoursToAutolyse').value);
+                if (useRecipe && (!lastStarterForRecipe || lastStarterForRecipe <= 0)) {
+                    showToast('קודם חשבו בצק בלשונית «חישוב בצק», או בטלו את הסימון והזינו גרמים ידנית.');
+                    return;
+                }
+                if (!useRecipe && (!needG || needG <= 0)) {
+                    showToast('נא להזין כמות מחמצת נדרשת (גרם).');
+                    return;
+                }
+
+                var effH = effectiveHoursForRatio(hours, tempC);
+                var picked = pickRatio(effH);
+                var a = picked.a;
+                var mult = 1 + a + a;
+                var buffer = 1.08;
+                var totalTarget = (needG + keepG) * buffer;
+                var seed = Math.ceil(totalTarget / mult);
+                var flourAdd = seed * a;
+                var waterAdd = seed * a;
+                var totalMix = seed + flourAdd + waterAdd;
+
+                document.getElementById('ratioPill').textContent = '1 : ' + a + ' : ' + a;
+                var explain = 'לפי כ־' + hours + ' שעות עד אוטוליזה';
+                if (Math.abs(effH - hours) > 0.6) {
+                    explain += ' (מותאם ל־~' + tempC + '°C כמו ~' + effH.toFixed(1) + ' שעות «אפקטיביות»)';
+                }
+                explain += '. ' + picked.note;
+                document.getElementById('ratioExplain').textContent = explain;
+
+                var metrics = document.getElementById('starterMetrics');
+                metrics.innerHTML =
+                    '<p>שלפו מהמקרר בערך <strong>' + seed + ' גרם</strong> מחמצת קרה.</p>' +
+                    '<p>הוסיפו <strong>' + Math.round(flourAdd) + ' גרם</strong> קמח ו־<strong>' + Math.round(waterAdd) + ' גרם</strong> מים (אותו סוג קמח כרגיל).</p>' +
+                    '<p>סה״כ אחרי ערבוב: <strong>' + Math.round(totalMix) + ' גרם</strong> — אמור לכסות את <strong>' + Math.round(needG) + ' גרם</strong> לבצק' +
+                    (keepG > 0 ? ' ועוד <strong>' + Math.round(keepG) + ' גרם</strong> לשמור בצנצנת' : '') +
+                    ', עם מרווח בטיחות קטן.</p>';
+
+                document.getElementById('starterResults').classList.add('visible');
+                setTimeout(function () {
+                    document.getElementById('starterResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
+            }
+
+            /* טאבים */
+            document.querySelectorAll('.tab').forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    var id = tab.getAttribute('data-panel');
+                    document.querySelectorAll('.tab').forEach(function (t) {
+                        t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+                    });
+                    document.querySelectorAll('.panel').forEach(function (p) {
+                        var on = p.id === id;
+                        p.classList.toggle('active', on);
+                        p.hidden = !on;
+                    });
+                });
+            });
+
+            document.getElementById('btnCalcDough').addEventListener('click', calculateDough);
+            document.getElementById('btnCalcStarter').addEventListener('click', calculateStarter);
+
+            document.getElementById('useRecipeStarter').addEventListener('change', function () {
+                var manual = document.getElementById('manualStarterG');
+                manual.disabled = this.checked;
+                document.getElementById('wrapManualStarter').style.opacity = this.checked ? '0.65' : '1';
+            });
+
+            var hoursSlider = document.getElementById('hoursToAutolyse');
+            var hoursLabel = document.getElementById('hoursLabel');
+            hoursSlider.addEventListener('input', function () {
+                var v = parseFloat(this.value);
+                hoursLabel.textContent = (Math.round(v * 2) / 2).toString().replace(/\.0$/, '');
+            });
+
+            document.getElementById('totalWeight').addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') calculateDough();
+            });
+
+            (function initStarterForm() {
+                var cb = document.getElementById('useRecipeStarter');
+                document.getElementById('wrapManualStarter').style.opacity = cb.checked ? '0.65' : '1';
+            })();
+        })();
+    </script>
+</body>
+</html>
