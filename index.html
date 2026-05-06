@@ -88,58 +88,6 @@
             margin-inline: auto;
         }
 
-        .tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 24px;
-            padding: 6px;
-            background: rgba(255, 252, 250, 0.85);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-        }
-
-        .tab {
-            flex: 1;
-            min-width: 100px;
-            padding: 14px 12px;
-            border: none;
-            border-radius: 12px;
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 1rem;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-        }
-
-        .tab:hover {
-            color: var(--accent);
-            background: rgba(184, 149, 106, 0.12);
-        }
-
-        .tab[aria-selected="true"] {
-            background: var(--surface);
-            color: var(--accent);
-            box-shadow: 0 2px 12px rgba(61, 46, 38, 0.08);
-        }
-
-        .panel {
-            display: none;
-        }
-
-        .panel.active {
-            display: block;
-            animation: fadeIn 0.25s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .card {
             background: var(--surface);
             border-radius: var(--radius-lg);
@@ -267,6 +215,42 @@
 
         button.calc-btn:active {
             transform: translateY(0);
+        }
+
+        button.btn-ghost {
+            display: block;
+            width: 100%;
+            margin-top: 12px;
+            padding: 14px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: var(--accent);
+            background: transparent;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        button.btn-ghost:hover {
+            background: rgba(184, 149, 106, 0.1);
+            border-color: var(--primary);
+        }
+
+        .guide-banner {
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            background: rgba(184, 149, 106, 0.12);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin: 0 0 20px;
+        }
+
+        .guide-section.starter-only-mode > .step ~ .step {
+            opacity: 0.55;
         }
 
         .schedule-table-wrap {
@@ -460,6 +444,20 @@
             font-size: 0.98rem;
         }
 
+        .starter-embed {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .starter-embed .hint {
+            margin-bottom: 16px;
+        }
+
+        .starter-embed .results {
+            margin-top: 18px;
+        }
+
         .highlight {
             background: linear-gradient(180deg, transparent 60%, rgba(255, 216, 168, 0.55) 60%);
             padding: 0 4px;
@@ -500,20 +498,13 @@
     <div class="container">
         <header>
             <h1>🌾 מחשבון ומדריך מחמצת</h1>
-            <p class="subtitle">חישוב בצק, תכנון מחמצת מהמקרר וטבלאות זמני התפחה — במקום אחד.</p>
+            <p class="subtitle">חישוב בצק, תכנון מחמצת מהמקרר וטבלאות זמני התפחה — במקום אחד, בניסוח שמותאם לכולם.</p>
         </header>
 
-        <div class="tabs" role="tablist" aria-label="אזורי האפליקציה">
-            <button type="button" class="tab" role="tab" id="tab-dough" aria-selected="true" aria-controls="panel-dough" data-panel="panel-dough">חישוב בצק</button>
-            <button type="button" class="tab" role="tab" id="tab-starter" aria-selected="false" aria-controls="panel-starter" data-panel="panel-starter">מחמצת מהמקרר</button>
-        </div>
-
         <main id="main">
-            <!-- פאנל בצק -->
-            <div class="panel active" id="panel-dough" role="tabpanel" aria-labelledby="tab-dough">
                 <div class="card">
                     <h2>מתכון הבצק</h2>
-                    <p class="hint">הזינו משקל בצק סופי ואחוזים — הקמח תמיד 100% (בסיס לשאר החישוב).</p>
+                    <p class="hint">הזן/י משקל בצק סופי ואחוזים — הקמח תמיד 100% (בסיס לשאר החישוב).</p>
                     <div class="input-grid">
                         <div class="input-group full">
                             <label for="totalWeight">משקל הבצק הסופי הרצוי (גרם)</label>
@@ -533,10 +524,11 @@
                         </div>
                     </div>
 
-                    <button type="button" class="calc-btn" id="btnCalcDough">חשב מרכיבים והכן מדריך</button>
+                    <button type="button" class="calc-btn" id="btnCalcDough">חישוב מרכיבים והכנת מדריך</button>
+                    <button type="button" class="btn-ghost" id="btnShowStarterOnly">רק מחשבון מחמצת במדריך (בלי חישוב בצק)</button>
 
                     <div class="results" id="results" aria-live="polite">
-                        <h3>המרכיבים שלך</h3>
+                        <h3>המרכיבים למתכון</h3>
                         <div class="ingredients-list">
                             <div class="ingredient-item">
                                 <span>קמח (100%)</span>
@@ -560,12 +552,55 @@
 
                 <div class="guide-section" id="guideSection" aria-label="מדריך שלבים">
                     <h2>המדריך שלך — שלב אחר שלב</h2>
+                    <p class="guide-banner" id="guideStarterOnlyBanner" hidden>מצב מחמצת בלבד — השלבים שלהלן יתעדכנו אחרי שתחשב/י את מתכון הבצק למעלה.</p>
 
                     <div class="step">
                         <div class="step-icon" aria-hidden="true">🦠</div>
                         <div class="step-content">
                             <h4>1. האכלת המחמצת</h4>
-                            <p>הוצא את המחמצת מהמקרר והאכל אותה. למתכון זה תצטרך <span class="highlight" id="guideStarter">0 גרם</span> מחמצת פעילה בשיא. עבור תכנון מדויק — השתמשו בלשונית «מחמצת מהמקרר». חכי עד כפילות נפח (בדרך כלל 4–8 שעות, תלוי בטמפרטורה ובחוזק המחמצת).</p>
+                            <p id="step1IntroFull">הוצא/י את המחמצת מהמקרר והאכל/י אותה. למתכון הזה תצטרך/י <span class="highlight" id="guideStarter">0 גרם</span> מחמצת פעילה בשיא. חכה/י עד כפילות נפח (בדרך כלל 4–8 שעות, תלוי בטמפרטורה ובחוזק המחמצת).</p>
+                            <p id="step1IntroStarterOnly" hidden>הוצא/י את המחמצת מהמקרר והאכל/י אותה. למתכון מלא עם כמויות קמח ומים חשב/י את הבצק למעלה; בינתיים הזן/י למטה כמה מחמצת תצטרך/י לבצק (גרם). חכה/י עד כפילות נפח (בדרך כלל 4–8 שעות, תלוי בטמפרטורה ובחוזק המחמצת).</p>
+                            <div class="starter-embed">
+                                <p class="hint" style="margin:0 0 12px;">כמה לשלוף מהמקרר ואיך להאכיל: מחשבים מחמצת קרה, קמח ומים לפי הזמן שיש לך/י עד שתרצה/י להתחיל אוטוליזה (הערכה ל־~22°C — התאימו למחמצת שלכם).</p>
+                                <div class="checkbox-row">
+                                    <input type="checkbox" id="useRecipeStarter" checked>
+                                    <label for="useRecipeStarter">השתמש/י בכמות המחמצת מהחישוב למעלה (מתכון הבצק)</label>
+                                </div>
+                                <div class="input-grid">
+                                    <div class="input-group full" id="wrapManualStarter">
+                                        <label for="manualStarterG">כמות מחמצת נדרשת לבצק (גרם)</label>
+                                        <input type="number" id="manualStarterG" placeholder="למשל 160" min="1" step="1" inputmode="numeric" disabled>
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="keepInJarG">לשמור בצנצנת אחרי (גרם)</label>
+                                        <input type="number" id="keepInJarG" value="30" min="0" step="1" inputmode="numeric">
+                                    </div>
+                                    <div class="input-group">
+                                        <label for="roomTemp">טמפרטורת חדר (°C)</label>
+                                        <input type="number" id="roomTemp" value="22" min="16" max="30" step="1">
+                                    </div>
+                                    <div class="input-group full">
+                                        <label for="hoursToAutolyse">זמן עד שתרצה/י להתחיל אוטוליזה (שעות): <span class="range-value" id="hoursLabel">8</span></label>
+                                        <div class="range-row">
+                                            <input type="range" id="hoursToAutolyse" min="2" max="16" step="0.5" value="8">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="calc-btn" id="btnCalcStarter">חישוב שליפה מהמקרר והאכלה</button>
+                                <div class="results" id="starterResults" aria-live="polite">
+                                    <h3>תכנון האכלה</h3>
+                                    <div class="starter-result-box">
+                                        <h4>יחס מומלץ (מחמצת : קמח : מים)</h4>
+                                        <p><span class="ratio-pill" id="ratioPill">1 : 3 : 3</span></p>
+                                        <p id="ratioExplain" style="margin-top:12px; font-size:0.95rem; color: var(--text-muted);"></p>
+                                    </div>
+                                    <div class="starter-result-box">
+                                        <h4>מה לשלוף מהמקרר</h4>
+                                        <div class="starter-metrics" id="starterMetrics"></div>
+                                    </div>
+                                    <p style="margin:16px 0 0; font-size:0.88rem; color: var(--text-muted);">המלצות הן הערכה בלבד — מחמצות חזקות מגיעות לשיא מהר יותר; בחדר קר יותר כדאי יחס «צפוף» יותר (יותר מחמצת ביחס) או להאריך זמן.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -573,7 +608,7 @@
                         <div class="step-icon" aria-hidden="true">🥣</div>
                         <div class="step-content">
                             <h4>2. אוטוליזה (Autolyse)</h4>
-                            <p>כשהמחמצת כמעט בשיאה, מערבבים בקערה את <span class="highlight" id="guideFlour">0 גרם</span> קמח עם <span class="highlight" id="guideWater">0 גרם</span> מים (בלי מחמצת ומלח). מכסים ונותנים לבצק לנוח כ־30–60 דקות. השלב מסייע לגלוטן ולעבודה נוחה יותר.</p>
+                            <p>כשהמחמצת כמעט בשיאה, מערבבים בקערה את <span class="highlight" id="guideFlour">0 גרם</span> קמח עם <span class="highlight" id="guideWater">0 גרם</span> מים (בלי מחמצת ומלח). כסו/י ותנו/י לבצק לנוח כ־30–60 דקות. השלב מסייע לגלוטן ולעבודה נוחה יותר.</p>
                         </div>
                     </div>
 
@@ -581,7 +616,7 @@
                         <div class="step-icon" aria-hidden="true">🤲</div>
                         <div class="step-content">
                             <h4>3. הוספת מחמצת ומלח</h4>
-                            <p>אחרי האוטוליזה מוסיפים <span class="highlight" id="guideStarter2">0 גרם</span> מחמצת ו־<span class="highlight" id="guideSalt">0 גרם</span> מלח. לשים עד אחידות מלאה.</p>
+                            <p>אחרי האוטוליזה מוסיפים <span class="highlight" id="guideStarter2">0 גרם</span> מחמצת ו־<span class="highlight" id="guideSalt">0 גרם</span> מלח. לש/י עד אחידות מלאה.</p>
                         </div>
                     </div>
 
@@ -589,7 +624,7 @@
                         <div class="step-icon" aria-hidden="true">🔄</div>
                         <div class="step-content">
                             <h4>4. קיפולים (Stretch &amp; Fold)</h4>
-                            <p>בשעות הראשונות להתפחה — 3–4 סטים בפרקי זמן של כ־30–45 דקות, לפי תחושת הבצק. כשהבצק חזק ואלסטי — אפשר להפסיק.</p>
+                            <p>בשעות הראשונות להתפחה — 3–4 סטים בפרקי זמן של כ־30–50 דקות, לפי תחושת הבצק. כשהבצק חזק ואלסטי — אפשר להפסיק.</p>
                         </div>
                     </div>
 
@@ -597,7 +632,7 @@
                         <div class="step-icon" aria-hidden="true">⏳</div>
                         <div class="step-content">
                             <h4>5. תפיחה ראשונית ועיצוב</h4>
-                            <p>המשך Bulk Fermentation (עוד בערך 2–4 שעות, לפי חום החדר) עד גידול בנפח ורעדה קלה. אז עיצוב והעברה לבנטון או קערה מקומחת.</p>
+                            <p>אפשר להמשיך עם Bulk Fermentation (עוד בערך 3-8 שעות, לפי חום החדר) עד גידול בנפח ורעדה קלה. אז עיצוב והעברה לבנטון או קערה מקומחת.</p>
                         </div>
                     </div>
 
@@ -628,7 +663,7 @@
 
                 <div class="card">
                     <h2>טבלאות עזר — זמנים משוערים</h2>
-                    <p class="hint">הערכות לפי חדר טיפוסי; המחמצת, הקמח והלישה משפיעים — תמיד עדיפה תחושת הבצק על פני הטבלה.</p>
+                    <p class="hint">הערכות לפי חדר טיפוסי; המחמצת, הקמח והלישה משפיעים — עדיף להסתמך על תחושת הבצק יותר מאשר על הטבלה.</p>
                     <h3 style="margin: 18px 0 0; font-size: 1.05rem; color: var(--accent);">התפחה ראשונית (Bulk) לפי טמפרטורה</h3>
                     <div class="schedule-table-wrap">
                         <table class="schedule-table">
@@ -676,7 +711,7 @@
                             <tbody>
                                 <tr><td>8–12 שעות</td><td>חמוץ מתון, קרום דק יחסית</td></tr>
                                 <tr><td>12–18 שעות</td><td>טעמים עמוקים, נפוץ בבית</td></tr>
-                                <tr><td>18–24+ שעות</td><td>חמוץ חזק; ודאו שלא «עוברים» תפיחה</td></tr>
+                                <tr><td>18–24+ שעות</td><td>חמוץ חזק; כדאי לוודא שלא «עוברים» תפיחה</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -697,57 +732,6 @@
                         </table>
                     </div>
                 </div>
-            </div>
-
-            <!-- פאנל מחמצת -->
-            <div class="panel" id="panel-starter" role="tabpanel" aria-labelledby="tab-starter" hidden>
-                <div class="card">
-                    <h2>כמה לשלוף מהמקרר ואיך להאכיל</h2>
-                    <p class="hint">מחשבים כמה מחמצת קרה צריך כבסיס להאכלה, ויחס 1:קמח:מים שמתאים לזמן שיש עד שתרצו להתחיל אוטוליזה (הערכות לחדר ~22°C; התאימו לפי המחמצת שלכם).</p>
-
-                    <div class="checkbox-row">
-                        <input type="checkbox" id="useRecipeStarter" checked>
-                        <label for="useRecipeStarter">השתמש בכמות המחמצת מהחישוב בלשונית «חישוב בצק»</label>
-                    </div>
-
-                    <div class="input-grid">
-                        <div class="input-group full" id="wrapManualStarter">
-                            <label for="manualStarterG">כמות מחמצת נדרשת לבצק (גרם)</label>
-                            <input type="number" id="manualStarterG" placeholder="למשל 160" min="1" step="1" inputmode="numeric" disabled>
-                        </div>
-                        <div class="input-group">
-                            <label for="keepInJarG">לשמור בצנצנת אחרי (גרם)</label>
-                            <input type="number" id="keepInJarG" value="30" min="0" step="1" inputmode="numeric">
-                        </div>
-                        <div class="input-group">
-                            <label for="roomTemp">טמפרטורת חדר (°C)</label>
-                            <input type="number" id="roomTemp" value="22" min="16" max="30" step="1">
-                        </div>
-                        <div class="input-group full">
-                            <label for="hoursToAutolyse">זמן עד שתרצו להתחיל אוטוליזה (שעות): <span class="range-value" id="hoursLabel">8</span></label>
-                            <div class="range-row">
-                                <input type="range" id="hoursToAutolyse" min="2" max="16" step="0.5" value="8">
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="button" class="calc-btn" id="btnCalcStarter">חשב שליפה מהמקרר והאכלה</button>
-
-                    <div class="results" id="starterResults" aria-live="polite">
-                        <h3>תכנון האכלה</h3>
-                        <div class="starter-result-box">
-                            <h4>יחס מומלץ (מחמצת : קמח : מים)</h4>
-                            <p><span class="ratio-pill" id="ratioPill">1 : 3 : 3</span></p>
-                            <p id="ratioExplain" style="margin-top:12px; font-size:0.95rem; color: var(--text-muted);"></p>
-                        </div>
-                        <div class="starter-result-box">
-                            <h4>מה לשלוף מהמקרר</h4>
-                            <div class="starter-metrics" id="starterMetrics"></div>
-                        </div>
-                        <p style="margin:16px 0 0; font-size:0.88rem; color: var(--text-muted);">המלצות הן הערכה בלבד — מחמצות חזקות יגיעו לשיא מהר יותר; בחדר קר יותר כדאי לבחור יחס «נמוך» יותר (יותר מחמצת ביחס) או להאריך זמן.</p>
-                    </div>
-                </div>
-            </div>
         </main>
 
         <footer>
@@ -760,6 +744,33 @@
     <script>
         (function () {
             let lastStarterForRecipe = 0;
+
+            function setStarterOnlyMode(on) {
+                var guide = document.getElementById('guideSection');
+                var banner = document.getElementById('guideStarterOnlyBanner');
+                var pFull = document.getElementById('step1IntroFull');
+                var pOnly = document.getElementById('step1IntroStarterOnly');
+                var cb = document.getElementById('useRecipeStarter');
+                var manual = document.getElementById('manualStarterG');
+                var wrap = document.getElementById('wrapManualStarter');
+                if (on) {
+                    guide.classList.add('starter-only-mode');
+                    banner.hidden = false;
+                    pFull.hidden = true;
+                    pOnly.hidden = false;
+                    cb.checked = false;
+                    manual.disabled = false;
+                    wrap.style.opacity = '1';
+                } else {
+                    guide.classList.remove('starter-only-mode');
+                    banner.hidden = true;
+                    pFull.hidden = false;
+                    pOnly.hidden = true;
+                    cb.checked = lastStarterForRecipe > 0;
+                    manual.disabled = cb.checked;
+                    wrap.style.opacity = cb.checked ? '0.65' : '1';
+                }
+            }
 
             function showToast(msg) {
                 var el = document.getElementById('toast');
@@ -776,7 +787,7 @@
                 var saltPct = parseFloat(document.getElementById('saltPct').value) / 100;
 
                 if (!totalWeight || totalWeight <= 0) {
-                    showToast('נא להזין משקל בצק תקין.');
+                    showToast('הזן/י משקל בצק תקין.');
                     return;
                 }
 
@@ -792,6 +803,8 @@
                 var rSalt = Math.round(salt);
 
                 lastStarterForRecipe = rStarter;
+
+                setStarterOnlyMode(false);
 
                 document.getElementById('resFlour').textContent = rFlour + ' גרם';
                 document.getElementById('resWater').textContent = rWater + ' גרם';
@@ -827,7 +840,7 @@
                     { maxH: 5, a: 2, note: 'איזון נפוץ ליום אפייה רגיל.' },
                     { maxH: 7, a: 3, note: 'דילול בינוני — מתאים ללילה קצר או בוקר מאוחר.' },
                     { maxH: 10, a: 4, note: 'דילול גבוה — מתאים כשיש זמן ארוך עד ערבוב קמח ומים.' },
-                    { maxH: 999, a: 5, note: 'דילול גבוה במיוחד — מתאים למתכננים הרבה שעות מראש; ודאו שהמחמצת מספיק חזקה.' }
+                    { maxH: 999, a: 5, note: 'דילול גבוה במיוחד — מתאים כשמתכננים הרבה שעות מראש; חשוב לוודא שהמחמצת חזקה דיה.' }
                 ];
                 for (var i = 0; i < steps.length; i++) {
                     if (effH <= steps[i].maxH) {
@@ -846,11 +859,11 @@
 
                 var hours = parseFloat(document.getElementById('hoursToAutolyse').value);
                 if (useRecipe && (!lastStarterForRecipe || lastStarterForRecipe <= 0)) {
-                    showToast('קודם חשבו בצק בלשונית «חישוב בצק», או בטלו את הסימון והזינו גרמים ידנית.');
+                    showToast('קודם חשב/י את מתכון הבצק למעלה ולחצ/י על «חישוב מרכיבים», או בטל/י את הסימון והזינ/י גרמים ידנית.');
                     return;
                 }
                 if (!useRecipe && (!needG || needG <= 0)) {
-                    showToast('נא להזין כמות מחמצת נדרשת (גרם).');
+                    showToast('הזן/י כמות מחמצת נדרשת (גרם).');
                     return;
                 }
 
@@ -875,34 +888,34 @@
 
                 var metrics = document.getElementById('starterMetrics');
                 metrics.innerHTML =
-                    '<p>שלפו מהמקרר בערך <strong>' + seed + ' גרם</strong> מחמצת קרה.</p>' +
-                    '<p>הוסיפו <strong>' + Math.round(flourAdd) + ' גרם</strong> קמח ו־<strong>' + Math.round(waterAdd) + ' גרם</strong> מים (אותו סוג קמח כרגיל).</p>' +
+                    '<p>שלפ/י מהמקרר בערך <strong>' + seed + ' גרם</strong> מחמצת קרה.</p>' +
+                    '<p>הוסיף/י <strong>' + Math.round(flourAdd) + ' גרם</strong> קמח ו־<strong>' + Math.round(waterAdd) + ' גרם</strong> מים (אותו סוג קמח כרגיל).</p>' +
                     '<p>סה״כ אחרי ערבוב: <strong>' + Math.round(totalMix) + ' גרם</strong> — אמור לכסות את <strong>' + Math.round(needG) + ' גרם</strong> לבצק' +
                     (keepG > 0 ? ' ועוד <strong>' + Math.round(keepG) + ' גרם</strong> לשמור בצנצנת' : '') +
                     ', עם מרווח בטיחות קטן.</p>';
 
                 document.getElementById('starterResults').classList.add('visible');
                 setTimeout(function () {
-                    document.getElementById('starterResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    document.getElementById('starterResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }, 80);
             }
 
-            /* טאבים */
-            document.querySelectorAll('.tab').forEach(function (tab) {
-                tab.addEventListener('click', function () {
-                    var id = tab.getAttribute('data-panel');
-                    document.querySelectorAll('.tab').forEach(function (t) {
-                        t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
-                    });
-                    document.querySelectorAll('.panel').forEach(function (p) {
-                        var on = p.id === id;
-                        p.classList.toggle('active', on);
-                        p.hidden = !on;
-                    });
-                });
+                document.getElementById('btnCalcDough').addEventListener('click', calculateDough);
+
+            document.getElementById('btnShowStarterOnly').addEventListener('click', function () {
+                if (lastStarterForRecipe > 0 && document.getElementById('guideSection').classList.contains('visible')) {
+                    showToast('כבר יש מתכון מחושב — גלל/י למדריך למטה.');
+                    document.getElementById('guideSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
+                setStarterOnlyMode(true);
+                document.getElementById('guideSection').classList.add('visible');
+                document.getElementById('starterResults').classList.remove('visible');
+                setTimeout(function () {
+                    document.getElementById('guideSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
             });
 
-            document.getElementById('btnCalcDough').addEventListener('click', calculateDough);
             document.getElementById('btnCalcStarter').addEventListener('click', calculateStarter);
 
             document.getElementById('useRecipeStarter').addEventListener('change', function () {
