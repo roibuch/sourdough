@@ -127,6 +127,92 @@
             grid-column: 1 / -1;
         }
 
+        .flour-mix-panel {
+            margin: 4px 0 22px;
+            padding: 18px;
+            background: rgba(184, 149, 106, 0.1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+        }
+
+        .flour-mix-panel h3 {
+            margin: 0 0 8px;
+            font-size: 1.05rem;
+            color: var(--accent);
+        }
+
+        .flour-mix-panel .hint {
+            margin-bottom: 16px;
+        }
+
+        .flour-breakdown-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .flour-breakdown-item {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .flour-breakdown-item span {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .flour-breakdown-item strong {
+            display: block;
+            margin-top: 4px;
+            color: var(--text);
+            font-size: 1.05rem;
+        }
+
+        .flour-note {
+            margin: 12px 0 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .flour-advice {
+            display: grid;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .flour-advice p {
+            margin: 0;
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+        }
+
+        .flour-advice p.warning {
+            background: #fff6e8;
+            border-color: #e6bd78;
+            color: #72501d;
+        }
+
+        .flour-advice p.danger {
+            background: #fff0ed;
+            border-color: #df9b8f;
+            color: #7a3428;
+        }
+
+        .flour-advice p.good {
+            background: #eef6ec;
+            border-color: #a8c99a;
+            color: #456236;
+        }
+
         label {
             font-weight: 600;
             font-size: 0.92rem;
@@ -524,6 +610,64 @@
                         </div>
                     </div>
 
+                    <div class="flour-mix-panel">
+                        <h3>חלוקה לסוגי קמחים</h3>
+                        <p class="hint">בחר/י תערובת מומלצת או ערכ/י ידנית. הסכום צריך להיות 100% מתוך כמות הקמח הכוללת.</p>
+                        <div class="input-grid">
+                            <div class="input-group full">
+                                <label for="flourPreset">תערובת מומלצת</label>
+                                <select id="flourPreset">
+                                    <option value="classic">קלאסי יציב — 70% קמח לחם, 10% חיטה לבנה רגילה, 10% רב תכליתי, 10% מלא</option>
+                                    <option value="country">כפרי מאוזן — 55% קמח לחם, 10% חיטה לבנה, 10% מניטובה, 20% מלא, 5% שיפון מלא</option>
+                                    <option value="openCrumb">פתוח וחזק — 50% קמח לחם, 5% חיטה לבנה, 25% מניטובה, 15% מלא, 5% שיפון מלא</option>
+                                    <option value="pizzaSoft">עדין ורך — 45% קמח פיצה, 35% קמח לחם, 10% חיטה לבנה, 5% רב תכליתי, 5% מלא</option>
+                                    <option value="nutty">אגוזי ומורכב — 50% קמח לחם, 5% חיטה לבנה, 10% מניטובה, 20% כוסמין, 10% מלא, 5% כוסמת מלאה</option>
+                                    <option value="whole">יותר מלא וטעם עמוק — 40% קמח לחם, 5% חיטה לבנה, 15% מניטובה, 30% מלא, 10% שיפון מלא</option>
+                                    <option value="buckwheatAccent">נגיעת כוסמת — 55% קמח לחם, 5% חיטה לבנה, 10% מניטובה, 15% מלא, 5% שיפון מלא, 10% כוסמת מלאה</option>
+                                    <option value="softHome">ביתית וסלחנית — 35% קמח לחם, 25% חיטה לבנה, 25% רב תכליתי, 10% מלא, 5% כוסמין</option>
+                                    <option value="custom">מותאם אישית</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="breadFlourPct">קמח לחם (%)</label>
+                                <input type="number" id="breadFlourPct" class="flour-pct" value="70" min="0" max="100" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="whiteWheatFlourPct">חיטה לבנה רגילה (%)</label>
+                                <input type="number" id="whiteWheatFlourPct" class="flour-pct" value="10" min="0" max="100" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="manitobaFlourPct">מניטובה (%)</label>
+                                <input type="number" id="manitobaFlourPct" class="flour-pct" value="0" min="0" max="100" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="pizzaFlourPct">קמח פיצה (%)</label>
+                                <input type="number" id="pizzaFlourPct" class="flour-pct" value="0" min="0" max="100" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="allPurposeFlourPct">רב תכליתי (%)</label>
+                                <input type="number" id="allPurposeFlourPct" class="flour-pct" value="10" min="0" max="100" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="wholeFlourPct">חיטה מלאה (%)</label>
+                                <input type="number" id="wholeFlourPct" class="flour-pct" value="10" min="0" max="100" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="wholeRyeFlourPct">שיפון מלא (%)</label>
+                                <input type="number" id="wholeRyeFlourPct" class="flour-pct" value="0" min="0" max="100" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="speltFlourPct">כוסמין (%)</label>
+                                <input type="number" id="speltFlourPct" class="flour-pct" value="0" min="0" max="100" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="wholeBuckwheatFlourPct">כוסמת מלאה (%)</label>
+                                <input type="number" id="wholeBuckwheatFlourPct" class="flour-pct" value="0" min="0" max="100" step="1">
+                            </div>
+                        </div>
+                        <p class="flour-note" id="flourPresetNote">תערובת יציבה וסלחנית, מתאימה ללחם ראשון או לבצק עם הידרציה בינונית.</p>
+                    </div>
+
                     <button type="button" class="calc-btn" id="btnCalcDough">חישוב מרכיבים והכנת מדריך</button>
                     <button type="button" class="btn-ghost" id="btnShowStarterOnly">רק מחשבון מחמצת במדריך (בלי חישוב בצק)</button>
 
@@ -547,6 +691,16 @@
                                 <strong id="resSalt">0 גרם</strong>
                             </div>
                         </div>
+                        <div class="starter-result-box">
+                            <h4>חלוקת הקמח</h4>
+                            <div class="flour-breakdown-list" id="flourBreakdown"></div>
+                            <p class="flour-note" id="flourBreakdownNote"></p>
+                            <div class="flour-advice" id="flourAdvice"></div>
+                        </div>
+                        <div class="starter-result-box">
+                            <h4>המשך עבודה, קיפולים וזמנים</h4>
+                            <div class="flour-advice" id="doughWorkflowAdvice"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -561,7 +715,7 @@
                             <p id="step1IntroFull">הוצא/י את המחמצת מהמקרר והאכל/י אותה. למתכון הזה תצטרך/י <span class="highlight" id="guideStarter">0 גרם</span> מחמצת פעילה בשיא. חכה/י עד כפילות נפח (בדרך כלל 4–8 שעות, תלוי בטמפרטורה ובחוזק המחמצת).</p>
                             <p id="step1IntroStarterOnly" hidden>הוצא/י את המחמצת מהמקרר והאכל/י אותה. למתכון מלא עם כמויות קמח ומים חשב/י את הבצק למעלה; בינתיים הזן/י למטה כמה מחמצת תצטרך/י לבצק (גרם). חכה/י עד כפילות נפח (בדרך כלל 4–8 שעות, תלוי בטמפרטורה ובחוזק המחמצת).</p>
                             <div class="starter-embed">
-                                <p class="hint" style="margin:0 0 12px;">כמה לשלוף מהמקרר ואיך להאכיל: מחשבים מחמצת קרה, קמח ומים לפי הזמן שיש לך עד שתרצה/י להתחיל אוטוליזה (הערכה ל־~22°C — התאימו למחמצת שלכם).</p>
+                                <p class="hint" style="margin:0 0 12px;">כמה לשלוף מהמקרר ואיך להאכיל: מחשבים מחמצת קרה, קמח ומים לפי הזמן שיש לך/י עד שתרצה/י להתחיל אוטוליזה (הערכה ל־~22°C — התאימו למחמצת שלכם).</p>
                                 <div class="checkbox-row">
                                     <input type="checkbox" id="useRecipeStarter" checked>
                                     <label for="useRecipeStarter">השתמש/י בכמות המחמצת מהחישוב למעלה (מתכון הבצק)</label>
@@ -608,7 +762,8 @@
                         <div class="step-icon" aria-hidden="true">🥣</div>
                         <div class="step-content">
                             <h4>2. אוטוליזה (Autolyse)</h4>
-                            <p>כשהמחמצת כמעט בשיאה, מערבבים בקערה את <span class="highlight" id="guideFlour">0 גרם</span> קמח עם <span class="highlight" id="guideWater">0 גרם</span> מים (בלי מחמצת ומלח). כסו ותנו לבצק לנוח כ־30–60 דקות. השלב מסייע לגלוטן ולעבודה נוחה יותר.</p>
+                            <p>כשהמחמצת כמעט בשיאה, מערבבים בקערה את <span class="highlight" id="guideFlour">0 גרם</span> קמח עם <span class="highlight" id="guideWater">0 גרם</span> מים (בלי מחמצת ומלח). כסו/י ותנו/י לבצק לנוח כ־30–60 דקות. השלב מסייע לגלוטן ולעבודה נוחה יותר.</p>
+                            <p class="flour-note" id="guideFlourMix">חלוקת הקמח תופיע כאן אחרי החישוב.</p>
                         </div>
                     </div>
 
@@ -616,7 +771,7 @@
                         <div class="step-icon" aria-hidden="true">🤲</div>
                         <div class="step-content">
                             <h4>3. הוספת מחמצת ומלח</h4>
-                            <p>אחרי האוטוליזה מוסיפים <span class="highlight" id="guideStarter2">0 גרם</span> מחמצת ו־<span class="highlight" id="guideSalt">0 גרם</span> מלח. לושו עד אחידות מלאה.</p>
+                            <p>אחרי האוטוליזה מוסיפים <span class="highlight" id="guideStarter2">0 גרם</span> מחמצת ו־<span class="highlight" id="guideSalt">0 גרם</span> מלח. לש/י עד אחידות מלאה.</p>
                         </div>
                     </div>
 
@@ -624,7 +779,7 @@
                         <div class="step-icon" aria-hidden="true">🔄</div>
                         <div class="step-content">
                             <h4>4. קיפולים (Stretch &amp; Fold)</h4>
-                            <p>בשעות הראשונות להתפחה — 3–4 סטים בפרקי זמן של כ־30–50 דקות, לפי תחושת הבצק. כשהבצק חזק ואלסטי — אפשר להפסיק.</p>
+                            <p id="guideFolds">בשעות הראשונות להתפחה — 3–4 סטים בפרקי זמן של כ־30–50 דקות, לפי תחושת הבצק. כשהבצק חזק ואלסטי — אפשר להפסיק.</p>
                         </div>
                     </div>
 
@@ -632,7 +787,7 @@
                         <div class="step-icon" aria-hidden="true">⏳</div>
                         <div class="step-content">
                             <h4>5. תפיחה ראשונית ועיצוב</h4>
-                            <p>אפשר להמשיך עם Bulk Fermentation (עוד בערך 3-8 שעות, לפי חום החדר) עד גידול בנפח ורעדה קלה. אז עיצוב והעברה לבנטון או קערה מקומחת.</p>
+                            <p id="guideBulk">אפשר להמשיך עם Bulk Fermentation (עוד בערך 3-8 שעות, לפי חום החדר) עד גידול בנפח ורעדה קלה. אז עיצוב והעברה לבנטון או קערה מקומחת.</p>
                         </div>
                     </div>
 
@@ -731,6 +886,29 @@
                             </tbody>
                         </table>
                     </div>
+                    <h3 style="margin: 22px 0 0; font-size: 1.05rem; color: var(--accent);">המלצות מהירות לקמחים</h3>
+                    <div class="schedule-table-wrap">
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">קמח</th>
+                                    <th scope="col">טווח מומלץ בתערובת</th>
+                                    <th scope="col">השפעה על הבצק</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>קמח לחם</td><td>50% – 90%</td><td>בסיס יציב, נפח טוב ויכולת החזקת מים טובה</td></tr>
+                                <tr><td>חיטה לבנה רגילה</td><td>10% – 50%</td><td>קמח לבן נעים ורך; בכמות גבוהה פחות חזק מקמח לחם</td></tr>
+                                <tr><td>מניטובה</td><td>10% – 35%</td><td>מחזק מבנה ועוזר כשיש קמחים מלאים; יותר מדי עלול להיות לעיס</td></tr>
+                                <tr><td>קמח פיצה</td><td>10% – 45%</td><td>אלסטי ורך, טוב לתוספת; בכמות גבוהה עלול להשתטח בהתפחה ארוכה</td></tr>
+                                <tr><td>רב תכליתי</td><td>0% – 40%</td><td>מרכך את הבצק, אבל חלש יותר מקמח לחם</td></tr>
+                                <tr><td>חיטה מלאה</td><td>10% – 35%</td><td>יותר טעם וספיגה; הבצק כבד ומהיר יותר בתסיסה</td></tr>
+                                <tr><td>שיפון מלא</td><td>5% – 15%</td><td>טעם עמוק וחמצמץ; דביק ומחליש מבנה</td></tr>
+                                <tr><td>כוסמין</td><td>5% – 25%</td><td>טעם עדין ואגוזי; גלוטן רך יותר שנוטה להשתטח</td></tr>
+                                <tr><td>כוסמת מלאה</td><td>5% – 12%</td><td>ללא גלוטן, טעם אדמתי; יותר מדי יוצר לחם דחוס ומתפורר</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
         </main>
 
@@ -744,6 +922,51 @@
     <script>
         (function () {
             let lastStarterForRecipe = 0;
+            const flourPresets = {
+                classic: {
+                    values: [70, 10, 0, 0, 10, 10, 0, 0, 0],
+                    note: 'תערובת יציבה וסלחנית, מתאימה ללחם ראשון או לבצק עם הידרציה בינונית.'
+                },
+                country: {
+                    values: [55, 10, 10, 0, 0, 20, 5, 0, 0],
+                    note: 'תערובת כפרית עם טעם עמוק יותר, אבל עדיין נוחה לעבודה ולמתיחה.'
+                },
+                openCrumb: {
+                    values: [50, 5, 25, 0, 0, 15, 5, 0, 0],
+                    note: 'מניטובה מחזקת את הבצק ועוזרת לנפח, במיוחד כשיש קמחים מלאים.'
+                },
+                pizzaSoft: {
+                    values: [35, 10, 0, 45, 5, 5, 0, 0, 0],
+                    note: 'קמח פיצה נותן בצק גמיש ורך. טוב ללחם עדין, פחות מתאים לעומס קמחים מלאים.'
+                },
+                nutty: {
+                    values: [50, 5, 10, 0, 0, 10, 0, 20, 5],
+                    note: 'כוסמין וכוסמת מוסיפים ארומה אגוזית ועדינות; כדאי להישאר בהידרציה מבוקרת.'
+                },
+                whole: {
+                    values: [40, 5, 15, 0, 0, 30, 10, 0, 0],
+                    note: 'יותר טעם וסיבים, אבל הבצק יהיה כבד ודביק יותר. מומלץ להתחיל עם מים מעט נמוכים יותר.'
+                },
+                buckwheatAccent: {
+                    values: [55, 5, 10, 0, 0, 15, 5, 0, 10],
+                    note: 'כוסמת מלאה נותנת טעם עמוק ואדמתי, אבל אין בה גלוטן — עדיף להשאיר אותה כתוספת.'
+                },
+                softHome: {
+                    values: [35, 25, 0, 0, 25, 10, 0, 5, 0],
+                    note: 'תערובת ביתית וסלחנית עם קמח רב תכליתי. מתאימה למרקם רך ופחות לעיצוב אגרסיבי.'
+                }
+            };
+            const flourFields = [
+                { id: 'breadFlourPct', key: 'bread', label: 'קמח לחם', hydration: 70, strength: 1.0 },
+                { id: 'whiteWheatFlourPct', key: 'whiteWheat', label: 'חיטה לבנה רגילה', hydration: 68, strength: 0.82 },
+                { id: 'manitobaFlourPct', key: 'manitoba', label: 'מניטובה', hydration: 74, strength: 1.25 },
+                { id: 'pizzaFlourPct', key: 'pizza', label: 'קמח פיצה', hydration: 68, strength: 0.9 },
+                { id: 'allPurposeFlourPct', key: 'allPurpose', label: 'רב תכליתי', hydration: 66, strength: 0.72 },
+                { id: 'wholeFlourPct', key: 'wholeWheat', label: 'חיטה מלאה', hydration: 78, strength: 0.72 },
+                { id: 'wholeRyeFlourPct', key: 'wholeRye', label: 'שיפון מלא', hydration: 82, strength: 0.25 },
+                { id: 'speltFlourPct', key: 'spelt', label: 'כוסמין', hydration: 72, strength: 0.55 },
+                { id: 'wholeBuckwheatFlourPct', key: 'buckwheat', label: 'כוסמת מלאה', hydration: 84, strength: 0.0 }
+            ];
 
             function setStarterOnlyMode(on) {
                 var guide = document.getElementById('guideSection');
@@ -780,14 +1003,303 @@
                 showToast._t = setTimeout(function () { el.classList.remove('show'); }, 3200);
             }
 
+            function setFlourPreset(key) {
+                var preset = flourPresets[key];
+                if (!preset) return;
+                flourFields.forEach(function (field, i) {
+                    document.getElementById(field.id).value = preset.values[i];
+                });
+                document.getElementById('flourPresetNote').textContent = preset.note;
+            }
+
+            function getFlourMix() {
+                var items = flourFields.map(function (field) {
+                    var pct = parseFloat(document.getElementById(field.id).value);
+                    return {
+                        key: field.key,
+                        label: field.label,
+                        pct: isNaN(pct) ? 0 : pct,
+                        hydration: field.hydration,
+                        strength: field.strength
+                    };
+                });
+                var totalPct = items.reduce(function (sum, item) { return sum + item.pct; }, 0);
+                return { items: items, totalPct: totalPct };
+            }
+
+            function describeFlourMix(mix) {
+                return mix.items
+                    .filter(function (item) { return item.pct > 0; })
+                    .map(function (item) { return item.label + ' ' + item.pct + '%'; })
+                    .join(', ');
+            }
+
+            function pctOf(mix, key) {
+                var item = mix.items.find(function (x) { return x.key === key; });
+                return item ? item.pct : 0;
+            }
+
+            function getHydrationRecommendation(mix) {
+                var weighted = mix.items.reduce(function (sum, item) {
+                    return sum + (item.pct * item.hydration / 100);
+                }, 0);
+                var wholePct = pctOf(mix, 'wholeWheat') + pctOf(mix, 'wholeRye') + pctOf(mix, 'buckwheat');
+                var weakPct = pctOf(mix, 'wholeRye') + pctOf(mix, 'buckwheat') + Math.max(0, pctOf(mix, 'spelt') - 25) * 0.5;
+                var low = Math.round(weighted - 3);
+                var high = Math.round(weighted + 3);
+                if (wholePct >= 45 || weakPct >= 25) {
+                    low -= 2;
+                    high -= 2;
+                }
+                return {
+                    center: Math.round(weighted),
+                    low: Math.max(58, low),
+                    high: Math.min(88, high)
+                };
+            }
+
+            function getFlourWarnings(mix, currentWaterPct) {
+                var warnings = [];
+                var whole = pctOf(mix, 'wholeWheat');
+                var rye = pctOf(mix, 'wholeRye');
+                var buckwheat = pctOf(mix, 'buckwheat');
+                var spelt = pctOf(mix, 'spelt');
+                var allPurpose = pctOf(mix, 'allPurpose');
+                var pizza = pctOf(mix, 'pizza');
+                var manitoba = pctOf(mix, 'manitoba');
+                var bread = pctOf(mix, 'bread');
+                var whiteWheat = pctOf(mix, 'whiteWheat');
+                var glutenFreeLike = rye + buckwheat;
+                var structureScore = mix.items.reduce(function (sum, item) {
+                    return sum + (item.pct * item.strength / 100);
+                }, 0);
+                var hydration = getHydrationRecommendation(mix);
+
+                warnings.push({
+                    type: 'good',
+                    text: 'לפי התערובת הזו מומלץ להתחיל סביב ' + hydration.low + '%–' + hydration.high + '% הידרציה. אם זו אפייה ראשונה עם התערובת, עדיף לשמור 20–30 גרם מים בצד ולהוסיף רק אם הבצק מרגיש חזק.'
+                });
+
+                if (currentWaterPct < hydration.low - 3) {
+                    warnings.push({
+                        type: 'warning',
+                        text: 'ההידרציה שבחרת (' + currentWaterPct + '%) נמוכה מהטווח המומלץ לתערובת. הבצק עלול לצאת נוקשה, להיפתח פחות ולקבל פירור דחוס.'
+                    });
+                } else if (currentWaterPct > hydration.high + 3) {
+                    warnings.push({
+                        type: 'warning',
+                        text: 'ההידרציה שבחרת (' + currentWaterPct + '%) גבוהה מהטווח המומלץ. הבצק עשוי להיות דביק, להשתטח בעיצוב ולהתקשות להחזיק חריצה.'
+                    });
+                }
+
+                if (buckwheat > 25) {
+                    warnings.push({ type: 'danger', text: 'כוסמת מלאה מעל 25% היא כמות גבוהה מאוד: אין בה גלוטן, והיא עלולה לתת לחם מתפורר, נמוך ובעל טעם אדמתי/מריר מדי.' });
+                } else if (buckwheat > 12) {
+                    warnings.push({ type: 'warning', text: 'כוסמת מלאה מעל 12% כבר מורגשת מאוד. מומלץ לעבוד בעדינות, לא לצפות לנפח גבוה, ולשקול חיזוק עם קמח לחם או מניטובה.' });
+                }
+
+                if (rye > 30) {
+                    warnings.push({ type: 'danger', text: 'שיפון מלא מעל 30% יוצר בצק דביק וכבד מאוד, עם פחות גלוטן פעיל. זה יכול לגרום לפירור לח/גומי ולכיכר נמוכה.' });
+                } else if (rye > 15) {
+                    warnings.push({ type: 'warning', text: 'שיפון מלא מעל 15% מוסיף טעם מצוין, אבל מחליש מבנה והופך את הבצק לדביק. כדאי לקצר לישה ולעבוד עם ידיים רטובות.' });
+                }
+
+                if (spelt > 40) {
+                    warnings.push({ type: 'danger', text: 'כוסמין מעל 40% עלול להימתח מהר אבל להיקרע ולהשתטח, כי הגלוטן שלו רך יותר. מומלץ להפחית מים או לחזק עם מניטובה.' });
+                } else if (spelt > 25) {
+                    warnings.push({ type: 'warning', text: 'כוסמין מעל 25% נותן טעם עדין אבל פחות חוזק. עדיף קיפולים עדינים ולא התפחה ארוכה מדי בטמפרטורת חדר.' });
+                }
+
+                if (whole > 45) {
+                    warnings.push({ type: 'warning', text: 'חיטה מלאה מעל 45% סופחת הרבה מים ומזרזת תסיסה. הלחם יהיה מלא וטעים, אבל עלול לצאת צפוף אם לא נותנים מספיק מנוחה וקיפולים.' });
+                }
+
+                if (allPurpose > 60) {
+                    warnings.push({ type: 'warning', text: 'קמח רב תכליתי מעל 60% בדרך כלל חלש יותר מקמח לחם. הבצק יהיה רך ונוח, אבל פחות מתאים להידרציה גבוהה ולכיכר גבוהה מאוד.' });
+                }
+
+                if (whiteWheat > 65) {
+                    warnings.push({ type: 'warning', text: 'חיטה לבנה רגילה מעל 65% יכולה לעבוד, אבל לרוב תהיה פחות חזקה מקמח לחם. עדיף להישאר בהידרציה בינונית או לחזק עם קמח לחם/מניטובה.' });
+                }
+
+                if (pizza > 60) {
+                    warnings.push({ type: 'warning', text: 'קמח פיצה בכמות גבוהה נותן אלסטיות וגמישות, אבל בלחם מחמצת הוא עלול להרגיש נמתח מדי ולהשתטח אם התפיחה ארוכה.' });
+                }
+
+                if (manitoba > 55) {
+                    warnings.push({ type: 'warning', text: 'מניטובה מעל 55% חזקה מאוד: היא יכולה לתת נפח יפה, אבל גם מרקם לעיס/גומי אם אין מספיק מים או זמן מנוחה.' });
+                }
+
+                if (glutenFreeLike > 25 && (bread + manitoba + whiteWheat * 0.5) < 60) {
+                    warnings.push({ type: 'danger', text: 'יש הרבה קמחים שמחלישים גלוטן (שיפון/כוסמת) בלי מספיק קמח חזק. מומלץ להעלות קמח לחם/מניטובה או להוריד שיפון/כוסמת.' });
+                } else if (structureScore < 0.65) {
+                    warnings.push({ type: 'warning', text: 'התערובת יחסית חלשה מבחינת מבנה. צפה/י לבצק רך יותר, פחות נפח, וצורך בעיצוב עדין.' });
+                }
+
+                return warnings;
+            }
+
+            function roundHalf(n) {
+                return Math.round(n * 2) / 2;
+            }
+
+            function getDoughWorkflow(mix, currentWaterPct, starterPct, tempC) {
+                var whole = pctOf(mix, 'wholeWheat');
+                var rye = pctOf(mix, 'wholeRye');
+                var buckwheat = pctOf(mix, 'buckwheat');
+                var spelt = pctOf(mix, 'spelt');
+                var allPurpose = pctOf(mix, 'allPurpose');
+                var pizza = pctOf(mix, 'pizza');
+                var manitoba = pctOf(mix, 'manitoba');
+                var bread = pctOf(mix, 'bread');
+                var whiteWheat = pctOf(mix, 'whiteWheat');
+                var hydration = getHydrationRecommendation(mix);
+                var wholePct = whole + rye + buckwheat;
+                var fragilePct = rye + buckwheat + Math.max(0, spelt - 20) * 0.6;
+                var structureScore = mix.items.reduce(function (sum, item) {
+                    return sum + (item.pct * item.strength / 100);
+                }, 0);
+                var strongPct = bread + manitoba + whiteWheat * 0.55;
+                var highHydration = currentWaterPct > hydration.high + 2;
+                var lowHydration = currentWaterPct < hydration.low - 2;
+                var foldCount = '3–4';
+                var foldStyle = 'Stretch & Fold רגיל או Coil Fold עדין';
+                var foldEvery = '30–45 דקות';
+                var doughProfile = 'מאוזן ונוח לעבודה';
+                var foldNote = 'אפשר להפסיק כשהבצק מרגיש חזק, חלק ואלסטי יותר.';
+
+                if (fragilePct >= 28 || structureScore < 0.62) {
+                    foldCount = '2–3';
+                    foldStyle = 'קיפולים עדינים בלבד / Coil Fold';
+                    foldEvery = '35–50 דקות';
+                    doughProfile = 'עדין וחלש יחסית, עם נטייה להידבק או להשתטח';
+                    foldNote = 'לא ללוש באגרסיביות ולא לרדוף אחרי חלון גלוטן מושלם; עדיף לחזק בעדינות ולשמור על צורה.';
+                } else if (highHydration && structureScore >= 0.78) {
+                    foldCount = '4–5';
+                    foldStyle = 'בעיקר Coil Fold';
+                    foldEvery = '25–35 דקות';
+                    doughProfile = 'רטוב ואלסטי, עם פוטנציאל לנפח טוב אבל דורש חיזוק';
+                    foldNote = 'אם הבצק עדיין נמרח אחרי 3 קיפולים, הוסף/י עוד קיפול אחד במקום להוסיף קמח.';
+                } else if (lowHydration) {
+                    foldCount = '2–3';
+                    foldStyle = 'Stretch & Fold קצר';
+                    foldEvery = '40–50 דקות';
+                    doughProfile = 'יבש/יציב יחסית, פחות דביק ופחות זקוק לקיפולים רבים';
+                    foldNote = 'אם הבצק מרגיש נוקשה, תן/י לו מנוחה ארוכה יותר במקום לישה חזקה.';
+                } else if (manitoba >= 25 || strongPct >= 75) {
+                    foldCount = '3–4';
+                    foldStyle = 'Stretch & Fold או Coil Fold';
+                    foldEvery = '30–45 דקות';
+                    doughProfile = 'חזק ואלסטי, מתאים לנפח גבוה ולעיצוב טוב';
+                    foldNote = 'אפשר לעצור מוקדם אם הבצק כבר עומד יפה ולא נקרע במתיחה.';
+                } else if (wholePct >= 35) {
+                    foldCount = '3–4';
+                    foldStyle = 'קיפולים עדינים יחסית';
+                    foldEvery = '30–40 דקות';
+                    doughProfile = 'מלא וכבד יותר, סופח מים ותוסס מהר יותר';
+                    foldNote = 'עקוב/י אחרי נפח ותחושה יותר מאשר לפי שעון; קמחים מלאים מאיצים תפיחה.';
+                }
+
+                if (pizza >= 45) {
+                    foldNote += ' בגלל קמח הפיצה, אם הבצק נהיה מתוח וקופצני — הארך/י מנוחה בין קיפולים.';
+                }
+                if (allPurpose >= 40) {
+                    foldNote += ' בגלל קמח רב תכליתי בכמות גבוהה, עדיף לא לעבוד בהידרציה גבוהה מדי.';
+                }
+
+                var baseBulk = 4.6;
+                var starterFactor = Math.pow(20 / Math.max(starterPct, 5), 0.55);
+                var tempFactor = tempC >= 22 ? Math.max(0.55, 1 - (tempC - 22) * 0.08) : 1 + (22 - tempC) * 0.12;
+                var flourFactor = 1;
+                if (wholePct >= 35) flourFactor -= 0.12;
+                if (rye + buckwheat >= 20) flourFactor -= 0.08;
+                if (manitoba >= 25) flourFactor += 0.08;
+                if (highHydration) flourFactor -= 0.05;
+                if (lowHydration) flourFactor += 0.06;
+
+                var bulkCenter = Math.max(2, Math.min(10, baseBulk * starterFactor * tempFactor * flourFactor));
+                var bulkLow = roundHalf(Math.max(1.75, bulkCenter * 0.82));
+                var bulkHigh = roundHalf(Math.min(12, bulkCenter * 1.25));
+                var riseTarget = 'כ־50%–75% עליה בנפח';
+                if (fragilePct >= 25) {
+                    riseTarget = 'כ־30%–50% עליה בנפח בלבד';
+                } else if (wholePct >= 35) {
+                    riseTarget = 'כ־40%–60% עליה בנפח';
+                } else if (structureScore >= 0.9 && currentWaterPct >= hydration.low) {
+                    riseTarget = 'כ־60%–80% עליה בנפח';
+                }
+
+                return {
+                    profile: doughProfile,
+                    foldCount: foldCount,
+                    foldStyle: foldStyle,
+                    foldEvery: foldEvery,
+                    foldNote: foldNote,
+                    bulkLow: bulkLow,
+                    bulkHigh: bulkHigh,
+                    riseTarget: riseTarget,
+                    tempC: tempC,
+                    starterPct: starterPct
+                };
+            }
+
+            function renderDoughWorkflow(mix, currentWaterPct, starterPct) {
+                var tempC = parseFloat(document.getElementById('roomTemp').value);
+                if (isNaN(tempC)) tempC = 22;
+                var workflow = getDoughWorkflow(mix, currentWaterPct, starterPct, tempC);
+                var lines = [
+                    { type: 'good', text: 'אופי הבצק: ' + workflow.profile + '.' },
+                    { type: 'good', text: 'קיפולים מומלצים: ' + workflow.foldCount + ' סטים של ' + workflow.foldStyle + ', כל ' + workflow.foldEvery + '.' },
+                    { type: 'warning', text: 'Bulk משוער: כ־' + workflow.bulkLow + '–' + workflow.bulkHigh + ' שעות מתחילת הערבוב, לפי כ־' + workflow.tempC + '°C ו־' + workflow.starterPct + '% מחמצת.' },
+                    { type: 'good', text: 'סימן לעצירה: ' + workflow.riseTarget + ', בועות בצדדים, מרקם אוורירי ורעדה קלה. ' + workflow.foldNote }
+                ];
+
+                document.getElementById('doughWorkflowAdvice').innerHTML = lines.map(function (line) {
+                    return '<p class="' + line.type + '">' + line.text + '</p>';
+                }).join('');
+
+                document.getElementById('guideFolds').textContent =
+                    'לבצק הזה מומלץ לבצע ' + workflow.foldCount + ' סטים של ' + workflow.foldStyle +
+                    ', כל ' + workflow.foldEvery + '. ' + workflow.foldNote;
+                document.getElementById('guideBulk').textContent =
+                    'Bulk Fermentation משוער: כ־' + workflow.bulkLow + '–' + workflow.bulkHigh +
+                    ' שעות מתחילת הערבוב (בהנחה של כ־' + workflow.tempC + '°C ו־' + workflow.starterPct +
+                    '% מחמצת). חפש/י ' + workflow.riseTarget + ', בועות בצדדים, מרקם אוורירי ורעדה קלה; אז לעצב ולהעביר לבנטון או קערה מקומחת.';
+            }
+
+            function renderFlourBreakdown(totalFlour, mix) {
+                var visibleItems = mix.items.filter(function (item) { return item.pct > 0; });
+                document.getElementById('flourBreakdown').innerHTML = visibleItems.map(function (item) {
+                    var grams = Math.round(totalFlour * item.pct / 100);
+                    return '<div class="flour-breakdown-item"><span>' + item.label + ' (' + item.pct + '%)</span><strong>' + grams + ' גרם</strong></div>';
+                }).join('');
+
+                var presetKey = document.getElementById('flourPreset').value;
+                var note = flourPresets[presetKey] ? flourPresets[presetKey].note : 'תערובת מותאמת אישית. אם יש הרבה קמחים מלאים או קמחים חלשים בגלוטן, מומלץ לעבוד בעדינות ולהוסיף מים בהדרגה.';
+                var currentWaterPct = parseFloat(document.getElementById('waterPct').value) || 0;
+                var hydration = getHydrationRecommendation(mix);
+                var warnings = getFlourWarnings(mix, currentWaterPct);
+                document.getElementById('flourBreakdownNote').textContent = note;
+                document.getElementById('guideFlourMix').textContent = 'חלוקת הקמח: ' + describeFlourMix(mix) + '.';
+                document.getElementById('flourAdvice').innerHTML = warnings.map(function (warning) {
+                    return '<p class="' + warning.type + '">' + warning.text + '</p>';
+                }).join('');
+                document.getElementById('guideFlourMix').textContent += ' טווח הידרציה מומלץ לתערובת: ' + hydration.low + '%–' + hydration.high + '%.';
+            }
+
             function calculateDough() {
                 var totalWeight = parseFloat(document.getElementById('totalWeight').value);
                 var waterPct = parseFloat(document.getElementById('waterPct').value) / 100;
                 var starterPct = parseFloat(document.getElementById('starterPct').value) / 100;
                 var saltPct = parseFloat(document.getElementById('saltPct').value) / 100;
+                var flourMix = getFlourMix();
 
                 if (!totalWeight || totalWeight <= 0) {
                     showToast('הזן/י משקל בצק תקין.');
+                    return;
+                }
+                if (Math.abs(flourMix.totalPct - 100) > 0.1) {
+                    showToast('אחוזי הקמחים צריכים להסתכם ל־100%. כרגע: ' + flourMix.totalPct + '%.');
                     return;
                 }
 
@@ -816,6 +1328,8 @@
                 document.getElementById('guideFlour').textContent = rFlour + ' גרם';
                 document.getElementById('guideWater').textContent = rWater + ' גרם';
                 document.getElementById('guideSalt').textContent = rSalt + ' גרם';
+                renderFlourBreakdown(rFlour, flourMix);
+                renderDoughWorkflow(flourMix, waterPct * 100, starterPct * 100);
 
                 document.getElementById('results').classList.add('visible');
                 document.getElementById('guideSection').classList.add('visible');
@@ -918,6 +1432,23 @@
 
             document.getElementById('btnCalcStarter').addEventListener('click', calculateStarter);
 
+            document.getElementById('flourPreset').addEventListener('change', function () {
+                if (this.value === 'custom') {
+                    document.getElementById('flourPresetNote').textContent = 'עריכה ידנית: ודא/י שהאחוזים מסתכמים ל־100%.';
+                    return;
+                }
+                setFlourPreset(this.value);
+            });
+
+            document.querySelectorAll('.flour-pct').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    document.getElementById('flourPreset').value = 'custom';
+                    var mix = getFlourMix();
+                    document.getElementById('flourPresetNote').textContent =
+                        'עריכה ידנית: סך הקמחים כרגע ' + mix.totalPct + '%. צריך להגיע ל־100%.';
+                });
+            });
+
             document.getElementById('useRecipeStarter').addEventListener('change', function () {
                 var manual = document.getElementById('manualStarterG');
                 manual.disabled = this.checked;
@@ -938,6 +1469,7 @@
             (function initStarterForm() {
                 var cb = document.getElementById('useRecipeStarter');
                 document.getElementById('wrapManualStarter').style.opacity = cb.checked ? '0.65' : '1';
+                setFlourPreset('classic');
             })();
         })();
     </script>
