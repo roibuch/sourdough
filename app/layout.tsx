@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import { OpenWeatherRuntimeConfig } from "@/components/OpenWeatherRuntimeConfig";
 import "./globals.css";
 
 const inter = Inter({
@@ -35,7 +36,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="he" dir="rtl" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <OpenWeatherRuntimeConfig />
+        {children}
+      </body>
     </html>
   );
 }

@@ -53,7 +53,8 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
         pct: 0,
         range: "",
         title: "לא ניתן לטעון תחזית",
-        body: "הגדירו NEXT_PUBLIC_OPENWEATHER_API_KEY בקובץ .env.local",
+        body:
+          "חסר מפתח OpenWeather. ודאו ש־NEXT_PUBLIC_OPENWEATHER_API_KEY ב־.env.local, הריצו npm run build מחדש (או npm run dev), ורעננו את הדף. ב-GitHub Pages: הוסיפו Secret בשם NEXT_PUBLIC_OPENWEATHER_API_KEY.",
       });
       return;
     }

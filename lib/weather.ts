@@ -7,8 +7,28 @@ interface ForecastItem {
   main: { temp: number };
 }
 
+declare global {
+  interface Window {
+    SOURDOUGH_CONFIG?: {
+      openWeatherApiKey?: string;
+    };
+  }
+}
+
+/** API key: inline config (layout) → client env → public/config.js */
 export function getOpenWeatherApiKey(): string {
-  return (process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY || "").trim();
+  if (typeof window !== "undefined") {
+    const fromConfig = window.SOURDOUGH_CONFIG?.openWeatherApiKey?.trim();
+    if (fromConfig && !fromConfig.startsWith("YOUR_")) return fromConfig;
+  }
+
+  const fromEnv = (
+    process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY ||
+    process.env.OPENWEATHER_API_KEY ||
+    ""
+  ).trim();
+
+  return fromEnv;
 }
 
 export function averageTempNext6Hours(forecastList: ForecastItem[]): number | null {

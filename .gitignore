@@ -16,6 +16,7 @@
 .env
 .env*.local
 config.js
+public/config.js
 
 # debug
 npm-debug.log*
