@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   env: {
     NEXT_PUBLIC_OPENWEATHER_API_KEY: openWeatherKey,
+    NEXT_PUBLIC_BASE_PATH: isGithubPages ? `/${repoName}` : "",
   },
   ...(isGithubPages && {
     basePath: `/${repoName}`,

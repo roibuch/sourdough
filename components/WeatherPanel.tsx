@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CloudIcon,
   MapPinIcon,
@@ -45,16 +45,20 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
   const [rec, setRec] = useState<WeatherRecommendation | null>(null);
   const [locationLabel, setLocationLabel] = useState("");
   const [avgTemp, setAvgTemp] = useState<number | null>(null);
+  useEffect(() => {
+    getOpenWeatherApiKey();
+  }, []);
 
   const handleFetch = async () => {
-    if (!getOpenWeatherApiKey()) {
+    const apiKey = getOpenWeatherApiKey();
+    if (!apiKey) {
       setRec({
         tier: "error",
         pct: 0,
         range: "",
         title: "לא ניתן לטעון תחזית",
         body:
-          "חסר מפתח OpenWeather. ודאו ש־NEXT_PUBLIC_OPENWEATHER_API_KEY ב־.env.local, הריצו npm run build מחדש (או npm run dev), ורעננו את הדף. ב-GitHub Pages: הוסיפו Secret בשם NEXT_PUBLIC_OPENWEATHER_API_KEY.",
+          "חסר מפתח API. נסו: רענון קשיח (Ctrl+Shift+R), חלון פרטי, או מחיקת נתוני האתר בהגדרות הדפדפן. מקומית: .env.local + npm run dev. ב-GitHub: Secret NEXT_PUBLIC_OPENWEATHER_API_KEY ואז Re-run של ה-workflow.",
       });
       return;
     }

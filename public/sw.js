@@ -1,12 +1,30 @@
-const CACHE_NAME = "sourdough-master-next-v1";
-const ASSETS = ["/", "/manifest.json", "/icon.svg"];
+const CACHE_NAME = "sourdough-master-next-v3";
+
+function getBasePath() {
+  const scope = self.registration?.scope || self.location.href;
+  try {
+    const path = new URL(scope).pathname.replace(/\/$/, "");
+    if (path && path !== "/") return path;
+  } catch {
+    /* ignore */
+  }
+  return "/sourdough";
+}
+
+const BASE = getBasePath();
 
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS))
-      .then(() => self.skipWaiting()),
+    caches.open(CACHE_NAME).then((cache) =>
+      cache.addAll([
+        `${BASE}/`,
+        `${BASE}/index.html`,
+        `${BASE}/manifest.json`,
+        `${BASE}/icon.svg`,
+        `${BASE}/config.js`,
+      ]),
+    ),
   );
 });
 
@@ -31,26 +49,27 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Always fetch fresh HTML (avoids stale app without API key)
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() =>
+        caches.match(`${BASE}/index.html`),
+      ),
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
-          if (!response || response.status !== 200 || response.type === "opaque") {
-            return response;
-          }
+    fetch(event.request)
+      .then((response) => {
+        if (response?.status === 200) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, clone);
           });
-          return response;
-        })
-        .catch(() => {
-          if (event.request.mode === "navigate") {
-            return caches.match("/");
-          }
-          return caches.match(event.request);
-        });
-    }),
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request)),
   );
 });

@@ -1,13 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
+import { getBasePath } from "@/lib/basePath";
 
 export function ServiceWorkerRegister() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("/sw.js").catch(() => {
-      /* offline optional */
-    });
+
+    const base = getBasePath();
+    const swUrl = `${base}/sw.js`;
+
+    navigator.serviceWorker
+      .register(swUrl, { scope: base ? `${base}/` : "/" })
+      .catch(() => {
+        /* optional offline support */
+      });
   }, []);
 
   return null;

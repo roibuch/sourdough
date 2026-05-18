@@ -30,6 +30,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Write runtime config for browser
+        env:
+          API_KEY: ${{ secrets.NEXT_PUBLIC_OPENWEATHER_API_KEY }}
+        run: |
+          if [ -n "$API_KEY" ]; then
+            node -e "const k=process.env.API_KEY; require('fs').writeFileSync('public/config.js', 'window.SOURDOUGH_CONFIG=window.SOURDOUGH_CONFIG||{};window.SOURDOUGH_CONFIG.openWeatherApiKey='+JSON.stringify(k)+';');"
+          fi
+
       - name: Build with Next.js
         run: npm run build
         env:

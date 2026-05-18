@@ -15,11 +15,35 @@ declare global {
   }
 }
 
-/** API key: inline config (layout) → client env → public/config.js */
+function readKeyFromInlineScript(): string {
+  if (typeof document === "undefined") return "";
+  const el = document.getElementById("sourdough-openweather-config");
+  const text = el?.textContent || el?.innerHTML || "";
+  if (!text) return "";
+  const quoted = text.match(/openWeatherApiKey\s*:\s*"([^"]+)"/);
+  if (quoted?.[1]) return quoted[1].trim();
+  return "";
+}
+
+function ensureWindowConfig(key: string): void {
+  if (typeof window === "undefined" || !key) return;
+  window.SOURDOUGH_CONFIG = {
+    ...window.SOURDOUGH_CONFIG,
+    openWeatherApiKey: key,
+  };
+}
+
+/** API key: window config → inline script → build-time env */
 export function getOpenWeatherApiKey(): string {
   if (typeof window !== "undefined") {
     const fromConfig = window.SOURDOUGH_CONFIG?.openWeatherApiKey?.trim();
     if (fromConfig && !fromConfig.startsWith("YOUR_")) return fromConfig;
+  }
+
+  const fromScript = readKeyFromInlineScript();
+  if (fromScript) {
+    ensureWindowConfig(fromScript);
+    return fromScript;
   }
 
   const fromEnv = (
@@ -27,6 +51,8 @@ export function getOpenWeatherApiKey(): string {
     process.env.OPENWEATHER_API_KEY ||
     ""
   ).trim();
+
+  if (fromEnv) ensureWindowConfig(fromEnv);
 
   return fromEnv;
 }
