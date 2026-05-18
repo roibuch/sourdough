@@ -1,0 +1,27 @@
+{
+  "name": "Sourdough Master | מחשבון מחמצת",
+  "short_name": "מחמצת",
+  "description": "מחשבון בצק מחמצת, מדריך שלבים ולוח זמנים הפוך — עובד גם ללא אינטרנט.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#faf6f0",
+  "theme_color": "#c9a87c",
+  "lang": "he",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-cream: #faf7f2;
+  --color-parchment: #f5f0e8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f5f5f4;
+  --color-forest: #065f46;
+  --color-forest-light: #047857;
+  --color-sage: #d1e7dd;
+  --color-terracotta: #c2410c;
+  --color-terracotta-light: #ea580c;
+  --color-ink: #292524;
+  --color-ink-muted: #57534e;
+  --color-border: #e7e5e4;
+  --color-border-warm: #d6d3d1;
+  --color-tip-bg: #fffbeb;
+  --color-tip-border: #fcd34d;
+  --color-success-bg: #ecfdf5;
+  --color-success-border: #6ee7b7;
+  --color-warning-bg: #fff7ed;
+  --color-warning-border: #fdba74;
+  --color-danger-bg: #fef2f2;
+  --color-danger-border: #fca5a5;
+  --font-serif: var(--font-playfair), "Frank Ruhl Libre", Georgia, serif;
+  --font-sans: var(--font-inter), "Segoe UI", Tahoma, sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply min-h-screen bg-cream text-ink leading-relaxed antialiased;
+    background-image:
+      radial-gradient(ellipse 100% 60% at 50% -10%, rgba(209, 231, 221, 0.45), transparent),
+      radial-gradient(var(--color-parchment) 1px, transparent 1px);
+    background-size: 100% 100%, 20px 20px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    @apply text-ink tracking-tight;
+  }
+}
+
+@layer utilities {
+  .font-serif {
+    font-family: var(--font-serif);
+  }
+
+  .font-sans {
+    font-family: var(--font-sans);
+  }
+
+  .timeline-rail {
+    @apply absolute top-3 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-emerald-300 via-stone-300 to-orange-300;
+    right: 1.25rem;
+  }
+}
