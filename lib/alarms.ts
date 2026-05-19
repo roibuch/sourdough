@@ -17,19 +17,60 @@ export function isIOSDevice(): boolean {
   );
 }
 
-export function buildAndroidAlarmIntent(
+/** Standard Android AlarmClock intent URIs (Chrome / WebView) */
+export function buildAndroidAlarmIntents(
   hour: number,
   minute: number,
   message: string,
-): string {
-  return (
-    `intent://set_alarm?hour=${hour}&minute=${minute}&message=` +
-    `${encodeURIComponent(message)}` +
-    `#Intent;scheme=android-app;action=android.intent.action.SET_ALARM;end;`
-  );
+): string[] {
+  const msg = encodeURIComponent(message.slice(0, 120));
+  const h = Math.max(0, Math.min(23, hour));
+  const m = Math.max(0, Math.min(59, minute));
+
+  const base =
+    `i.android.intent.extra.alarm.HOUR=${h};` +
+    `i.android.intent.extra.alarm.MINUTES=${m};` +
+    `S.android.intent.extra.alarm.MESSAGE=${msg};` +
+    `i.android.intent.extra.HOUR=${h};` +
+    `i.android.intent.extra.MINUTES=${m};`;
+
+  return [
+    `intent:#Intent;action=android.intent.action.SET_ALARM;${base}end`,
+    `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.google.android.deskclock;${base}end`,
+    `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.sec.android.app.clockpackage;${base}end`,
+  ];
 }
 
-/** Local floating time — imports reliably into iPhone Calendar */
+function navigateIntent(uri: string): void {
+  const a = document.createElement("a");
+  a.href = uri;
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+export function openAndroidClockAlarm(
+  hour: number,
+  minute: number,
+  message: string,
+): void {
+  for (const uri of buildAndroidAlarmIntents(hour, minute, message)) {
+    try {
+      navigateIntent(uri);
+      return;
+    } catch {
+      /* try next */
+    }
+  }
+  try {
+    window.location.href = buildAndroidAlarmIntents(hour, minute, message)[0];
+  } catch {
+    /* fallback handled by caller */
+  }
+}
+
+/** Local floating time — imports reliably into mobile calendars */
 function formatIcsLocal(ms: number): string {
   const d = new Date(ms);
   return (
@@ -129,44 +170,29 @@ async function shareIcsFile(
   }
 }
 
-function openIcsBlob(ics: string): void {
+function downloadIcsBlob(ics: string, filename: string): void {
   const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const opened = window.open(url, "_blank");
-  if (!opened) {
-    const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
 }
 
 export async function downloadIcsAlarm(
   startMs: number,
   summary: string,
 ): Promise<"shared" | "opened" | "google"> {
-  const endMs = startMs + 15 * 60_000;
   const ics = buildIcsCalendar([{ startMs, summary }]);
 
-  if (isIOSDevice()) {
+  if (isIOSDevice() || isAndroidDevice()) {
     const shared = await shareIcsFile(ics, "sourdough-reminder.ics", summary);
     if (shared) return "shared";
-    openIcsBlob(ics);
-    return "opened";
   }
 
-  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "sourdough-reminder.ics";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
+  downloadIcsBlob(ics, "sourdough-reminder.ics");
   return "opened";
 }
 
@@ -176,30 +202,20 @@ export async function exportAllAlarmsToCalendar(
   if (!events.length) return "empty";
   const ics = buildIcsCalendar(events);
 
-  if (isIOSDevice()) {
-    const shared = await shareIcsFile(
-      ics,
-      "sourdough-schedule.ics",
-      "לוח אפייה — מחמצת",
-    );
-    if (shared) return "shared";
-    openIcsBlob(ics);
-    return "opened";
-  }
+  const shared = await shareIcsFile(
+    ics,
+    "sourdough-schedule.ics",
+    "לוח אפייה — מחמצת",
+  );
+  if (shared) return "shared";
 
-  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "sourdough-schedule.ics";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
+  downloadIcsBlob(ics, "sourdough-schedule.ics");
   return "opened";
 }
 
 export type AlarmResult =
   | "android"
+  | "android-fallback"
   | "shared"
   | "opened"
   | "google"
@@ -215,7 +231,7 @@ export async function triggerHardwareAlarm(
   const minute = d.getMinutes();
 
   if (isAndroidDevice()) {
-    window.location.href = buildAndroidAlarmIntent(hour, minute, message);
+    openAndroidClockAlarm(hour, minute, message);
     return "android";
   }
 
@@ -239,15 +255,21 @@ export function alarmTimeTitle(timestampMs: number): string {
 export function alarmResultMessage(result: AlarmResult): string {
   switch (result) {
     case "android":
-      return "פותח/ת את שעון האנדרואיד…";
+      return "אמור להיפתח אפליקציית השעון — אשרו/י את השעה ושמרו. אם לא נפתח, נסו «יומן».";
+    case "android-fallback":
+      return "לא נפתח שעון — נשלח קובץ יומן. פתחו/י אותו או בחרו «יומן» במסך השיתוף.";
     case "shared":
-      return "בחרו «יומן» (Calendar) במסך השיתוף — האירוע ייכנס עם התראה.";
+      return isAndroidDevice()
+        ? "בחרו «שעון» או «יומן» / Google Calendar במסך השיתוף."
+        : "בחרו «יומן» (Calendar) במסך השיתוף — האירוע ייכנס עם התראה.";
     case "opened":
-      return isIOSDevice()
-        ? "אם נפתח קובץ — לחצו «הוסף ליומן». אחרת השתמשו בכפתור «שיתוף ליומן»."
-        : "נשמר קובץ .ics — פתחו/י אותו ביומן.";
+      return isAndroidDevice()
+        ? "נשמר קובץ .ics — פתחו/י ביומן או ב-Google Calendar."
+        : isIOSDevice()
+          ? "אם נפתח קובץ — לחצו «הוסף ליומן». אחרת השתמשו ב«יומן»."
+          : "נשמר קובץ .ics — פתחו/י אותו ביומן.";
     case "google":
-      return "נפתח Google Calendar — שמרו/י את האירוע (מסתנכרן גם ל-iPhone).";
+      return "נפתח Google Calendar — שמרו/י את האירוע.";
     default:
       return "אין שעה מתוכננת — בנו/י לוח זמנים קודם.";
   }

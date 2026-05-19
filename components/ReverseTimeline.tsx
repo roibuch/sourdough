@@ -15,7 +15,11 @@ import { ExpressModePanel } from "@/components/ExpressModePanel";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { exportAllAlarmsToCalendar, isIOSDevice } from "@/lib/alarms";
+import {
+  exportAllAlarmsToCalendar,
+  isAndroidDevice,
+  isIOSDevice,
+} from "@/lib/alarms";
 import { ACTIVE_HOUR_END, ACTIVE_HOUR_START } from "@/lib/scheduleFriendly";
 import { formatScheduleTime } from "@/lib/timeline";
 import {
@@ -302,12 +306,22 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
             </p>
           </div>
 
-          {isIOSDevice() && (
+          {isAndroidDevice() && (
+            <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-sm leading-relaxed text-stone-700">
+              <p className="font-semibold text-emerald-950">התראות באנדרואיד</p>
+              <p className="mt-1">
+                <strong>שעון</strong> — פותח את אפל שעון/שעון Google (אשרו ושמרו).
+                אם לא נפתח: <strong>יומן</strong> → שיתוף ליומן או Google Calendar.
+                מומלץ לפתוח באתר ב-<strong>Chrome</strong> (לא רק PWA) לשעון.
+              </p>
+            </div>
+          )}
+
+          {isIOSDevice() && !isAndroidDevice() && (
             <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50/80 p-4 text-sm leading-relaxed text-stone-700">
               <p className="font-semibold text-sky-950">התראות ב-iPhone</p>
               <p className="mt-1">
-                Safari לא פותח שעון מעורר. לחצו «יומן» ובמסך השיתוף בחרו יומן
-                (Calendar). אפשר גם Google אם היומן מסתנכרן אליו.
+                לחצו «יומן» ובמסך השיתוף בחרו יומן (Calendar). אפשר גם Google.
               </p>
             </div>
           )}

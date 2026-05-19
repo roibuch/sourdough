@@ -1,11 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { BellAlertIcon, CalendarDaysIcon } from "@heroicons/react/24/outline";
+import {
+  BellAlertIcon,
+  CalendarDaysIcon,
+  ClockIcon,
+} from "@heroicons/react/24/outline";
 import {
   alarmResultMessage,
   alarmTimeTitle,
+  downloadIcsAlarm,
+  isAndroidDevice,
   isIOSDevice,
+  openAndroidClockAlarm,
   openGoogleCalendarEvent,
   triggerHardwareAlarm,
   type AlarmResult,
@@ -26,6 +33,7 @@ export function AlarmButton({
   onResult,
 }: AlarmButtonProps) {
   const [busy, setBusy] = useState(false);
+  const android = isAndroidDevice();
   const ios = isIOSDevice();
 
   const run = async (fn: () => Promise<AlarmResult> | AlarmResult) => {
@@ -45,20 +53,52 @@ export function AlarmButton({
     "disabled:opacity-60",
   );
 
-  if (ios) {
+  if (android || ios) {
     return (
       <div className="flex flex-wrap gap-2">
+        {android && (
+          <button
+            type="button"
+            disabled={busy}
+            className={cn(
+              btnClass,
+              "bg-orange-700 shadow-orange-900/25 hover:bg-orange-800 focus-visible:ring-orange-500",
+            )}
+            title={alarmTimeTitle(timestampMs)}
+            onClick={() =>
+              run(async (): Promise<AlarmResult> => {
+                const d = new Date(timestampMs);
+                openAndroidClockAlarm(
+                  d.getHours(),
+                  d.getMinutes(),
+                  message,
+                );
+                return "android";
+              })
+            }
+          >
+            <ClockIcon className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
+            <span>{busy ? "…" : `שעון · ${shortLabel}`}</span>
+          </button>
+        )}
         <button
           type="button"
           disabled={busy}
-          className={cn(btnClass, "bg-orange-700 shadow-orange-900/25 hover:bg-orange-800 focus-visible:ring-orange-500")}
+          className={cn(
+            btnClass,
+            ios
+              ? "bg-orange-700 shadow-orange-900/25 hover:bg-orange-800 focus-visible:ring-orange-500"
+              : "bg-emerald-800 shadow-emerald-900/20 hover:bg-emerald-900 focus-visible:ring-emerald-500",
+          )}
           title={alarmTimeTitle(timestampMs)}
           onClick={() =>
-            run(async () => triggerHardwareAlarm(timestampMs, message))
+            run(async (): Promise<AlarmResult> =>
+              downloadIcsAlarm(timestampMs, message),
+            )
           }
         >
           <BellAlertIcon className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
-          <span>{busy ? "פותח…" : `יומן · ${shortLabel}`}</span>
+          <span>{busy ? "…" : `יומן · ${shortLabel}`}</span>
         </button>
         <button
           type="button"
@@ -68,9 +108,7 @@ export function AlarmButton({
             "bg-stone-700 shadow-stone-900/20 hover:bg-stone-800 focus-visible:ring-stone-500",
           )}
           title={alarmTimeTitle(timestampMs)}
-          onClick={() =>
-            run(() => openGoogleCalendarEvent(timestampMs, message))
-          }
+          onClick={() => run(() => openGoogleCalendarEvent(timestampMs, message))}
         >
           <CalendarDaysIcon className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
           <span>Google</span>
