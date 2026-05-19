@@ -81,6 +81,9 @@ export interface RecipeState {
   retard?: string;
   hta?: string;
   rt?: string;
+  jar?: string;
+  urs?: string;
+  ms?: string;
   calc?: string;
 }
 

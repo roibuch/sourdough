@@ -21,9 +21,9 @@ export default function HomePage() {
         <h1 className="font-serif text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl lg:text-5xl">
           מחשבון ומדריך מחמצת
         </h1>
-        <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-stone-600 sm:text-lg">
-          חישוב בצק, לוח זמנים הפוך והתראות — מעוצב לעבודה בבית אפייה, גם
-          עם ידיים מקומטות מקמח.
+        <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-stone-600 sm:text-lg">
+          חישוב בצק חכם, האכלת מחמצת לפי מזג האוויר, לוח זמנים הפוך ומדריך שלבים —
+          מקצועי, נוח ומותאם לבית אפייה.
         </p>
       </header>
 

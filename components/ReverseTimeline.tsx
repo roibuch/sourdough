@@ -114,43 +114,12 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
           compact
         />
 
-        <PercentStepper
-          id="roomTemp"
-          label="טמפרטורת חדר (°C)"
-          value={form.roomTemp}
-          min={15}
-          max={32}
-          step={1}
-          onChange={form.setRoomTemp}
-          minusLabel="הפחת טמפרטורה"
-          plusLabel="הוסף טמפרטורה"
-          compact
-        />
-
-        <div className="col-span-full flex flex-col gap-3 rounded-2xl border border-stone-200 bg-stone-50/80 p-5">
-          <label
-            htmlFor="hoursToAutolyse"
-            className="text-sm font-semibold text-stone-800"
-          >
-            שעות עד אוטוליזה (להאכלת מחמצת)
-          </label>
-          <input
-            id="hoursToAutolyse"
-            type="range"
-            min={2}
-            max={16}
-            step={0.5}
-            value={form.hoursToAutolyse}
-            className="h-2.5 w-full cursor-pointer appearance-none rounded-full bg-stone-200 accent-emerald-700"
-            onChange={(e) =>
-              form.setHoursToAutolyse(parseFloat(e.target.value))
-            }
-          />
-          <span className="text-center font-serif text-xl font-semibold text-emerald-900">
-            {form.hoursToAutolyse} שעות
-          </span>
-        </div>
       </div>
+
+      <p className="mb-6 rounded-xl bg-stone-50 px-4 py-3 text-sm text-stone-600">
+        משתמשים ב־{form.roomTemp}°C ו־{form.hoursToAutolyse} שעות עד אוטוליזה (ניתן
+        לשנות במדריך האפייה).
+      </p>
 
       <Button variant="primary" fullWidth onClick={form.handleBuildTimeline}>
         בניית לוח זמנים

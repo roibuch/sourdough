@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo } from "react";
 import {
+  BeakerIcon,
   CalculatorIcon,
   LinkIcon,
   TrashIcon,
   ScaleIcon,
 } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
-import { AlarmButtonGroup } from "@/components/AlarmButton";
-import { PercentStepper } from "@/components/PercentStepper";
+import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { FlourPieChart } from "@/components/FlourPieChart";
 import { WeatherPanel } from "@/components/WeatherPanel";
 import { Button } from "@/components/ui/Button";
@@ -26,7 +26,6 @@ import {
   getFlourWarnings,
   getHydrationRecommendation,
 } from "@/lib/flour";
-import { getDoughWorkflow } from "@/lib/workflow";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import type { PresetKey } from "@/lib/types";
 
@@ -53,8 +52,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
     handleCalculate,
     handleCopyLink,
     handleClearStorage,
-    timelinePlan,
-    showToast,
+    openStarterOnlyGuide,
   } = form;
 
   const fermentationAlert = useMemo(
@@ -90,21 +88,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
 
   const warnings = showResults ? getFlourWarnings(mix, waterPct) : [];
   const hydration = getHydrationRecommendation(mix);
-  const workflow = showResults
-    ? getDoughWorkflow(mix, waterPct, starterPct, form.roomTemp)
-    : null;
   const bassinage = results ? getBassinageAmounts(results.water) : null;
-
-  const bulkAlarms =
-    timelinePlan?.schedule &&
-    [...timelinePlan.schedule.folds, timelinePlan.schedule.endBulk];
-
-  const handleAlarmResult = (type: "android" | "ics" | "invalid") => {
-    if (type === "android") showToast("פותח/ת את שעון האנדרואיד…");
-    else if (type === "ics") showToast("הורד קובץ .ics — ייבא/י ליומן.");
-    else if (type === "invalid")
-      showToast("אין שעה מתוכננת — בנו/י לוח זמנים קודם.");
-  };
 
   const totalWeightNum = parseFloat(totalWeight);
   const displayTotal =
@@ -164,8 +148,9 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             />
           </div>
 
-          <PercentStepper
+          <SmartNumberInput
             id="waterPct"
+            allowEmpty
             label="מים (%)"
             value={waterPct}
             min={1}
@@ -175,8 +160,9 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             minusLabel="הפחת מים"
             plusLabel="הוסף מים"
           />
-          <PercentStepper
+          <SmartNumberInput
             id="starterPct"
+            allowEmpty
             label="מחמצת (%)"
             value={starterPct}
             min={1}
@@ -186,8 +172,9 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             minusLabel="הפחת מחמצת"
             plusLabel="הוסף מחמצת"
           />
-          <PercentStepper
+          <SmartNumberInput
             id="saltPct"
+            allowEmpty
             label="מלח (%)"
             value={saltPct}
             min={0.5}
@@ -234,7 +221,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             </div>
 
             {FLOUR_FIELDS.map((field, i) => (
-              <PercentStepper
+              <SmartNumberInput
                 key={field.key}
                 id={`flour-${field.key}`}
                 label={`${field.label} (%)`}
@@ -242,6 +229,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
                 min={0}
                 max={100}
                 step={1}
+                allowEmpty
                 onChange={(v) => handleFlourPctChange(i, v)}
                 minusLabel={`הפחת ${field.label}`}
                 plusLabel={`הוסף ${field.label}`}
@@ -261,10 +249,16 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
           )}
         </Card>
 
-        <Button variant="primary" fullWidth onClick={handleCalculate}>
-          <ScaleIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-          חישוב מרכיבים
-        </Button>
+        <div className="flex flex-col gap-3">
+          <Button variant="primary" fullWidth onClick={handleCalculate}>
+            <ScaleIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+            חישוב מרכיבים
+          </Button>
+          <Button variant="ghost" fullWidth onClick={openStarterOnlyGuide}>
+            <BeakerIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+            מדריך האכלת מחמצת בלבד
+          </Button>
+        </div>
       </Card>
 
       {showResults && results && (
@@ -342,44 +336,9 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             <AdviceList items={warnings} />
           </Card>
 
-          {workflow && (
-            <Card nested className="border-emerald-100 bg-emerald-50/30">
-              <h4 className="mb-4 font-serif text-lg font-semibold text-stone-900">
-                המשך עבודה וקיפולים
-              </h4>
-              <AdviceList
-                items={[
-                  {
-                    type: "good",
-                    text: `אופי הבצק: ${workflow.profile}.`,
-                  },
-                  {
-                    type: "good",
-                    text: `קיפולים: ${workflow.foldCount} סטים של ${workflow.foldStyle}, כל ${workflow.foldEvery}.`,
-                  },
-                  {
-                    type: "warning",
-                    text: `Bulk משוער: כ־${workflow.bulkLow}–${workflow.bulkHigh} שעות (מחמצת ${starterPct}%).`,
-                  },
-                  {
-                    type: "good",
-                    text: `סימן לעצירה: ${workflow.riseTarget}. ${workflow.foldNote}`,
-                  },
-                ]}
-              />
-              {bulkAlarms && bulkAlarms.length > 0 && (
-                <div className="mt-6 border-t border-emerald-200/80 pt-6">
-                  <p className="mb-3 text-sm font-semibold text-stone-800">
-                    התראות לקיפולים וסיום Bulk
-                  </p>
-                  <AlarmButtonGroup
-                    alarms={bulkAlarms}
-                    onResult={handleAlarmResult}
-                  />
-                </div>
-              )}
-            </Card>
-          )}
+          <p className="mt-6 text-center text-sm text-stone-600">
+            המשך האפייה, קיפולים והתראות — במדריך השלבים למטה ↓
+          </p>
         </Card>
       )}
     </>

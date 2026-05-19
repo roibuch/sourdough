@@ -25,8 +25,9 @@ const DEFAULT_WATER = 73;
 const DEFAULT_STARTER = 20;
 const DEFAULT_SALT = 2;
 const DEFAULT_RETARD = 12;
-const DEFAULT_HTA = 5;
+const DEFAULT_HTA = 8;
 const DEFAULT_ROOM = 22;
+const DEFAULT_JAR = 30;
 
 export function useRecipeForm() {
   const [totalWeight, setTotalWeight] = useState("");
@@ -40,6 +41,11 @@ export function useRecipeForm() {
   const [coldRetardHours, setColdRetardHours] = useState(DEFAULT_RETARD);
   const [hoursToAutolyse, setHoursToAutolyse] = useState(DEFAULT_HTA);
   const [roomTemp, setRoomTemp] = useState(DEFAULT_ROOM);
+  const [keepInJarG, setKeepInJarG] = useState(DEFAULT_JAR);
+  const [useRecipeStarter, setUseRecipeStarter] = useState(true);
+  const [manualStarterG, setManualStarterG] = useState("");
+  const [showGuide, setShowGuide] = useState(false);
+  const [starterOnlyMode, setStarterOnlyMode] = useState(false);
   const [results, setResults] = useState<DoughResult | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [timelinePlan, setTimelinePlan] = useState<TimelinePlan | null>(null);
@@ -88,6 +94,9 @@ export function useRecipeForm() {
       coldRetardHours,
       hoursToAutolyse,
       roomTemp,
+      keepInJarG,
+      useRecipeStarter,
+      manualStarterG,
       calculated: calculated ?? showResults,
     }),
     [
@@ -101,6 +110,9 @@ export function useRecipeForm() {
       coldRetardHours,
       hoursToAutolyse,
       roomTemp,
+      keepInJarG,
+      useRecipeStarter,
+      manualStarterG,
       showResults,
     ],
   );
@@ -165,6 +177,9 @@ export function useRecipeForm() {
       if (state.retard) setColdRetardHours(parseFloat(state.retard) || DEFAULT_RETARD);
       if (state.hta) setHoursToAutolyse(parseFloat(state.hta) || DEFAULT_HTA);
       if (state.rt) setRoomTemp(parseFloat(state.rt) || DEFAULT_ROOM);
+      if (state.jar) setKeepInJarG(parseFloat(state.jar) || DEFAULT_JAR);
+      if (state.urs != null) setUseRecipeStarter(state.urs !== "0");
+      if (state.ms) setManualStarterG(state.ms);
 
       const parsed = parseFlourPcts(state.fl);
       if (parsed && parsed.length === FLOUR_FIELDS.length) {
@@ -265,6 +280,8 @@ export function useRecipeForm() {
     const dough = calculateDough(w, waterPct, starterPct, saltPct);
     setResults(dough);
     setShowResults(true);
+    setShowGuide(true);
+    setStarterOnlyMode(false);
     persistState(true);
 
     if (targetBakeTime) {
@@ -281,7 +298,7 @@ export function useRecipeForm() {
     }
 
     requestAnimationFrame(() => {
-      document.getElementById("recipe-results")?.scrollIntoView({
+      document.getElementById("baking-guide")?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
@@ -322,6 +339,17 @@ export function useRecipeForm() {
     }
   }, [persistState, showResults, showToast]);
 
+  const openStarterOnlyGuide = useCallback(() => {
+    setShowGuide(true);
+    setStarterOnlyMode(true);
+    setTimeout(() => {
+      document.getElementById("baking-guide")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
+  }, []);
+
   const handleClearStorage = useCallback(() => {
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -356,6 +384,15 @@ export function useRecipeForm() {
     setHoursToAutolyse,
     roomTemp,
     setRoomTemp,
+    keepInJarG,
+    setKeepInJarG,
+    useRecipeStarter,
+    setUseRecipeStarter,
+    manualStarterG,
+    setManualStarterG,
+    showGuide,
+    starterOnlyMode,
+    openStarterOnlyGuide,
     results,
     showResults,
     timelinePlan,

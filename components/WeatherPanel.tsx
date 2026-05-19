@@ -12,6 +12,7 @@ import {
   getOpenWeatherApiKey,
   recommendStarterFromAvgTemp,
 } from "@/lib/weather";
+import { recommendHoursToAutolyse } from "@/lib/starter";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
@@ -90,10 +91,15 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
   };
 
   const handleApply = () => {
-    if (!rec || rec.tier === "error") return;
+    if (!rec || rec.tier === "error" || avgTemp == null) return;
+    const hours = recommendHoursToAutolyse(avgTemp);
     form.setStarterPct(rec.pct);
+    form.setRoomTemp(Math.round(avgTemp));
+    form.setHoursToAutolyse(hours);
     form.schedulePersist();
-    form.showToast(`הוחל ${rec.pct}% מחמצת לפי מזג האוויר.`);
+    form.showToast(
+      `הוחלו: ${rec.pct}% מחמצת, ${Math.round(avgTemp)}°C, ${hours} שעות עד אוטוליזה.`,
+    );
   };
 
   const tierStyle = rec ? TIER_STYLES[rec.tier] : null;
@@ -170,7 +176,8 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
               className="mt-4"
               onClick={handleApply}
             >
-              החל/י {rec.pct}% מחמצת
+              החל/י המלצות — {rec.pct}% מחמצת, {Math.round(avgTemp!)}°C,{" "}
+              {recommendHoursToAutolyse(avgTemp!)} שעות
             </Button>
           )}
         </div>

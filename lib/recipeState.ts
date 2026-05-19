@@ -24,6 +24,9 @@ export interface RecipeFormSnapshot {
   coldRetardHours: number;
   hoursToAutolyse: number;
   roomTemp: number;
+  keepInJarG: number;
+  useRecipeStarter: boolean;
+  manualStarterG: string;
   calculated?: boolean;
 }
 
@@ -39,6 +42,9 @@ export function buildRecipeState(params: RecipeFormSnapshot): RecipeState {
     retard: String(params.coldRetardHours),
     hta: String(params.hoursToAutolyse),
     rt: String(params.roomTemp),
+    jar: String(params.keepInJarG),
+    urs: params.useRecipeStarter ? "1" : "0",
+    ms: params.manualStarterG || undefined,
     ...(params.calculated ? { calc: "1" } : {}),
   };
 }
@@ -68,6 +74,9 @@ export function parseRecipeStateFromSearch(
     retard: p.get("retard") ?? undefined,
     hta: p.get("hta") ?? undefined,
     rt: p.get("rt") ?? undefined,
+    jar: p.get("jar") ?? undefined,
+    urs: p.get("urs") ?? undefined,
+    ms: p.get("ms") ?? undefined,
     calc: p.get("calc") ?? undefined,
   };
 }

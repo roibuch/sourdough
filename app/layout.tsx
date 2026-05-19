@@ -1,23 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Frank_Ruhl_Libre, Heebo } from "next/font/google";
 import Script from "next/script";
 import { OpenWeatherRuntimeConfig } from "@/components/OpenWeatherRuntimeConfig";
 import { getBasePath } from "@/lib/basePath";
 import "./globals.css";
 
+const heebo = Heebo({
+  subsets: ["hebrew", "latin"],
+  variable: "--font-heebo",
+  display: "swap",
+});
+
+const frank = Frank_Ruhl_Libre({
+  subsets: ["hebrew", "latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-frank",
+  display: "swap",
+});
+
 const basePath = getBasePath();
-
-const inter = Inter({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin", "latin-ext"],
-  variable: "--font-playfair",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Sourdough Master | מחשבון ומדריך מחמצת",
@@ -39,8 +40,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="font-sans">
+    <html lang="he" dir="rtl" className={`${heebo.variable} ${frank.variable}`}>
+      <body className="font-sans antialiased">
         <OpenWeatherRuntimeConfig />
         <Script src={`${basePath}/config.js`} strategy="beforeInteractive" />
         {children}
