@@ -2,7 +2,7 @@ import type { WeatherRecommendation } from "./types";
 
 export type { WeatherRecommendation };
 
-interface ForecastItem {
+export interface ForecastItem {
   dt: number;
   main: { temp: number };
 }
@@ -57,6 +57,53 @@ export function getOpenWeatherApiKey(): string {
   return fromEnv;
 }
 
+/** Linear interpolation between OpenWeather 3-hour forecast points */
+export function interpolateTempAt(
+  forecastList: ForecastItem[],
+  atMs: number,
+): number | null {
+  if (!forecastList.length) return null;
+  const sorted = [...forecastList].sort((a, b) => a.dt - b.dt);
+  const firstMs = sorted[0].dt * 1000;
+  const lastMs = sorted[sorted.length - 1].dt * 1000;
+
+  if (atMs <= firstMs) return sorted[0].main.temp;
+  if (atMs >= lastMs) return sorted[sorted.length - 1].main.temp;
+
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const t0 = sorted[i].dt * 1000;
+    const t1 = sorted[i + 1].dt * 1000;
+    if (atMs >= t0 && atMs <= t1) {
+      const ratio = (t1 - t0) > 0 ? (atMs - t0) / (t1 - t0) : 0;
+      return (
+        sorted[i].main.temp +
+        ratio * (sorted[i + 1].main.temp - sorted[i].main.temp)
+      );
+    }
+  }
+  return sorted[sorted.length - 1].main.temp;
+}
+
+/** Mean temperature across a work window (samples every 30 minutes) */
+export function averageTempInWindow(
+  forecastList: ForecastItem[],
+  startMs: number,
+  endMs: number,
+): number | null {
+  if (endMs <= startMs) return interpolateTempAt(forecastList, startMs);
+
+  const samples: number[] = [];
+  const stepMs = 30 * 60 * 1000;
+  for (let t = startMs; t < endMs; t += stepMs) {
+    const temp = interpolateTempAt(forecastList, t);
+    if (temp != null) samples.push(temp);
+  }
+  const endTemp = interpolateTempAt(forecastList, endMs - 1);
+  if (endTemp != null) samples.push(endTemp);
+  if (!samples.length) return null;
+  return samples.reduce((a, b) => a + b, 0) / samples.length;
+}
+
 export function averageTempNext6Hours(forecastList: ForecastItem[]): number | null {
   const now = Date.now();
   const end = now + 6 * 3_600_000;
@@ -84,7 +131,7 @@ export function recommendStarterFromAvgTemp(avgC: number): WeatherRecommendation
       pct: 12,
       range: "10%–15%",
       title: "חם מאוד — האטת התפחה",
-      body: `ממוצע הטמפרטורה ב־6 השעות הקרובות הוא ${avgC.toFixed(1)}°C. התפחה תהיה מהירה — מומלץ להפחית מחמצת ל־10%–15%.`,
+      body: `ממוצע ${avgC.toFixed(1)}°C בחלון העבודה (Bulk). התפחה תהיה מהירה — מומלץ להפחית מחמצת ל־10%–15%.`,
     };
   }
   if (avgC >= 22 && avgC <= 26) {
@@ -93,7 +140,7 @@ export function recommendStarterFromAvgTemp(avgC: number): WeatherRecommendation
       pct: 20,
       range: "20%",
       title: "טמפרטורת חדר אידיאלית",
-      body: `ממוצע ${avgC.toFixed(1)}°C ב־6 השעות הקרובות — טווח נוח לאפייה. מומלץ להישאר עם ~20% מחמצת.`,
+      body: `ממוצע ${avgC.toFixed(1)}°C בחלון העבודה (Bulk) — טווח נוח לאפייה. מומלץ ~20% מחמצת.`,
     };
   }
   return {
@@ -101,13 +148,14 @@ export function recommendStarterFromAvgTemp(avgC: number): WeatherRecommendation
     pct: 27,
     range: "25%–30%",
     title: "קריר — האיצת התפחה",
-    body: `ממוצע ${avgC.toFixed(1)}°C ב־6 השעות הקרובות — התפחה איטית יותר. מומלץ להעלות מחמצת ל־25%–30%.`,
+    body: `ממוצע ${avgC.toFixed(1)}°C בחלון העבודה (Bulk) — התפחה איטית יותר. מומלץ להעלות מחמצת ל־25%–30%.`,
   };
 }
 
 export async function fetchLocalWeatherForecast(): Promise<{
   avgTemp: number;
   locationLabel: string;
+  forecastList: ForecastItem[];
 }> {
   const key = getOpenWeatherApiKey();
   if (!key) throw new Error("missing_api_key");
@@ -140,5 +188,9 @@ export async function fetchLocalWeatherForecast(): Promise<{
   const locationLabel =
     data.city?.name ?? `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
 
-  return { avgTemp: avg, locationLabel };
+  return {
+    avgTemp: avg,
+    locationLabel,
+    forecastList: data.list || [],
+  };
 }

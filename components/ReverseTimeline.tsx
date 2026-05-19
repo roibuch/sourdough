@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import {
   BeakerIcon,
   CalendarDaysIcon,
@@ -7,13 +8,18 @@ import {
   FireIcon,
   HandRaisedIcon,
   ArchiveBoxIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { AlarmButtonGroup } from "@/components/AlarmButton";
-import { PercentStepper } from "@/components/PercentStepper";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { formatScheduleTime } from "@/lib/timeline";
+import {
+  findScheduleOptionByTarget,
+  generateScheduleOptions,
+  type ScheduleOption,
+} from "@/lib/scheduleOptions";
 import {
   STEP_KIND_STYLES,
   getTimelineStepKind,
@@ -21,20 +27,6 @@ import {
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import type { TimelineStep } from "@/lib/types";
 import { cn } from "@/lib/cn";
-
-function formatTargetLabel(value: string): string | null {
-  if (!value) return null;
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return null;
-  return new Intl.DateTimeFormat("he-IL", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(d);
-}
 
 function StepIcon({ step }: { step: TimelineStep }) {
   const cls = "h-5 w-5";
@@ -54,80 +46,216 @@ function StepIcon({ step }: { step: TimelineStep }) {
   return <ClockIcon className={cls} strokeWidth={stroke} />;
 }
 
+function ScheduleOptionCard({
+  option,
+  selected,
+  onSelect,
+}: {
+  option: ScheduleOption;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const startHighlight = option.highlights[0];
+  const activeHighlight = option.highlights[2];
+  const freeHighlight = option.highlights[3];
+
+  return (
+    <button
+      type="button"
+      disabled={!option.feasible}
+      onClick={onSelect}
+      className={cn(
+        "w-full rounded-2xl border-2 p-4 text-right transition sm:p-5",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
+        !option.feasible &&
+          "cursor-not-allowed border-stone-200 bg-stone-50 opacity-60",
+        option.feasible &&
+          !selected &&
+          "border-stone-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/40",
+        option.feasible &&
+          selected &&
+          "border-emerald-600 bg-emerald-50/80 shadow-md shadow-emerald-900/5",
+      )}
+    >
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="font-serif text-lg font-semibold text-stone-900">
+            {option.title}
+          </p>
+          <p className="mt-0.5 text-sm text-emerald-800">
+            לחם מוכן: {option.bakeLabel}
+          </p>
+        </div>
+        {selected && (
+          <span className="rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white">
+            נבחר
+          </span>
+        )}
+      </div>
+
+      {option.feasible ? (
+        <ul className="space-y-2 text-sm text-stone-700">
+          <li className="flex gap-2">
+            <span aria-hidden>{startHighlight.icon}</span>
+            <span>
+              <strong className="text-stone-900">{startHighlight.label}</strong>
+              <br />
+              <span className="text-stone-600">{startHighlight.detail}</span>
+            </span>
+          </li>
+          <li className="flex gap-2">
+            <span aria-hidden>{activeHighlight.icon}</span>
+            <span>
+              <strong className="text-stone-900">{activeHighlight.label}</strong>
+              <br />
+              <span className="text-stone-600">{activeHighlight.detail}</span>
+            </span>
+          </li>
+          <li className="flex gap-2">
+            <span aria-hidden>{freeHighlight.icon}</span>
+            <span>
+              <strong className="text-stone-900">{freeHighlight.label}</strong>
+              <br />
+              <span className="text-stone-600">{freeHighlight.detail}</span>
+            </span>
+          </li>
+          <li className="mt-2 text-xs text-stone-500">
+            סה״כ ~{option.plan.summary.totalHours} שעות מההאכלה ועד האפייה
+          </li>
+        </ul>
+      ) : (
+        <p className="text-sm text-amber-900">{option.infeasibleReason}</p>
+      )}
+    </button>
+  );
+}
+
 export function ReverseTimeline({ form }: { form: RecipeForm }) {
-  const targetLabel = formatTargetLabel(form.targetBakeTime);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showCustom, setShowCustom] = useState(false);
+
+  const options = useMemo(
+    () => generateScheduleOptions(form.timelineInput),
+    [form.timelineInput],
+  );
+
+  const feasibleOptions = options.filter((o) => o.feasible);
+
+  useEffect(() => {
+    if (!form.targetBakeTime) return;
+    const match = findScheduleOptionByTarget(options, form.targetBakeTime);
+    setSelectedId(match?.id ?? null);
+  }, [options, form.targetBakeTime]);
+
+  const handleSelectOption = (option: ScheduleOption) => {
+    if (!option.feasible) return;
+    setSelectedId(option.id);
+    form.selectScheduleOption(option);
+    setTimeout(() => {
+      document.getElementById("schedule-plan")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
+  };
 
   const handleAlarmResult = (type: "android" | "ics" | "invalid") => {
     if (type === "android") form.showToast("פותח/ת את שעון האנדרואיד…");
     else if (type === "ics") form.showToast("הורד קובץ .ics — ייבא/י ליומן.");
     else if (type === "invalid")
-      form.showToast("אין שעה מתוכננת — בנו/י לוח זמנים קודם.");
+      form.showToast("אין שעה מתוכננת — בחרו מועד מהרשימה.");
+  };
+
+  const handleCustomBuild = () => {
+    const plan = form.rebuildTimeline(false);
+    if (plan) {
+      const match = findScheduleOptionByTarget(options, form.targetBakeTime);
+      setSelectedId(match?.id ?? null);
+      setTimeout(() => {
+        document.getElementById("schedule-plan")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 80);
+    }
   };
 
   return (
     <Card id="schedule-card" className="mb-8 sm:mb-10">
       <SectionHeader
         icon={<CalendarDaysIcon className="h-6 w-6" strokeWidth={1.75} />}
-        title="לוח אפייה הפוך"
-        subtitle="הזינו מתי הלחם צריך להיות מוכן — נחשב אחורה את ההאכלה, האוטוליזה, ה-Bulk והמקרר."
+        title="מתי תרצו שהלחם יהיה מוכן?"
+        subtitle="בחרו אחת מהאפשרויות — נראה מתי להתחיל, מתי עובדים ומתי אתם פנויים."
       />
 
-      {targetLabel && (
-        <div className="mb-8 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 sm:p-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800/80">
-            יעד אפייה
-          </p>
-          <p className="mt-1 font-serif text-2xl font-semibold text-emerald-950 sm:text-3xl">
-            {targetLabel}
-          </p>
-        </div>
+      {feasibleOptions.length === 0 && (
+        <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          אין מועדים מתאימים עם הזמן שנשאר. השתמשו בזמן מותאם אישית למטה, או
+          חשבו מתכון עם פחות שעות מקרר.
+        </p>
       )}
 
-      <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8">
-        <div className="col-span-full flex flex-col gap-2.5 sm:col-span-2">
+      <div className="mb-6 grid gap-3 sm:grid-cols-2" role="list">
+        {options.map((option) => (
+          <ScheduleOptionCard
+            key={option.id}
+            option={option}
+            selected={selectedId === option.id}
+            onSelect={() => handleSelectOption(option)}
+          />
+        ))}
+      </div>
+
+      <details
+        className="mb-6 rounded-2xl border border-stone-200 bg-stone-50/60"
+        open={showCustom}
+        onToggle={(e) => setShowCustom((e.target as HTMLDetailsElement).open)}
+      >
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-stone-800 [&::-webkit-details-marker]:hidden">
+          <span>זמן יעד אחר (מותאם אישית)</span>
+          <ChevronDownIcon
+            className={cn(
+              "h-5 w-5 shrink-0 text-stone-500 transition",
+              showCustom && "rotate-180",
+            )}
+          />
+        </summary>
+        <div className="border-t border-stone-200 px-4 pb-4 pt-3">
           <label
             htmlFor="targetBakeTime"
-            className="text-sm font-semibold text-stone-800"
+            className="mb-2 block text-sm text-stone-600"
           >
-            זמן יעד — סיום אפייה
+            סיום אפייה
           </label>
           <input
             id="targetBakeTime"
             type="datetime-local"
             step={300}
-            className="w-full rounded-2xl border-2 border-stone-200 bg-amber-50/60 px-4 py-4 text-center text-base text-stone-900 focus:border-emerald-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+            className="mb-3 w-full rounded-2xl border-2 border-stone-200 bg-white px-4 py-3 text-center text-base text-stone-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
             value={form.targetBakeTime}
-            onChange={(e) => form.setTargetBakeTime(e.target.value)}
+            onChange={(e) => {
+              form.setTargetBakeTime(e.target.value);
+              setSelectedId(null);
+            }}
           />
+          <Button variant="secondary" fullWidth onClick={handleCustomBuild}>
+            הצג/י תוכנית לזמן זה
+          </Button>
         </div>
+      </details>
 
-        <PercentStepper
-          id="coldRetardHours"
-          label="התפחה במקרר (שעות)"
-          value={form.coldRetardHours}
-          min={4}
-          max={48}
-          step={1}
-          onChange={form.setColdRetardHours}
-          minusLabel="הפחת שעות מקרר"
-          plusLabel="הוסף שעות מקרר"
-          compact
-        />
-
-      </div>
-
-      <p className="mb-6 rounded-xl bg-stone-50 px-4 py-3 text-sm text-stone-600">
-        משתמשים ב־{form.roomTemp}°C ו־{form.hoursToAutolyse} שעות עד אוטוליזה (ניתן
-        לשנות במדריך האפייה).
+      <p className="mb-2 text-xs text-stone-500">
+        התכנון מבוסס על {form.starterPct}% מחמצת, {form.hoursToAutolyse} שעות עד
+        אוטוליזה ו־{form.roomTemp}°C — עדכנו במזג האוויר או במדריך האפייה.
       </p>
 
-      <Button variant="primary" fullWidth onClick={form.handleBuildTimeline}>
-        בניית לוח זמנים
-      </Button>
-
       {form.showTimeline && form.timelinePlan && (
-        <div className="mt-10">
-          <div className="mb-8 rounded-2xl border border-stone-200 bg-stone-50/90 p-5 sm:p-6">
+        <div id="schedule-plan" className="mt-8 border-t border-stone-200 pt-8">
+          <h3 className="mb-6 font-serif text-xl font-semibold text-stone-900">
+            התוכנית המלאה שלכם
+          </h3>
+
+          <div className="mb-8 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 sm:p-6">
             <p className="text-sm text-stone-600">מתחילים בהאכלת מחמצת</p>
             <p className="mt-1 font-serif text-xl font-semibold text-stone-900">
               {formatScheduleTime(form.timelinePlan.summary.starterFeed)}
@@ -170,7 +298,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
 
               return (
                 <li
-                  key={step.title}
+                  key={`${step.title}-${step.start}`}
                   className={cn(
                     "relative pb-8 pr-14 last:pb-0 sm:pr-16",
                     index % 2 === 1 && "sm:pr-[4.5rem]",
@@ -193,9 +321,9 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
                     )}
                   >
                     <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
-                      <h3 className="m-0 font-serif text-lg font-semibold text-stone-900">
+                      <h4 className="m-0 font-serif text-lg font-semibold text-stone-900">
                         {step.title}
-                      </h3>
+                      </h4>
                       <span
                         className={cn(
                           "shrink-0 rounded-full px-3 py-1 text-xs font-bold",
@@ -231,6 +359,12 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
             })}
           </ol>
         </div>
+      )}
+
+      {!form.showTimeline && feasibleOptions.length > 0 && (
+        <p className="mt-4 text-center text-sm text-stone-500">
+          בחרו מועד למעלה כדי לראות את כל השלבים והתראות
+        </p>
       )}
     </Card>
   );

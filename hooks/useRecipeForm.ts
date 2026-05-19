@@ -18,7 +18,13 @@ import {
   saveRecipeStateToStorage,
   syncRecipeStateToUrl,
 } from "@/lib/recipeState";
+import {
+  findScheduleOptionByTarget,
+  generateScheduleOptions,
+} from "@/lib/scheduleOptions";
 import { buildReverseTimeline, defaultTargetBakeLocal } from "@/lib/timeline";
+import type { ScheduleOption } from "@/lib/scheduleOptions";
+import type { BakingWeatherPlan } from "@/lib/weatherPlan";
 import type { DoughResult, PresetKey, TimelinePlan } from "@/lib/types";
 
 const DEFAULT_WATER = 73;
@@ -46,6 +52,9 @@ export function useRecipeForm() {
   const [manualStarterG, setManualStarterG] = useState("");
   const [showGuide, setShowGuide] = useState(false);
   const [starterOnlyMode, setStarterOnlyMode] = useState(false);
+  const [bulkHoursOverride, setBulkHoursOverride] = useState<number | null>(
+    null,
+  );
   const [results, setResults] = useState<DoughResult | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [timelinePlan, setTimelinePlan] = useState<TimelinePlan | null>(null);
@@ -65,6 +74,8 @@ export function useRecipeForm() {
       roomTemp,
       hoursToAutolyse,
       flourPcts,
+      ...(bulkHoursOverride != null ? { bulkHours: bulkHoursOverride } : {}),
+      starterPeakHours: hoursToAutolyse,
     }),
     [
       targetBakeTime,
@@ -74,6 +85,7 @@ export function useRecipeForm() {
       roomTemp,
       hoursToAutolyse,
       flourPcts,
+      bulkHoursOverride,
     ],
   );
 
@@ -339,6 +351,50 @@ export function useRecipeForm() {
     }
   }, [persistState, showResults, showToast]);
 
+  const selectScheduleOption = useCallback(
+    (option: ScheduleOption) => {
+      if (!option.feasible) {
+        showToast(option.infeasibleReason ?? "המועד לא זמין.");
+        return;
+      }
+      setTargetBakeTime(option.targetBakeTime);
+      setColdRetardHours(option.coldRetardHours);
+      setTimelinePlan(option.plan);
+      setShowTimeline(true);
+      persistState(showResults);
+    },
+    [persistState, showResults, showToast],
+  );
+
+  const applyWeatherPlan = useCallback(
+    (plan: BakingWeatherPlan) => {
+      setStarterPct(plan.starterPct);
+      setRoomTemp(plan.roomTemp);
+      setHoursToAutolyse(plan.hoursToAutolyse);
+      setBulkHoursOverride(plan.bulkHours);
+      persistState(showResults);
+
+      if (targetBakeTime) {
+        const nextInput = {
+          ...timelineInput,
+          starterPct: plan.starterPct,
+          roomTemp: plan.roomTemp,
+          hoursToAutolyse: plan.hoursToAutolyse,
+          bulkHours: plan.bulkHours,
+          starterPeakHours: plan.hoursToAutolyse,
+        };
+        const options = generateScheduleOptions(nextInput);
+        const match = findScheduleOptionByTarget(options, targetBakeTime);
+        const rebuilt = match?.plan ?? buildReverseTimeline(nextInput);
+        if (rebuilt) {
+          setTimelinePlan(rebuilt);
+          setShowTimeline(true);
+        }
+      }
+    },
+    [persistState, showResults, targetBakeTime, timelineInput],
+  );
+
   const openStarterOnlyGuide = useCallback(() => {
     setShowGuide(true);
     setStarterOnlyMode(true);
@@ -393,6 +449,9 @@ export function useRecipeForm() {
     showGuide,
     starterOnlyMode,
     openStarterOnlyGuide,
+    applyWeatherPlan,
+    selectScheduleOption,
+    timelineInput,
     results,
     showResults,
     timelinePlan,

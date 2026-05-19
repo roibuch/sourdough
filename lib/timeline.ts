@@ -54,7 +54,7 @@ export function getTimelineBulkHours(starterPct: number, mix: FlourMix): number 
 
 export function getTimelineStarterHours(hoursToAutolyse: number): number {
   if (Number.isNaN(hoursToAutolyse)) return 5;
-  return Math.max(4, Math.min(6, hoursToAutolyse));
+  return Math.max(4, Math.min(10, hoursToAutolyse));
 }
 
 export interface BuildTimelineInput {
@@ -65,22 +65,35 @@ export interface BuildTimelineInput {
   roomTemp: number;
   hoursToAutolyse: number;
   flourPcts: number[];
+  /** Override bulk block length (e.g. from weather plan) */
+  bulkHours?: number;
+  /** Override starter peak window (defaults to hoursToAutolyse) */
+  starterPeakHours?: number;
 }
 
-export function buildReverseTimeline(input: BuildTimelineInput): TimelinePlan | null {
+export interface TimelineAnchors {
+  tStarterFeed: number;
+  tAutolyseStart: number;
+  tAutolyseEnd: number;
+  tBulkStart: number;
+  tBulkEnd: number;
+  starterPeakH: number;
+  bulkH: number;
+}
+
+export function getTimelineAnchors(
+  input: BuildTimelineInput,
+): TimelineAnchors | null {
   if (!input.targetBakeTime) return null;
   const bakeEnd = new Date(input.targetBakeTime);
   if (Number.isNaN(bakeEnd.getTime())) return null;
 
   const mix = buildFlourMix(input.flourPcts);
-  const bulkH = getTimelineBulkHours(input.starterPct, mix);
-  const starterPeakH = getTimelineStarterHours(input.hoursToAutolyse);
-  const workflow = getDoughWorkflow(
-    mix,
-    input.waterPct,
-    input.starterPct,
-    input.roomTemp,
-  );
+  const bulkH =
+    input.bulkHours ?? getTimelineBulkHours(input.starterPct, mix);
+  const starterPeakH =
+    input.starterPeakHours ??
+    getTimelineStarterHours(input.hoursToAutolyse);
 
   const tBakeEnd = bakeEnd.getTime();
   const tBakeStart = tBakeEnd - MS_H;
@@ -93,6 +106,46 @@ export function buildReverseTimeline(input: BuildTimelineInput): TimelinePlan | 
   const tAutolyseEnd = tBulkStart;
   const tAutolyseStart = tAutolyseEnd - MS_H;
   const tStarterFeed = tAutolyseStart - starterPeakH * MS_H;
+
+  return {
+    tStarterFeed,
+    tAutolyseStart,
+    tAutolyseEnd,
+    tBulkStart,
+    tBulkEnd,
+    starterPeakH,
+    bulkH,
+  };
+}
+
+export function buildReverseTimeline(input: BuildTimelineInput): TimelinePlan | null {
+  const anchorData = getTimelineAnchors(input);
+  if (!anchorData) return null;
+
+  const mix = buildFlourMix(input.flourPcts);
+  const { bulkH, starterPeakH } = anchorData;
+  const workflow = getDoughWorkflow(
+    mix,
+    input.waterPct,
+    input.starterPct,
+    input.roomTemp,
+  );
+
+  const {
+    tStarterFeed,
+    tAutolyseStart,
+    tAutolyseEnd,
+    tBulkStart,
+    tBulkEnd,
+  } = anchorData;
+
+  const bakeEnd = new Date(input.targetBakeTime);
+  const tBakeEnd = bakeEnd.getTime();
+  const tBakeStart = tBakeEnd - MS_H;
+  const tRetardEnd = tBakeStart;
+  const tRetardStart = tRetardEnd - input.coldRetardHours * MS_H;
+  const tPreshapeEnd = tRetardStart;
+  const tPreshapeStart = tPreshapeEnd - 0.5 * MS_H;
 
   const anchors = {
     tBulkStart,
