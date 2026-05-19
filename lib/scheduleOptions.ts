@@ -1,3 +1,4 @@
+import { buildTimelineInputWithPace } from "./expressMode";
 import {
   buildReverseTimeline,
   formatScheduleTime,
@@ -8,6 +9,7 @@ import type { TimelinePlan } from "./types";
 
 const MS_H = 3_600_000;
 const MIN_LEAD_H = 5;
+const MIN_LEAD_H_EXPRESS = 3;
 
 export interface ScheduleHighlight {
   icon: string;
@@ -26,6 +28,7 @@ export interface ScheduleOption {
   highlights: ScheduleHighlight[];
   feasible: boolean;
   infeasibleReason?: string;
+  isExpress?: boolean;
 }
 
 interface Candidate {
@@ -167,50 +170,96 @@ function buildCandidates(): Candidate[] {
   return list;
 }
 
+function pushOption(
+  options: ScheduleOption[],
+  params: {
+    id: string;
+    title: string;
+    date: Date;
+    coldRetardHours: number;
+    input: BuildTimelineInput;
+    isExpress: boolean;
+    minLeadH: number;
+  },
+) {
+  const { id, title, date, coldRetardHours, input, isExpress, minLeadH } = params;
+  const now = Date.now();
+  const targetBakeTime = toLocalDatetimeValue(date);
+
+  const baseInput: BuildTimelineInput = {
+    ...input,
+    targetBakeTime,
+    coldRetardHours,
+    fermentationPace: isExpress ? "express" : input.fermentationPace ?? "standard",
+  };
+
+  const resolved = isExpress
+    ? buildTimelineInputWithPace({ ...baseInput, fermentationPace: "express" })
+    : baseInput;
+
+  const plan = buildReverseTimeline(resolved);
+  if (!plan) return;
+
+  const leadH = (plan.summary.starterFeed - now) / MS_H;
+  const feasible = leadH >= minLeadH;
+
+  options.push({
+    id: isExpress ? `${id}-express` : id,
+    title: isExpress ? `${title} ⚡ מואץ` : title,
+    bakeLabel: formatBakeLabel(date),
+    targetBakeTime,
+    coldRetardHours: resolved.coldRetardHours,
+    plan,
+    highlights: buildHighlights(plan),
+    feasible,
+    isExpress,
+    infeasibleReason: feasible
+      ? undefined
+      : isExpress
+        ? `גם במצב מואץ נדרשות לפחות ${minLeadH} שעות מראש`
+        : `נדרשות לפחות ${MIN_LEAD_H} שעות — נסו את גרסת «מואץ»`,
+  });
+}
+
 /** Ready-made bake schedules — user picks one, sees full plan */
 export function generateScheduleOptions(
   input: BuildTimelineInput,
 ): ScheduleOption[] {
-  const now = Date.now();
   const options: ScheduleOption[] = [];
 
   for (const c of buildCandidates()) {
-    const targetBakeTime = toLocalDatetimeValue(c.date);
-    const coldRetardHours = c.coldRetardHours ?? input.coldRetardHours;
-    const plan = buildReverseTimeline({
-      ...input,
-      targetBakeTime,
-      coldRetardHours,
-    });
-    if (!plan) continue;
-
-    const leadH = (plan.summary.starterFeed - now) / MS_H;
-    const feasible = leadH >= MIN_LEAD_H;
-
-    options.push({
+    pushOption(options, {
       id: c.id,
       title: c.title,
-      bakeLabel: formatBakeLabel(c.date),
-      targetBakeTime,
-      coldRetardHours,
-      plan,
-      highlights: buildHighlights(plan),
-      feasible,
-      infeasibleReason: feasible
-        ? undefined
-        : `נדרשות לפחות ${MIN_LEAD_H} שעות מראש — בחרו מועד מאוחר יותר`,
+      date: c.date,
+      coldRetardHours: c.coldRetardHours ?? input.coldRetardHours,
+      input,
+      isExpress: false,
+      minLeadH: MIN_LEAD_H,
+    });
+
+    pushOption(options, {
+      id: c.id,
+      title: c.title,
+      date: c.date,
+      coldRetardHours: Math.max(4, (c.coldRetardHours ?? input.coldRetardHours) - 4),
+      input,
+      isExpress: true,
+      minLeadH: MIN_LEAD_H_EXPRESS,
     });
   }
 
   const seen = new Set<string>();
   return options
     .filter((o) => {
-      if (seen.has(o.targetBakeTime)) return false;
-      seen.add(o.targetBakeTime);
+      const key = `${o.targetBakeTime}-${o.isExpress ? "x" : "s"}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     })
     .sort((a, b) => {
       if (a.feasible !== b.feasible) return a.feasible ? -1 : 1;
+      if (a.isExpress !== b.isExpress) return a.isExpress ? 1 : -1;
       return a.plan.summary.bakeEnd - b.plan.summary.bakeEnd;
     });
 }

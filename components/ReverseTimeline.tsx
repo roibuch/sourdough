@@ -11,6 +11,7 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { AlarmButtonGroup } from "@/components/AlarmButton";
+import { ExpressModePanel } from "@/components/ExpressModePanel";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -84,6 +85,11 @@ function ScheduleOptionCard({
           </p>
           <p className="mt-0.5 text-sm text-emerald-800">
             לחם מוכן: {option.bakeLabel}
+            {option.isExpress && (
+              <span className="ms-2 rounded-full bg-amber-200 px-2 py-0.5 text-xs font-bold text-amber-950">
+                מואץ
+              </span>
+            )}
           </p>
         </div>
         {selected && (
@@ -187,6 +193,8 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
         title="מתי תרצו שהלחם יהיה מוכן?"
         subtitle="בחרו אחת מהאפשרויות — נראה מתי להתחיל, מתי עובדים ומתי אתם פנויים."
       />
+
+      <ExpressModePanel form={form} />
 
       {feasibleOptions.length === 0 && (
         <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">

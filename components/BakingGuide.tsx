@@ -16,6 +16,7 @@ import { MasterBakerTip } from "@/components/ui/MasterBakerTip";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { getBassinageAmounts } from "@/lib/dough";
 import { describeFlourMix } from "@/lib/flour";
+import { ExpressModePanel } from "@/components/ExpressModePanel";
 import { calculateStarterFeed } from "@/lib/starter";
 import type { StarterFeedResult } from "@/lib/starter";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
@@ -42,6 +43,7 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
     setRoomTemp,
     hoursToAutolyse,
     setHoursToAutolyse,
+    starterRatioPreset,
     showToast,
   } = form;
 
@@ -69,6 +71,7 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
       keepInJarG,
       roomTempC: roomTemp,
       hoursToAutolyse,
+      ratioPreset: starterRatioPreset,
     });
     if (!feed) {
       showToast("לא ניתן לחשב האכלה — בדקו את הכמויות.");
@@ -136,6 +139,8 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
             </>
           )}
         </p>
+
+        <ExpressModePanel form={form} />
 
         <div className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4 sm:p-5">
           <p className="mb-4 text-sm text-stone-600">

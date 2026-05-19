@@ -27,6 +27,8 @@ export interface RecipeFormSnapshot {
   keepInJarG: number;
   useRecipeStarter: boolean;
   manualStarterG: string;
+  fermentationPace?: string;
+  starterRatioPreset?: string;
   calculated?: boolean;
 }
 
@@ -45,6 +47,8 @@ export function buildRecipeState(params: RecipeFormSnapshot): RecipeState {
     jar: String(params.keepInJarG),
     urs: params.useRecipeStarter ? "1" : "0",
     ms: params.manualStarterG || undefined,
+    pace: params.fermentationPace || undefined,
+    sr: params.starterRatioPreset || undefined,
     ...(params.calculated ? { calc: "1" } : {}),
   };
 }
@@ -77,6 +81,8 @@ export function parseRecipeStateFromSearch(
     jar: p.get("jar") ?? undefined,
     urs: p.get("urs") ?? undefined,
     ms: p.get("ms") ?? undefined,
+    pace: p.get("pace") ?? undefined,
+    sr: p.get("sr") ?? undefined,
     calc: p.get("calc") ?? undefined,
   };
 }

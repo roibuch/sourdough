@@ -19,6 +19,11 @@ import {
   syncRecipeStateToUrl,
 } from "@/lib/recipeState";
 import {
+  buildTimelineInputWithPace,
+  type FermentationPace,
+  type StarterRatioPreset,
+} from "@/lib/expressMode";
+import {
   findScheduleOptionByTarget,
   generateScheduleOptions,
 } from "@/lib/scheduleOptions";
@@ -55,6 +60,10 @@ export function useRecipeForm() {
   const [bulkHoursOverride, setBulkHoursOverride] = useState<number | null>(
     null,
   );
+  const [fermentationPace, setFermentationPace] =
+    useState<FermentationPace>("standard");
+  const [starterRatioPreset, setStarterRatioPreset] =
+    useState<StarterRatioPreset>("auto");
   const [results, setResults] = useState<DoughResult | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [timelinePlan, setTimelinePlan] = useState<TimelinePlan | null>(null);
@@ -65,8 +74,8 @@ export function useRecipeForm() {
 
   const mix = useMemo(() => buildFlourMix(flourPcts), [flourPcts]);
 
-  const timelineInput = useMemo(
-    () => ({
+  const timelineInput = useMemo(() => {
+    const base = {
       targetBakeTime,
       coldRetardHours,
       starterPct,
@@ -74,20 +83,22 @@ export function useRecipeForm() {
       roomTemp,
       hoursToAutolyse,
       flourPcts,
+      fermentationPace,
       ...(bulkHoursOverride != null ? { bulkHours: bulkHoursOverride } : {}),
       starterPeakHours: hoursToAutolyse,
-    }),
-    [
-      targetBakeTime,
-      coldRetardHours,
-      starterPct,
-      waterPct,
-      roomTemp,
-      hoursToAutolyse,
-      flourPcts,
-      bulkHoursOverride,
-    ],
-  );
+    };
+    return buildTimelineInputWithPace(base);
+  }, [
+    targetBakeTime,
+    coldRetardHours,
+    starterPct,
+    waterPct,
+    roomTemp,
+    hoursToAutolyse,
+    flourPcts,
+    bulkHoursOverride,
+    fermentationPace,
+  ]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -109,6 +120,8 @@ export function useRecipeForm() {
       keepInJarG,
       useRecipeStarter,
       manualStarterG,
+      fermentationPace,
+      starterRatioPreset,
       calculated: calculated ?? showResults,
     }),
     [
@@ -125,6 +138,8 @@ export function useRecipeForm() {
       keepInJarG,
       useRecipeStarter,
       manualStarterG,
+      fermentationPace,
+      starterRatioPreset,
       showResults,
     ],
   );
@@ -192,6 +207,17 @@ export function useRecipeForm() {
       if (state.jar) setKeepInJarG(parseFloat(state.jar) || DEFAULT_JAR);
       if (state.urs != null) setUseRecipeStarter(state.urs !== "0");
       if (state.ms) setManualStarterG(state.ms);
+      if (state.pace === "express" || state.pace === "standard") {
+        setFermentationPace(state.pace);
+      }
+      if (
+        state.sr === "auto" ||
+        state.sr === "equal" ||
+        state.sr === "half" ||
+        state.sr === "peak"
+      ) {
+        setStarterRatioPreset(state.sr);
+      }
 
       const parsed = parseFlourPcts(state.fl);
       if (parsed && parsed.length === FLOUR_FIELDS.length) {
@@ -270,6 +296,8 @@ export function useRecipeForm() {
     coldRetardHours,
     hoursToAutolyse,
     roomTemp,
+    fermentationPace,
+    starterRatioPreset,
     schedulePersist,
   ]);
 
@@ -359,6 +387,10 @@ export function useRecipeForm() {
       }
       setTargetBakeTime(option.targetBakeTime);
       setColdRetardHours(option.coldRetardHours);
+      setFermentationPace(option.isExpress ? "express" : "standard");
+      if (option.isExpress) {
+        setStarterRatioPreset("equal");
+      }
       setTimelinePlan(option.plan);
       setShowTimeline(true);
       persistState(showResults);
@@ -452,6 +484,10 @@ export function useRecipeForm() {
     applyWeatherPlan,
     selectScheduleOption,
     timelineInput,
+    fermentationPace,
+    setFermentationPace,
+    starterRatioPreset,
+    setStarterRatioPreset,
     results,
     showResults,
     timelinePlan,

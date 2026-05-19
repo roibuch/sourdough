@@ -84,6 +84,8 @@ export interface RecipeState {
   jar?: string;
   urs?: string;
   ms?: string;
+  pace?: string;
+  sr?: string;
   calc?: string;
 }
 

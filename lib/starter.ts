@@ -1,7 +1,12 @@
 /** Starter feed math — ported from sourdough_app.html */
 
+import type { StarterRatioPreset } from "./expressMode";
+import { STARTER_RATIO_OPTIONS } from "./expressMode";
+
 export interface RatioPick {
   a: number;
+  flourMult: number;
+  waterMult: number;
   note: string;
 }
 
@@ -10,6 +15,7 @@ export interface StarterFeedInput {
   keepInJarG: number;
   roomTempC: number;
   hoursToAutolyse: number;
+  ratioPreset?: StarterRatioPreset;
 }
 
 export interface StarterFeedResult {
@@ -32,6 +38,25 @@ export function effectiveHoursForRatio(hours: number, tempC: number): number {
   return Math.max(2, adj);
 }
 
+function ratioFromPreset(preset: StarterRatioPreset): RatioPick | null {
+  const def = STARTER_RATIO_OPTIONS.find((r) => r.id === preset);
+  if (!def || preset === "auto") return null;
+  if (preset === "peak") {
+    return {
+      a: 0,
+      flourMult: 0,
+      waterMult: 0,
+      note: def.note,
+    };
+  }
+  return {
+    a: def.flourMult,
+    flourMult: def.flourMult,
+    waterMult: def.waterMult,
+    note: def.note,
+  };
+}
+
 /** Pick 1:a:a ratio by effective hours until autolyse */
 export function pickRatio(effectiveHours: number): RatioPick {
   const steps: { maxH: number; a: number; note: string }[] = [
@@ -46,9 +71,22 @@ export function pickRatio(effectiveHours: number): RatioPick {
     },
   ];
   for (const s of steps) {
-    if (effectiveHours <= s.maxH) return { a: s.a, note: s.note };
+    if (effectiveHours <= s.maxH) {
+      return { a: s.a, flourMult: s.a, waterMult: s.a, note: s.note };
+    }
   }
-  return { a: 5, note: steps[steps.length - 1].note };
+  const last = steps[steps.length - 1];
+  return { a: last.a, flourMult: last.a, waterMult: last.a, note: last.note };
+}
+
+function formatRatioLabel(flourMult: number, waterMult: number): string {
+  if (flourMult === 0 && waterMult === 0) return "בשיא — ללא האכלה";
+  if (flourMult === waterMult) {
+    if (flourMult === 1) return "1 : 1 : 1";
+    if (flourMult === Math.floor(flourMult)) return `1 : ${flourMult} : ${flourMult}`;
+    return `1 : ${flourMult} : ${waterMult}`;
+  }
+  return `1 : ${flourMult} : ${waterMult}`;
 }
 
 export function calculateStarterFeed(input: StarterFeedInput): StarterFeedResult | null {
@@ -60,13 +98,30 @@ export function calculateStarterFeed(input: StarterFeedInput): StarterFeedResult
   const hours = Number.isFinite(input.hoursToAutolyse) ? input.hoursToAutolyse : 8;
 
   const effectiveHours = effectiveHoursForRatio(hours, tempC);
-  const picked = pickRatio(effectiveHours);
-  const mult = 1 + picked.a + picked.a;
+  const preset = input.ratioPreset ?? "auto";
+  const picked =
+    ratioFromPreset(preset) ?? pickRatio(effectiveHours);
+
   const buffer = 1.08;
   const totalTarget = (needG + keepG) * buffer;
-  const seedG = Math.ceil(totalTarget / mult);
-  const flourAddG = seedG * picked.a;
-  const waterAddG = seedG * picked.a;
+
+  let seedG: number;
+  let flourAddG: number;
+  let waterAddG: number;
+  let ratioLabel: string;
+
+  if (picked.flourMult === 0 && picked.waterMult === 0) {
+    seedG = Math.ceil(totalTarget);
+    flourAddG = 0;
+    waterAddG = 0;
+    ratioLabel = formatRatioLabel(0, 0);
+  } else {
+    const mult = 1 + picked.flourMult + picked.waterMult;
+    seedG = Math.ceil(totalTarget / mult);
+    flourAddG = seedG * picked.flourMult;
+    waterAddG = seedG * picked.waterMult;
+    ratioLabel = formatRatioLabel(picked.flourMult, picked.waterMult);
+  }
 
   let explain = `לפי כ־${hours} שעות עד אוטוליזה`;
   if (Math.abs(effectiveHours - hours) > 0.6) {
@@ -76,7 +131,7 @@ export function calculateStarterFeed(input: StarterFeedInput): StarterFeedResult
 
   return {
     ratioA: picked.a,
-    ratioLabel: `1 : ${picked.a} : ${picked.a}`,
+    ratioLabel,
     ratioNote: picked.note,
     effectiveHours,
     seedG,

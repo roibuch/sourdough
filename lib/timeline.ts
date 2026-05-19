@@ -1,3 +1,4 @@
+import type { FermentationPace } from "./expressMode";
 import { pctOf, buildFlourMix } from "./flour";
 import { getDoughWorkflow } from "./workflow";
 import type { FlourMix, TimelinePlan, TimelineStep } from "./types";
@@ -69,6 +70,9 @@ export interface BuildTimelineInput {
   bulkHours?: number;
   /** Override starter peak window (defaults to hoursToAutolyse) */
   starterPeakHours?: number;
+  /** Autolyse block length in hours (default 1; express often 0.5) */
+  autolyseHours?: number;
+  fermentationPace?: FermentationPace;
 }
 
 export interface TimelineAnchors {
@@ -101,10 +105,11 @@ export function getTimelineAnchors(
   const tRetardStart = tRetardEnd - input.coldRetardHours * MS_H;
   const tPreshapeEnd = tRetardStart;
   const tPreshapeStart = tPreshapeEnd - 0.5 * MS_H;
+  const autolyseH = input.autolyseHours ?? 1;
   const tBulkEnd = tPreshapeStart;
   const tBulkStart = tBulkEnd - bulkH * MS_H;
   const tAutolyseEnd = tBulkStart;
-  const tAutolyseStart = tAutolyseEnd - MS_H;
+  const tAutolyseStart = tAutolyseEnd - autolyseH * MS_H;
   const tStarterFeed = tAutolyseStart - starterPeakH * MS_H;
 
   return {
@@ -138,6 +143,7 @@ export function buildReverseTimeline(input: BuildTimelineInput): TimelinePlan | 
     tBulkStart,
     tBulkEnd,
   } = anchorData;
+  const autolyseH = input.autolyseHours ?? 1;
 
   const bakeEnd = new Date(input.targetBakeTime);
   const tBakeEnd = bakeEnd.getTime();
@@ -168,8 +174,11 @@ export function buildReverseTimeline(input: BuildTimelineInput): TimelinePlan | 
       icon: "🥣",
       title: "אוטוליזה",
       start: tAutolyseStart,
-      duration: "1 שעה",
-      meta: "ערבוב קמח ומים בלבד (בסינאז׳ — החזיקו/י מים בצד לשלב הבא).",
+      duration: formatDurationLabel(autolyseH),
+      meta:
+        autolyseH <= 0.5
+          ? "ערבוב קמח ומים — אוטוליזה קצרה (מצב מואץ)."
+          : "ערבוב קמח ומים בלבד (בסינאז׳ — החזיקו/י מים בצד לשלב הבא).",
     },
     {
       icon: "🧂",
