@@ -10,11 +10,13 @@ import {
   ArchiveBoxIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
-import { AlarmButtonGroup } from "@/components/AlarmButton";
+import { AlarmButtonGroup, alarmToastMessage } from "@/components/AlarmButton";
 import { ExpressModePanel } from "@/components/ExpressModePanel";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { exportAllAlarmsToCalendar, isIOSDevice } from "@/lib/alarms";
+import { ACTIVE_HOUR_END, ACTIVE_HOUR_START } from "@/lib/scheduleFriendly";
 import { formatScheduleTime } from "@/lib/timeline";
 import {
   findScheduleOptionByTarget,
@@ -147,6 +149,15 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
 
   const feasibleOptions = options.filter((o) => o.feasible);
 
+  const allAlarms = useMemo(() => {
+    if (!form.timelinePlan) return [];
+    const list: { ts: number; message: string; short: string }[] = [];
+    for (const step of form.timelinePlan.steps) {
+      if (step.alarms) list.push(...step.alarms);
+    }
+    return list;
+  }, [form.timelinePlan]);
+
   useEffect(() => {
     if (!form.targetBakeTime) return;
     const match = findScheduleOptionByTarget(options, form.targetBakeTime);
@@ -165,11 +176,23 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
     }, 80);
   };
 
-  const handleAlarmResult = (type: "android" | "ics" | "invalid") => {
-    if (type === "android") form.showToast("פותח/ת את שעון האנדרואיד…");
-    else if (type === "ics") form.showToast("הורד קובץ .ics — ייבא/י ליומן.");
-    else if (type === "invalid")
-      form.showToast("אין שעה מתוכננת — בחרו מועד מהרשימה.");
+  const handleAlarmResult = (type: Parameters<typeof alarmToastMessage>[0]) => {
+    form.showToast(alarmToastMessage(type));
+  };
+
+  const handleExportAllAlarms = async () => {
+    const result = await exportAllAlarmsToCalendar(
+      allAlarms.map((a) => ({
+        startMs: a.ts,
+        summary: a.message,
+        durationMin: 15,
+      })),
+    );
+    if (result === "empty") {
+      form.showToast("אין התראות — בחרו מועד ובנו לוח זמנים.");
+      return;
+    }
+    form.showToast(alarmToastMessage(result));
   };
 
   const handleCustomBuild = () => {
@@ -191,7 +214,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
       <SectionHeader
         icon={<CalendarDaysIcon className="h-6 w-6" strokeWidth={1.75} />}
         title="מתי תרצו שהלחם יהיה מוכן?"
-        subtitle="בחרו אחת מהאפשרויות — נראה מתי להתחיל, מתי עובדים ומתי אתם פנויים."
+        subtitle={`בחרו מועד — עבודה פעילה רק בין ${ACTIVE_HOUR_START}:00 ל־${ACTIVE_HOUR_END}:00 (בלי לילה).`}
       />
 
       <ExpressModePanel form={form} />
@@ -278,6 +301,25 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
               {form.timelinePlan.summary.starterPct}% מחמצת
             </p>
           </div>
+
+          {isIOSDevice() && (
+            <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50/80 p-4 text-sm leading-relaxed text-stone-700">
+              <p className="font-semibold text-sky-950">התראות ב-iPhone</p>
+              <p className="mt-1">
+                Safari לא פותח שעון מעורר. לחצו «יומן» ובמסך השיתוף בחרו יומן
+                (Calendar). אפשר גם Google אם היומן מסתנכרן אליו.
+              </p>
+            </div>
+          )}
+
+          {allAlarms.length > 0 && (
+            <div className="mb-6">
+              <Button variant="secondary" fullWidth onClick={handleExportAllAlarms}>
+                <CalendarDaysIcon className="h-5 w-5" aria-hidden />
+                הוספת כל ההתראות ליומן ({allAlarms.length})
+              </Button>
+            </div>
+          )}
 
           <div className="mb-4 flex flex-wrap gap-4 text-xs text-stone-600">
             <span className="inline-flex items-center gap-2">

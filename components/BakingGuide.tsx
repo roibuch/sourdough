@@ -7,7 +7,7 @@ import {
   FireIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
-import { AlarmButtonGroup } from "@/components/AlarmButton";
+import { AlarmButtonGroup, alarmToastMessage } from "@/components/AlarmButton";
 import { AdviceList } from "@/components/AdviceList";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { Button } from "@/components/ui/Button";
@@ -331,7 +331,10 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
                 {foldAdvice && <AdviceList items={foldAdvice} />}
                 {bulkAlarms && bulkAlarms.length > 0 && (
                   <div className="mt-4">
-                    <AlarmButtonGroup alarms={bulkAlarms} />
+                    <AlarmButtonGroup
+                      alarms={bulkAlarms}
+                      onResult={(t) => showToast(alarmToastMessage(t))}
+                    />
                   </div>
                 )}
               </article>

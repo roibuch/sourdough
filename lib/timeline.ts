@@ -14,7 +14,7 @@ export function defaultTargetBakeLocal(): string {
       d.getHours() < 19 || (d.getHours() === 19 && d.getMinutes() === 0) ? 0 : 7;
   }
   d.setDate(d.getDate() + daysUntilFriday);
-  d.setHours(19, 0, 0, 0);
+  d.setHours(18, 0, 0, 0);
   if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 7);
   return toLocalDatetimeValue(d);
 }

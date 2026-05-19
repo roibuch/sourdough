@@ -1,5 +1,11 @@
 import { buildTimelineInputWithPace } from "./expressMode";
 import {
+  ACTIVE_HOUR_END,
+  ACTIVE_HOUR_START,
+  planHasNightActiveWork,
+  shiftBakeDateUntilFriendly,
+} from "./scheduleFriendly";
+import {
   buildReverseTimeline,
   formatScheduleTime,
   toLocalDatetimeValue,
@@ -108,64 +114,83 @@ function buildHighlights(plan: TimelinePlan): ScheduleHighlight[] {
   ];
 }
 
+function addCandidate(
+  list: Candidate[],
+  item: Omit<Candidate, "date"> & { hour: number; minute?: number },
+  weekday?: number,
+  dayOffset?: number,
+) {
+  const date =
+    weekday != null
+      ? nextWeekday(weekday, item.hour, item.minute ?? 0)
+      : dateAtOffsetDays(dayOffset ?? 0, item.hour, item.minute ?? 0);
+  if (date.getTime() <= Date.now()) return;
+  list.push({
+    id: item.id,
+    title: item.title,
+    date,
+    coldRetardHours: item.coldRetardHours,
+  });
+}
+
 function buildCandidates(): Candidate[] {
-  const now = Date.now();
-  const list: Candidate[] = [
-    {
-      id: "fri-evening",
-      title: "שישי בערב — ארוחת שבת",
-      date: nextWeekday(5, 19, 0),
-      coldRetardHours: 12,
-    },
-    {
-      id: "sat-morning",
-      title: "שבת בבוקר — כיכר לקפה",
-      date: nextWeekday(6, 10, 0),
-      coldRetardHours: 10,
-    },
-    {
-      id: "sat-lunch",
-      title: "שבת בצהריים",
-      date: nextWeekday(6, 13, 0),
-      coldRetardHours: 10,
-    },
-    {
-      id: "sun-brunch",
-      title: "ראשון — בוקר/בראנץ׳",
-      date: nextWeekday(0, 11, 0),
-      coldRetardHours: 12,
-    },
-  ];
+  const list: Candidate[] = [];
 
-  const tomorrowAm = dateAtOffsetDays(1, 9, 0);
-  if (tomorrowAm.getTime() > now) {
-    list.push({
-      id: "tomorrow-am",
-      title: "מחר בבוקר",
-      date: tomorrowAm,
-      coldRetardHours: 10,
-    });
-  }
+  addCandidate(list, {
+    id: "fri-evening",
+    title: "שישי אחה״צ — ארוחת שבת",
+    hour: 18,
+    coldRetardHours: 12,
+  }, 5);
 
-  const tomorrowPm = dateAtOffsetDays(1, 19, 0);
-  if (tomorrowPm.getTime() > now) {
-    list.push({
-      id: "tomorrow-pm",
-      title: "מחר בערב",
-      date: tomorrowPm,
-      coldRetardHours: 12,
-    });
-  }
+  addCandidate(list, {
+    id: "sat-morning",
+    title: "שבת בבוקר — כיכר לקפה",
+    hour: 10,
+    coldRetardHours: 10,
+  }, 6);
 
-  const inTwoDays = dateAtOffsetDays(2, 19, 0);
-  if (inTwoDays.getTime() > now) {
-    list.push({
-      id: "in-two-days",
-      title: "מחרתיים בערב",
-      date: inTwoDays,
-      coldRetardHours: 12,
-    });
-  }
+  addCandidate(list, {
+    id: "sat-lunch",
+    title: "שבת בצהריים",
+    hour: 13,
+    coldRetardHours: 10,
+  }, 6);
+
+  addCandidate(list, {
+    id: "sat-afternoon",
+    title: "שבת אחר הצהריים",
+    hour: 17,
+    coldRetardHours: 10,
+  }, 6);
+
+  addCandidate(list, {
+    id: "sun-brunch",
+    title: "ראשון — בוקר/בראנץ׳",
+    hour: 11,
+    coldRetardHours: 12,
+  }, 0);
+
+  addCandidate(list, {
+    id: "sun-lunch",
+    title: "ראשון בצהריים",
+    hour: 13,
+    coldRetardHours: 12,
+  }, 0);
+
+  addCandidate(list, {
+    id: "tomorrow-am",
+    title: "מחר בבוקר",
+    hour: 10,
+    coldRetardHours: 10,
+  }, undefined, 1);
+
+  addCandidate(list, {
+    id: "tomorrow-noon",
+    title: "מחר בצהריים",
+    hour: 13,
+    coldRetardHours: 10,
+  }, undefined, 1);
 
   return list;
 }
@@ -197,17 +222,51 @@ function pushOption(
     ? buildTimelineInputWithPace({ ...baseInput, fermentationPace: "express" })
     : baseInput;
 
-  const plan = buildReverseTimeline(resolved);
+  const buildForDate = (bake: Date) =>
+    buildReverseTimeline({
+      ...resolved,
+      targetBakeTime: toLocalDatetimeValue(bake),
+    });
+
+  let finalDate = date;
+  let plan = buildForDate(date);
   if (!plan) return;
 
+  if (planHasNightActiveWork(plan)) {
+    const fixed = shiftBakeDateUntilFriendly(date, buildForDate);
+    if (!fixed) {
+      options.push({
+        id: isExpress ? `${id}-express` : id,
+        title: isExpress ? `${title} ⚡ מואץ` : title,
+        bakeLabel: formatBakeLabel(date),
+        targetBakeTime,
+        coldRetardHours: resolved.coldRetardHours,
+        plan,
+        highlights: buildHighlights(plan),
+        feasible: false,
+        isExpress,
+        infeasibleReason: `עבודה פעילה יוצאת משעות ${ACTIVE_HOUR_START}:00–${ACTIVE_HOUR_END}:00 — נסו מועד מאוחר יותר או «מואץ».`,
+      });
+      return;
+    }
+    finalDate = fixed.date;
+    plan = fixed.plan;
+  }
+
+  const targetBakeTimeFinal = toLocalDatetimeValue(finalDate);
   const leadH = (plan.summary.starterFeed - now) / MS_H;
   const feasible = leadH >= minLeadH;
 
+  const shiftedNote =
+    finalDate.getTime() !== date.getTime()
+      ? ` (הותאם ל־${formatBakeLabel(finalDate)} — בלי עבודה בלילה)`
+      : "";
+
   options.push({
     id: isExpress ? `${id}-express` : id,
-    title: isExpress ? `${title} ⚡ מואץ` : title,
-    bakeLabel: formatBakeLabel(date),
-    targetBakeTime,
+    title: (isExpress ? `${title} ⚡ מואץ` : title) + shiftedNote,
+    bakeLabel: formatBakeLabel(finalDate),
+    targetBakeTime: targetBakeTimeFinal,
     coldRetardHours: resolved.coldRetardHours,
     plan,
     highlights: buildHighlights(plan),
