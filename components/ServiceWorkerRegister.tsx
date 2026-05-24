@@ -1,20 +1,63 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { getBasePath } from "@/lib/basePath";
 
+const SW_URL_SUFFIX = "sw.js?v=7";
+const RELOAD_KEY = "sourdough-sw-reload-v7";
+
 export function ServiceWorkerRegister() {
+  const reloaded = useRef(false);
+
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
 
     const base = getBasePath();
-    const swUrl = `${base}/sw.js`;
+    const swUrl = `${base}/${SW_URL_SUFFIX}`;
+
+    const maybeReload = () => {
+      if (reloaded.current) return;
+      if (sessionStorage.getItem(RELOAD_KEY) === "1") return;
+      sessionStorage.setItem(RELOAD_KEY, "1");
+      reloaded.current = true;
+      window.location.reload();
+    };
+
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type === "SW_ACTIVATED_V7") {
+        maybeReload();
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", onMessage);
+
+    const onControllerChange = () => {
+      maybeReload();
+    };
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      onControllerChange,
+    );
 
     navigator.serviceWorker
-      .register(swUrl, { scope: base ? `${base}/` : "/" })
+      .register(swUrl, { scope: base ? `${base}/` : "/", updateViaCache: "none" })
+      .then((reg) => {
+        reg.update().catch(() => {});
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+      })
       .catch(() => {
         /* optional offline support */
       });
+
+    return () => {
+      navigator.serviceWorker.removeEventListener("message", onMessage);
+      navigator.serviceWorker.removeEventListener(
+        "controllerchange",
+        onControllerChange,
+      );
+    };
   }, []);
 
   return null;

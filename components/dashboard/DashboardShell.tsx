@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AppBrandHeader } from "@/components/brand/AppBrandHeader";
 import {
   DesktopViewTabs,
@@ -30,6 +30,12 @@ export function DashboardShell({
   const [mobileTab, setMobileTab] = useState<MobileTab>("outputs");
   const [desktopTab, setDesktopTab] = useState<DesktopMainTab>("outputs");
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (desktopTab === "guide" && !guide) {
+      setDesktopTab("outputs");
+    }
+  }, [desktopTab, guide]);
 
   const handleMobileTab = (tab: MobileTab) => {
     if (tab === "inputs") {

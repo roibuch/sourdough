@@ -1,4 +1,4 @@
-const CACHE_NAME = "sourdough-master-next-v6";
+const CACHE_NAME = "sourdough-master-next-v7";
 
 function getBasePath() {
   const scope = self.registration?.scope || self.location.href;
@@ -12,6 +12,10 @@ function getBasePath() {
 }
 
 const BASE = getBasePath();
+
+function isNextAsset(pathname) {
+  return pathname.includes("/_next/") || pathname.endsWith(".js");
+}
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -33,15 +37,24 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key !== CACHE_NAME)
-            .map((key) => caches.delete(key)),
-        ),
+      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+      .then(() => caches.open(CACHE_NAME))
+      .then(() => self.clients.claim())
+      .then(() =>
+        self.clients.matchAll({ type: "window", includeUncontrolled: true }),
       )
-      .then(() => self.clients.claim()),
+      .then((clients) => {
+        for (const client of clients) {
+          client.postMessage({ type: "SW_ACTIVATED_V7" });
+        }
+      }),
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("fetch", (event) => {
@@ -50,18 +63,14 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Navigation: always network (fresh HTML)
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request).catch(() =>
-        caches.match(`${BASE}/index.html`),
-      ),
+      fetch(event.request).catch(() => caches.match(`${BASE}/index.html`)),
     );
     return;
   }
 
-  // Next.js hashed bundles: network-only (prevents stale/mismatched JS → "Unexpected token '<'")
-  if (url.pathname.includes("/_next/")) {
+  if (isNextAsset(url.pathname)) {
     event.respondWith(fetch(event.request));
     return;
   }
@@ -71,7 +80,10 @@ self.addEventListener("fetch", (event) => {
       .then((response) => {
         if (response?.status === 200 && response.type === "basic") {
           const type = response.headers.get("content-type") || "";
-          if (type.includes("javascript") || type.includes("css") || type.includes("image")) {
+          if (
+            type.includes("image") ||
+            (type.includes("css") && !url.pathname.includes("/_next/"))
+          ) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, clone);

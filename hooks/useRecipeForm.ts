@@ -397,19 +397,23 @@ export function useRecipeForm() {
     }
 
     if (state.schedule.targetBakeTime) {
-      const result = SchedulingEngine.buildAdaptivePlan({
-        targetBakeTime: state.schedule.targetBakeTime,
-        coldRetardHours: state.schedule.coldRetardHours,
-        starterPct: state.starterPercent,
-        waterPct: state.waterPercent,
-        roomTemp: state.schedule.roomTempC,
-        hoursToAutolyse: state.schedule.hoursToAutolyse,
-        flourPcts: state.flourBlend.percentages,
-        fermentationPace: state.schedule.fermentationPace,
-        blackouts,
-        earliestStartMs: Date.now(),
-      });
-      if (result) applyAdaptiveResult(result);
+      try {
+        const result = SchedulingEngine.buildAdaptivePlan({
+          targetBakeTime: state.schedule.targetBakeTime,
+          coldRetardHours: state.schedule.coldRetardHours,
+          starterPct: state.starterPercent,
+          waterPct: state.waterPercent,
+          roomTemp: state.schedule.roomTempC,
+          hoursToAutolyse: state.schedule.hoursToAutolyse,
+          flourPcts: state.flourBlend.percentages,
+          fermentationPace: state.schedule.fermentationPace,
+          blackouts,
+          earliestStartMs: Date.now(),
+        });
+        if (result) applyAdaptiveResult(result);
+      } catch (err) {
+        console.error("buildAdaptivePlan failed on init", err);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady]);
@@ -421,10 +425,14 @@ export function useRecipeForm() {
 
   useEffect(() => {
     if (!showTimeline || !targetBakeTime) return;
-    const result = SchedulingEngine.buildAdaptivePlan(schedulingEngineInput);
-    if (result) {
-      setAdaptiveSchedule(result);
-      setTimelinePlan(result.plan);
+    try {
+      const result = SchedulingEngine.buildAdaptivePlan(schedulingEngineInput);
+      if (result) {
+        setAdaptiveSchedule(result);
+        setTimelinePlan(result.plan);
+      }
+    } catch (err) {
+      console.error("buildAdaptivePlan failed", err);
     }
   }, [schedulingEngineInput, showTimeline, targetBakeTime, blackouts.length]);
 

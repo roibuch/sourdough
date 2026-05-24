@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { SourdoughApp } from "@/components/SourdoughApp";
+import { SectionErrorBoundary } from "@/components/feedback/SectionErrorBoundary";
 
 function RecipeParamsFallback() {
   return (
@@ -15,7 +16,9 @@ function RecipeParamsFallback() {
 export function RecipeParamsProvider() {
   return (
     <Suspense fallback={<RecipeParamsFallback />}>
-      <SourdoughApp />
+      <SectionErrorBoundary title="שגיאה בטעינת האפליקציה">
+        <SourdoughApp />
+      </SectionErrorBoundary>
     </Suspense>
   );
 }
