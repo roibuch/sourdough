@@ -12,7 +12,7 @@ export function BrandLogo({ size = 48, className, priority = true }: BrandLogoPr
   return (
     <div
       className={cn(
-        "relative shrink-0 overflow-hidden rounded-full",
+        "relative shrink-0 overflow-hidden rounded-full bg-dough",
         "ring-2 ring-wheat/45 shadow-sm shadow-crust/15",
         className,
       )}
@@ -24,7 +24,7 @@ export function BrandLogo({ size = 48, className, priority = true }: BrandLogoPr
         alt=""
         fill
         sizes={`${size}px`}
-        className="object-cover object-center"
+        className="object-contain object-center"
         priority={priority}
       />
     </div>
