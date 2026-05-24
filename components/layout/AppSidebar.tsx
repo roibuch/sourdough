@@ -99,7 +99,7 @@ export function AppSidebar({ layout, className, mobile }: AppSidebarProps) {
                 title={collapsed ? group.label : undefined}
                 aria-expanded={!groupShut}
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-800">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-wheat-muted text-crust">
                   <GroupIcon className="h-5 w-5" strokeWidth={1.75} />
                 </span>
                 {!collapsed && (
@@ -131,8 +131,8 @@ export function AppSidebar({ layout, className, mobile }: AppSidebarProps) {
                           className={cn(
                             "w-full rounded-xl px-3 py-2.5 text-start transition",
                             active
-                              ? "bg-emerald-800 text-white shadow-md shadow-emerald-900/20"
-                              : "text-stone-700 hover:bg-stone-50",
+                              ? "bg-crust text-dough shadow-md shadow-crust/25"
+                              : "text-charcoal-muted hover:bg-wheat-muted/40",
                           )}
                         >
                           <span className="block text-sm font-medium">
@@ -141,7 +141,7 @@ export function AppSidebar({ layout, className, mobile }: AppSidebarProps) {
                           <span
                             className={cn(
                               "mt-0.5 block text-xs leading-snug",
-                              active ? "text-emerald-100" : "text-stone-500",
+                              active ? "text-wheat-light" : "text-charcoal-muted",
                             )}
                           >
                             {item.description}
@@ -168,8 +168,8 @@ export function AppSidebar({ layout, className, mobile }: AppSidebarProps) {
                           className={cn(
                             "mx-auto flex h-2 w-2 rounded-full transition",
                             active
-                              ? "h-2.5 w-2.5 bg-emerald-700 ring-2 ring-emerald-200"
-                              : "bg-stone-300 hover:bg-stone-400",
+                              ? "h-2.5 w-2.5 bg-crust ring-2 ring-wheat"
+                              : "bg-warm-border hover:bg-wheat",
                           )}
                           aria-label={item.label}
                         />

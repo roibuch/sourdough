@@ -30,7 +30,7 @@ const TIER_STYLES: Record<
     icon: SunIcon,
   },
   ideal: {
-    card: "border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50/50",
+    card: "border-wheat/60 bg-gradient-to-br from-wheat-muted to-dough",
     icon: SunIcon,
   },
   cold: {
@@ -120,7 +120,7 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
   const WeatherIcon = tierStyle?.icon ?? CloudArrowDownIcon;
 
   return (
-    <Card nested className="mb-8 border-emerald-100/80 bg-gradient-to-br from-white to-emerald-50/30">
+    <Card nested className="mb-8 border-wheat/50 bg-gradient-to-br from-white to-wheat-muted/40">
       <div className="mb-4 flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
           <CloudIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
@@ -167,7 +167,7 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
                 {rec.title}
               </h4>
               {rec.tier !== "error" && plan && (
-                <p className="mt-1 text-2xl font-bold text-emerald-800">
+                <p className="mt-1 text-2xl font-bold text-crust">
                   מומלץ: {plan.starterPct}% מחמצת
                   <span className="ms-2 text-sm font-normal text-stone-600">
                     (טווח {rec.range})

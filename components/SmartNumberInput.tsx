@@ -88,25 +88,31 @@ export function SmartNumberInput({
   };
 
   const btnClass = cn(
-    "flex shrink-0 items-center justify-center rounded-full bg-emerald-800 text-white shadow-md shadow-emerald-900/20 transition",
-    "hover:bg-emerald-900 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
+    "flex shrink-0 items-center justify-center rounded-full bg-crust text-dough shadow-md shadow-crust/25 transition",
+    "hover:bg-crust-dark active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat focus-visible:ring-offset-2",
     compact ? "h-11 w-11" : "h-12 w-12 sm:h-14 sm:w-14",
   );
 
   return (
     <div className="flex flex-col gap-2.5">
-      <label
-        htmlFor={id}
-        className={cn(
-          "text-sm font-semibold",
-          error ? "text-red-800" : warning ? "text-amber-900" : "text-stone-800",
-        )}
-      >
-        {label}
-        {suffix && (
-          <span className="ms-1 font-normal text-stone-500">{suffix}</span>
-        )}
-      </label>
+      {label ? (
+        <label
+          htmlFor={id}
+          className={cn(
+            "text-sm font-semibold",
+            error ? "text-red-800" : warning ? "text-crust" : "text-charcoal",
+          )}
+        >
+          {label}
+          {suffix && (
+            <span className="ms-1 font-normal text-stone-500">{suffix}</span>
+          )}
+        </label>
+      ) : suffix ? (
+        <span className="sr-only" id={`${id}-label`}>
+          {suffix}
+        </span>
+      ) : null}
       {hint && (
         <p
           id={`${id}-hint`}
@@ -138,18 +144,18 @@ export function SmartNumberInput({
           aria-invalid={error || undefined}
           aria-describedby={hint ? `${id}-hint` : undefined}
           className={cn(
-            "min-w-0 flex-1 rounded-2xl border-2 bg-amber-50/70 text-center font-semibold text-stone-900 tabular-nums transition-colors duration-200",
+            "min-w-0 flex-1 rounded-2xl border-2 bg-wheat-muted/60 text-center font-semibold text-charcoal tabular-nums transition-colors duration-200",
             error
               ? "border-red-400 bg-red-50/80 focus:border-red-500 focus:ring-red-500/30"
               : warning
-                ? "border-amber-400 bg-amber-50/90 focus:border-amber-500 focus:ring-amber-500/30"
-                : "border-stone-200 focus:border-emerald-600",
+                ? "border-wheat bg-wheat-muted/90 focus:border-crust focus:ring-wheat/40"
+                : "border-warm-border/90 focus:border-crust",
             "focus:bg-white focus:outline-none focus:ring-2",
             error
               ? "focus:ring-red-500/30"
               : warning
-                ? "focus:ring-amber-500/30"
-                : "focus:ring-emerald-500/30",
+                ? "focus:ring-wheat/40"
+                : "focus:ring-wheat/35",
             "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
             compact ? "px-3 py-3 text-lg" : "px-4 py-4 text-xl sm:text-2xl",
           )}

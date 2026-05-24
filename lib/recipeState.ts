@@ -1,6 +1,14 @@
-import type { PresetKey, RecipeState } from "./types";
+import type { RecipeState as LegacyUrlRecipeState } from "./types";
+import type { RecipeFormSnapshot } from "./recipeState.types";
+import {
+  legacyUrlRecordToRecipeState,
+  recipeStateToUrlRecord,
+  urlRecordToSearchParams,
+} from "./urlRecipeCodec";
+import type { RecipeState } from "./types/recipe";
 
-export const STORAGE_KEY = "sourdough-master-state-v1";
+export { STORAGE_KEY } from "./recipeState.types";
+export type { RecipeFormSnapshot } from "./recipeState.types";
 
 export function flourPctsToString(pcts: number[]): string {
   return pcts.join(",");
@@ -13,101 +21,98 @@ export function parseFlourPcts(fl: string | null | undefined): number[] | null {
   return parts;
 }
 
-export interface RecipeFormSnapshot {
-  totalWeight: string;
-  waterPct: number;
-  starterPct: number;
-  saltPct: number;
-  preset: PresetKey;
-  flourPcts: number[];
-  targetBakeTime: string;
-  coldRetardHours: number;
-  hoursToAutolyse: number;
-  roomTemp: number;
-  keepInJarG: number;
-  useRecipeStarter: boolean;
-  manualStarterG: string;
-  fermentationPace?: string;
-  starterRatioPreset?: string;
-  calculated?: boolean;
-}
-
-export function buildRecipeState(params: RecipeFormSnapshot): RecipeState {
-  return {
-    w: params.totalWeight,
-    wa: String(params.waterPct),
-    st: String(params.starterPct),
-    sa: String(params.saltPct),
-    fp: params.preset,
-    fl: flourPctsToString(params.flourPcts),
-    bake: params.targetBakeTime || undefined,
-    retard: String(params.coldRetardHours),
-    hta: String(params.hoursToAutolyse),
-    rt: String(params.roomTemp),
-    jar: String(params.keepInJarG),
-    urs: params.useRecipeStarter ? "1" : "0",
-    ms: params.manualStarterG || undefined,
-    pace: params.fermentationPace || undefined,
-    sr: params.starterRatioPreset || undefined,
-    ...(params.calculated ? { calc: "1" } : {}),
+export function buildRecipeState(
+  params: RecipeFormSnapshot,
+): LegacyUrlRecipeState {
+  const domain: RecipeState = {
+    totalWeightG: params.totalWeight
+      ? parseFloat(params.totalWeight) || null
+      : null,
+    waterPercent: params.waterPct,
+    starterPercent: params.starterPct,
+    saltPercent: params.saltPct,
+    flourBlend: {
+      preset: params.preset,
+      percentages: params.flourPcts,
+      totalPercent: params.flourPcts.reduce((s, p) => s + p, 0),
+    },
+    schedule: {
+      targetBakeTime: params.targetBakeTime,
+      coldRetardHours: params.coldRetardHours,
+      hoursToAutolyse: params.hoursToAutolyse,
+      roomTempC: params.roomTemp,
+      fermentationPace:
+        (params.fermentationPace as RecipeState["schedule"]["fermentationPace"]) ??
+        "standard",
+    },
+    starter: {
+      useFromRecipe: params.useRecipeStarter,
+      manualGrams: params.manualStarterG
+        ? parseFloat(params.manualStarterG) || null
+        : null,
+      keepInJarG: params.keepInJarG,
+      ratioPreset:
+        (params.starterRatioPreset as RecipeState["starter"]["ratioPreset"]) ??
+        "auto",
+    },
+    calculated: params.calculated ?? false,
   };
+  return recipeStateToUrlRecord(domain);
 }
 
-export function stateToSearchParams(state: RecipeState): URLSearchParams {
-  const p = new URLSearchParams();
-  (Object.keys(state) as (keyof RecipeState)[]).forEach((key) => {
-    const val = state[key];
-    if (val !== "" && val != null) p.set(key, String(val));
-  });
-  return p;
+export function stateToSearchParams(
+  state: LegacyUrlRecipeState,
+): URLSearchParams {
+  return urlRecordToSearchParams(state);
 }
 
 export function parseRecipeStateFromSearch(
   search: string,
-): RecipeState | null {
-  const p = new URLSearchParams(search);
-  if (!p.toString()) return null;
-  return {
-    w: p.get("w") ?? "",
-    wa: p.get("wa") ?? "",
-    st: p.get("st") ?? "",
-    sa: p.get("sa") ?? "",
-    fp: (p.get("fp") as PresetKey) || "classic",
-    fl: p.get("fl") ?? "",
-    bake: p.get("bake") ?? undefined,
-    retard: p.get("retard") ?? undefined,
-    hta: p.get("hta") ?? undefined,
-    rt: p.get("rt") ?? undefined,
-    jar: p.get("jar") ?? undefined,
-    urs: p.get("urs") ?? undefined,
-    ms: p.get("ms") ?? undefined,
-    pace: p.get("pace") ?? undefined,
-    sr: p.get("sr") ?? undefined,
-    calc: p.get("calc") ?? undefined,
+): LegacyUrlRecipeState | null {
+  const params = new URLSearchParams(search);
+  if (!params.toString()) return null;
+  const record: LegacyUrlRecipeState = {
+    w: params.get("w") ?? "",
+    wa: params.get("wa") ?? "",
+    st: params.get("st") ?? "",
+    sa: params.get("sa") ?? "",
+    fp: (params.get("fp") as LegacyUrlRecipeState["fp"]) || "classic",
+    fl: params.get("fl") ?? "",
+    bake: params.get("bake") ?? undefined,
+    retard: params.get("retard") ?? undefined,
+    hta: params.get("hta") ?? undefined,
+    rt: params.get("rt") ?? undefined,
+    jar: params.get("jar") ?? undefined,
+    urs: params.get("urs") ?? undefined,
+    ms: params.get("ms") ?? undefined,
+    pace: params.get("pace") ?? undefined,
+    sr: params.get("sr") ?? undefined,
+    calc: params.get("calc") ?? undefined,
   };
+  return recipeStateToUrlRecord(legacyUrlRecordToRecipeState(record).state);
 }
 
-export function loadRecipeStateFromStorage(): RecipeState | null {
+export function loadRecipeStateFromStorage(): LegacyUrlRecipeState | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem("sourdough-master-state-v1");
     if (!raw) return null;
-    return JSON.parse(raw) as RecipeState;
+    return JSON.parse(raw) as LegacyUrlRecipeState;
   } catch {
     return null;
   }
 }
 
-export function saveRecipeStateToStorage(state: RecipeState): void {
+export function saveRecipeStateToStorage(state: LegacyUrlRecipeState): void {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem("sourdough-master-state-v1", JSON.stringify(state));
   } catch {
     /* quota / private mode */
   }
 }
 
-export function syncRecipeStateToUrl(state: RecipeState): void {
+export function syncRecipeStateToUrl(state: LegacyUrlRecipeState): void {
   if (typeof window === "undefined") return;
   const qs = stateToSearchParams(state).toString();
   const newUrl =

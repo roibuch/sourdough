@@ -1,23 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { calculateDough } from "@/lib/dough";
+import { calculateDough } from "@/lib/bakingMath";
 import {
   FLOUR_FIELDS,
   FLOUR_PRESETS,
   PRESET_OPTIONS,
   buildFlourMix,
-  defaultFlourPcts,
 } from "@/lib/flour";
-import {
-  STORAGE_KEY,
-  buildRecipeState,
-  loadRecipeStateFromStorage,
-  parseFlourPcts,
-  parseRecipeStateFromSearch,
-  saveRecipeStateToStorage,
-  syncRecipeStateToUrl,
-} from "@/lib/recipeState";
+import { STORAGE_KEY } from "@/lib/recipeState.types";
 import {
   buildTimelineInputWithPace,
   type FermentationPace,
@@ -28,49 +19,56 @@ import {
   generateScheduleOptions,
 } from "@/lib/scheduleOptions";
 import { buildReverseTimeline, defaultTargetBakeLocal } from "@/lib/timeline";
+import { normalizeFlourPercentages } from "@/lib/schemas/recipeParamsSchema";
 import type { ScheduleOption } from "@/lib/scheduleOptions";
 import type { BakingWeatherPlan } from "@/lib/weatherPlan";
 import type { DoughResult, PresetKey, TimelinePlan } from "@/lib/types";
-
-const DEFAULT_WATER = 73;
-const DEFAULT_STARTER = 20;
-const DEFAULT_SALT = 2;
-const DEFAULT_RETARD = 12;
-const DEFAULT_HTA = 8;
-const DEFAULT_ROOM = 22;
-const DEFAULT_JAR = 30;
+import { useRecipeParams } from "@/hooks/useRecipeParams";
+import { recipeStateToUrlRecord } from "@/lib/urlRecipeCodec";
+import { saveRecipeStateToStorage } from "@/lib/recipeState";
 
 export function useRecipeForm() {
-  const [totalWeight, setTotalWeight] = useState("");
-  const [waterPct, setWaterPct] = useState(DEFAULT_WATER);
-  const [starterPct, setStarterPct] = useState(DEFAULT_STARTER);
-  const [saltPct, setSaltPct] = useState(DEFAULT_SALT);
-  const [preset, setPreset] = useState<PresetKey>("classic");
-  const [flourPcts, setFlourPcts] = useState<number[]>(defaultFlourPcts);
+  const {
+    state,
+    isReady,
+    patchState,
+    setState,
+    flourAdjusted,
+  } = useRecipeParams();
+
   const [presetNote, setPresetNote] = useState(FLOUR_PRESETS.classic.note);
-  const [targetBakeTime, setTargetBakeTime] = useState("");
-  const [coldRetardHours, setColdRetardHours] = useState(DEFAULT_RETARD);
-  const [hoursToAutolyse, setHoursToAutolyse] = useState(DEFAULT_HTA);
-  const [roomTemp, setRoomTemp] = useState(DEFAULT_ROOM);
-  const [keepInJarG, setKeepInJarG] = useState(DEFAULT_JAR);
-  const [useRecipeStarter, setUseRecipeStarter] = useState(true);
-  const [manualStarterG, setManualStarterG] = useState("");
   const [showGuide, setShowGuide] = useState(false);
   const [starterOnlyMode, setStarterOnlyMode] = useState(false);
   const [bulkHoursOverride, setBulkHoursOverride] = useState<number | null>(
     null,
   );
-  const [fermentationPace, setFermentationPace] =
-    useState<FermentationPace>("standard");
-  const [starterRatioPreset, setStarterRatioPreset] =
-    useState<StarterRatioPreset>("auto");
   const [results, setResults] = useState<DoughResult | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [timelinePlan, setTimelinePlan] = useState<TimelinePlan | null>(null);
   const [showTimeline, setShowTimeline] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const hydrated = useRef(false);
+  const initDone = useRef(false);
   const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flourPcts = state.flourBlend.percentages;
+  const preset = state.flourBlend.preset;
+  const totalWeight =
+    state.totalWeightG != null ? String(state.totalWeightG) : "";
+  const waterPct = state.waterPercent;
+  const starterPct = state.starterPercent;
+  const saltPct = state.saltPercent;
+  const targetBakeTime = state.schedule.targetBakeTime;
+  const coldRetardHours = state.schedule.coldRetardHours;
+  const hoursToAutolyse = state.schedule.hoursToAutolyse;
+  const roomTemp = state.schedule.roomTempC;
+  const keepInJarG = state.starter.keepInJarG;
+  const useRecipeStarter = state.starter.useFromRecipe;
+  const manualStarterG =
+    state.starter.manualGrams != null
+      ? String(state.starter.manualGrams)
+      : "";
+  const fermentationPace = state.schedule.fermentationPace;
+  const starterRatioPreset = state.starter.ratioPreset;
 
   const mix = useMemo(() => buildFlourMix(flourPcts), [flourPcts]);
 
@@ -105,53 +103,16 @@ export function useRecipeForm() {
     setTimeout(() => setToast(null), 3200);
   }, []);
 
-  const getSnapshot = useCallback(
-    (calculated?: boolean) => ({
-      totalWeight,
-      waterPct,
-      starterPct,
-      saltPct,
-      preset,
-      flourPcts,
-      targetBakeTime,
-      coldRetardHours,
-      hoursToAutolyse,
-      roomTemp,
-      keepInJarG,
-      useRecipeStarter,
-      manualStarterG,
-      fermentationPace,
-      starterRatioPreset,
-      calculated: calculated ?? showResults,
-    }),
-    [
-      totalWeight,
-      waterPct,
-      starterPct,
-      saltPct,
-      preset,
-      flourPcts,
-      targetBakeTime,
-      coldRetardHours,
-      hoursToAutolyse,
-      roomTemp,
-      keepInJarG,
-      useRecipeStarter,
-      manualStarterG,
-      fermentationPace,
-      starterRatioPreset,
-      showResults,
-    ],
-  );
-
   const persistState = useCallback(
     (calculated?: boolean) => {
-      if (!hydrated.current) return;
-      const state = buildRecipeState(getSnapshot(calculated));
-      saveRecipeStateToStorage(state);
-      syncRecipeStateToUrl(state);
+      if (!isReady) return;
+      const next = {
+        ...state,
+        calculated: calculated ?? showResults,
+      };
+      saveRecipeStateToStorage(recipeStateToUrlRecord(next));
     },
-    [getSnapshot],
+    [isReady, state, showResults],
   );
 
   const schedulePersist = useCallback(() => {
@@ -159,16 +120,129 @@ export function useRecipeForm() {
     persistTimer.current = setTimeout(() => persistState(), 350);
   }, [persistState]);
 
-  const applyPreset = useCallback((key: PresetKey) => {
-    if (key === "custom") {
-      setPresetNote("עריכה ידנית: ודא/י שהאחוזים מסתכמים ל־100%.");
-      return;
-    }
-    const p = FLOUR_PRESETS[key];
-    if (!p) return;
-    setFlourPcts([...p.values]);
-    setPresetNote(p.note);
-  }, []);
+  const setTotalWeight = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      const n = parseFloat(trimmed.replace(",", "."));
+      patchState({
+        totalWeightG:
+          trimmed === ""
+            ? null
+            : Number.isFinite(n) && n > 0
+              ? n
+              : null,
+      });
+    },
+    [patchState],
+  );
+
+  const setWaterPct = useCallback(
+    (v: number) => patchState({ waterPercent: v }),
+    [patchState],
+  );
+  const setStarterPct = useCallback(
+    (v: number) => patchState({ starterPercent: v }),
+    [patchState],
+  );
+  const setSaltPct = useCallback(
+    (v: number) => patchState({ saltPercent: v }),
+    [patchState],
+  );
+
+  const setFlourPcts = useCallback(
+    (updater: number[] | ((prev: number[]) => number[])) => {
+      const next =
+        typeof updater === "function" ? updater(flourPcts) : updater;
+      const normalized = normalizeFlourPercentages(next);
+      patchState({
+        flourBlend: {
+          preset: "custom",
+          percentages: normalized,
+          totalPercent: normalized.reduce((s, p) => s + p, 0),
+        },
+      });
+    },
+    [flourPcts, patchState],
+  );
+
+  const setPreset = useCallback(
+    (key: PresetKey) => {
+      patchState({
+        flourBlend: {
+          ...state.flourBlend,
+          preset: key,
+        },
+      });
+    },
+    [patchState, state.flourBlend],
+  );
+
+  const setTargetBakeTime = useCallback(
+    (v: string) => patchState({ schedule: { targetBakeTime: v } }),
+    [patchState],
+  );
+  const setColdRetardHours = useCallback(
+    (v: number) => patchState({ schedule: { coldRetardHours: v } }),
+    [patchState],
+  );
+  const setHoursToAutolyse = useCallback(
+    (v: number) => patchState({ schedule: { hoursToAutolyse: v } }),
+    [patchState],
+  );
+  const setRoomTemp = useCallback(
+    (v: number) => patchState({ schedule: { roomTempC: v } }),
+    [patchState],
+  );
+  const setKeepInJarG = useCallback(
+    (v: number) => patchState({ starter: { keepInJarG: v } }),
+    [patchState],
+  );
+  const setUseRecipeStarter = useCallback(
+    (v: boolean) => patchState({ starter: { useFromRecipe: v } }),
+    [patchState],
+  );
+  const setManualStarterG = useCallback(
+    (v: string) => {
+      const n = parseFloat(v);
+      patchState({
+        starter: {
+          manualGrams: v.trim() === "" ? null : Number.isFinite(n) ? n : null,
+        },
+      });
+    },
+    [patchState],
+  );
+  const setFermentationPace = useCallback(
+    (v: FermentationPace) =>
+      patchState({ schedule: { fermentationPace: v } }),
+    [patchState],
+  );
+  const setStarterRatioPreset = useCallback(
+    (v: StarterRatioPreset) => patchState({ starter: { ratioPreset: v } }),
+    [patchState],
+  );
+
+  const applyPreset = useCallback(
+    (key: PresetKey) => {
+      if (key === "custom") {
+        setPresetNote("עריכה ידנית: ודא/י שהאחוזים מסתכמים ל־100%.");
+        patchState({ flourBlend: { ...state.flourBlend, preset: "custom" } });
+        return;
+      }
+      const p = FLOUR_PRESETS[key];
+      if (!p) return;
+      const percentages = [...p.values];
+      patchState({
+        flourBlend: {
+          preset: key,
+          percentages,
+          totalPercent: percentages.reduce((s, n) => s + n, 0),
+        },
+      });
+      setPresetNote(p.note);
+    },
+    [patchState, state.flourBlend],
+  );
 
   const rebuildTimeline = useCallback(
     (silent: boolean) => {
@@ -188,118 +262,59 @@ export function useRecipeForm() {
   );
 
   useEffect(() => {
-    const fromUrl =
-      typeof window !== "undefined"
-        ? parseRecipeStateFromSearch(window.location.search)
-        : null;
-    const fromStorage = loadRecipeStateFromStorage();
-    const state = fromUrl ?? fromStorage;
+    if (!isReady || initDone.current) return;
+    initDone.current = true;
 
-    if (state) {
-      if (state.w) setTotalWeight(state.w);
-      if (state.wa) setWaterPct(parseFloat(state.wa) || DEFAULT_WATER);
-      if (state.st) setStarterPct(parseFloat(state.st) || DEFAULT_STARTER);
-      if (state.sa) setSaltPct(parseFloat(state.sa) || DEFAULT_SALT);
-      if (state.bake) setTargetBakeTime(state.bake);
-      if (state.retard) setColdRetardHours(parseFloat(state.retard) || DEFAULT_RETARD);
-      if (state.hta) setHoursToAutolyse(parseFloat(state.hta) || DEFAULT_HTA);
-      if (state.rt) setRoomTemp(parseFloat(state.rt) || DEFAULT_ROOM);
-      if (state.jar) setKeepInJarG(parseFloat(state.jar) || DEFAULT_JAR);
-      if (state.urs != null) setUseRecipeStarter(state.urs !== "0");
-      if (state.ms) setManualStarterG(state.ms);
-      if (state.pace === "express" || state.pace === "standard") {
-        setFermentationPace(state.pace);
-      }
-      if (
-        state.sr === "auto" ||
-        state.sr === "equal" ||
-        state.sr === "half" ||
-        state.sr === "peak"
-      ) {
-        setStarterRatioPreset(state.sr);
-      }
-
-      const parsed = parseFlourPcts(state.fl);
-      if (parsed && parsed.length === FLOUR_FIELDS.length) {
-        setFlourPcts(parsed);
-        const fp = state.fp as PresetKey;
-        setPreset(
-          fp && PRESET_OPTIONS.some((o) => o.value === fp) ? fp : "custom",
-        );
-        if (
-          fp &&
-          fp !== "custom" &&
-          FLOUR_PRESETS[fp as Exclude<PresetKey, "custom">]
-        ) {
-          setPresetNote(FLOUR_PRESETS[fp as Exclude<PresetKey, "custom">].note);
-        }
-      } else if (
-        state.fp &&
-        state.fp !== "custom" &&
-        FLOUR_PRESETS[state.fp as Exclude<PresetKey, "custom">]
-      ) {
-        const fp = state.fp as Exclude<PresetKey, "custom">;
-        setPreset(fp);
-        setFlourPcts([...FLOUR_PRESETS[fp].values]);
-        setPresetNote(FLOUR_PRESETS[fp].note);
-      }
-    } else {
-      applyPreset("classic");
+    if (flourAdjusted) {
+      showToast("תערובת הקמחים עודכנה לסכום 100%.");
     }
 
-    if (!state?.bake) setTargetBakeTime(defaultTargetBakeLocal());
+    const fp = state.flourBlend.preset;
+    if (
+      fp &&
+      fp !== "custom" &&
+      FLOUR_PRESETS[fp as Exclude<PresetKey, "custom">]
+    ) {
+      setPresetNote(FLOUR_PRESETS[fp as Exclude<PresetKey, "custom">].note);
+    }
 
-    hydrated.current = true;
+    if (!state.schedule.targetBakeTime) {
+      patchState({ schedule: { targetBakeTime: defaultTargetBakeLocal() } });
+    }
 
-    if (state?.calc === "1" && state.w) {
-      const w = parseFloat(state.w);
-      const m = buildFlourMix(parseFlourPcts(state.fl) ?? defaultFlourPcts());
-      if (w > 0 && Math.abs(m.totalPct - 100) < 0.2) {
-        const wa = parseFloat(state.wa || String(DEFAULT_WATER));
-        const st = parseFloat(state.st || String(DEFAULT_STARTER));
-        const sa = parseFloat(state.sa || String(DEFAULT_SALT));
-        setResults(calculateDough(w, wa, st, sa));
+    if (state.calculated && state.totalWeightG) {
+      const w = state.totalWeightG;
+      if (w > 0 && Math.abs(state.flourBlend.totalPercent - 100) < 0.2) {
+        setResults(
+          calculateDough(w, state.waterPercent, state.starterPercent, state.saltPercent),
+        );
         setShowResults(true);
       }
     }
 
-    if (state?.bake) {
+    if (state.schedule.targetBakeTime) {
       const plan = buildReverseTimeline({
-        targetBakeTime: state.bake,
-        coldRetardHours: parseFloat(state.retard || String(DEFAULT_RETARD)) || DEFAULT_RETARD,
-        starterPct: parseFloat(state.st || String(DEFAULT_STARTER)) || DEFAULT_STARTER,
-        waterPct: parseFloat(state.wa || String(DEFAULT_WATER)) || DEFAULT_WATER,
-        roomTemp: parseFloat(state.rt || String(DEFAULT_ROOM)) || DEFAULT_ROOM,
-        hoursToAutolyse: parseFloat(state.hta || String(DEFAULT_HTA)) || DEFAULT_HTA,
-        flourPcts: parseFlourPcts(state.fl) ?? defaultFlourPcts(),
+        targetBakeTime: state.schedule.targetBakeTime,
+        coldRetardHours: state.schedule.coldRetardHours,
+        starterPct: state.starterPercent,
+        waterPct: state.waterPercent,
+        roomTemp: state.schedule.roomTempC,
+        hoursToAutolyse: state.schedule.hoursToAutolyse,
+        flourPcts: state.flourBlend.percentages,
+        fermentationPace: state.schedule.fermentationPace,
       });
       if (plan) {
         setTimelinePlan(plan);
         setShowTimeline(true);
       }
     }
-
-    persistState(state?.calc === "1");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isReady]);
 
   useEffect(() => {
+    if (!isReady) return;
     schedulePersist();
-  }, [
-    totalWeight,
-    waterPct,
-    starterPct,
-    saltPct,
-    preset,
-    flourPcts,
-    targetBakeTime,
-    coldRetardHours,
-    hoursToAutolyse,
-    roomTemp,
-    fermentationPace,
-    starterRatioPreset,
-    schedulePersist,
-  ]);
+  }, [state, isReady, schedulePersist]);
 
   useEffect(() => {
     if (!showTimeline || !targetBakeTime) return;
@@ -308,7 +323,7 @@ export function useRecipeForm() {
   }, [timelineInput, showTimeline, targetBakeTime]);
 
   const handleCalculate = useCallback(() => {
-    const w = parseFloat(totalWeight);
+    const w = state.totalWeightG;
     if (!w || w <= 0) {
       showToast("הזן/י משקל בצק תקין.");
       return;
@@ -317,18 +332,23 @@ export function useRecipeForm() {
       showToast(`אחוזי הקמחים צריכים להסתכם ל־100%. כרגע: ${mix.totalPct}%.`);
       return;
     }
-    const dough = calculateDough(w, waterPct, starterPct, saltPct);
+    const dough = calculateDough(
+      w,
+      state.waterPercent,
+      state.starterPercent,
+      state.saltPercent,
+    );
     setResults(dough);
     setShowResults(true);
     setShowGuide(true);
     setStarterOnlyMode(false);
-    persistState(true);
+    setState({ ...state, calculated: true });
 
     if (targetBakeTime) {
       const plan = rebuildTimeline(true);
       if (plan) {
         requestAnimationFrame(() => {
-          document.getElementById("schedule-card")?.scrollIntoView({
+          document.getElementById("section-schedule")?.scrollIntoView({
             behavior: "smooth",
             block: "start",
           });
@@ -344,32 +364,29 @@ export function useRecipeForm() {
       });
     });
   }, [
-    totalWeight,
+    state,
     mix.totalPct,
-    waterPct,
-    starterPct,
-    saltPct,
     targetBakeTime,
     showToast,
-    persistState,
+    setState,
     rebuildTimeline,
   ]);
 
   const handleBuildTimeline = useCallback(() => {
     const plan = rebuildTimeline(false);
     if (plan) {
-      persistState(showResults);
+      setState({ ...state, calculated: showResults });
       setTimeout(() => {
-        document.getElementById("schedule-card")?.scrollIntoView({
+        document.getElementById("section-schedule")?.scrollIntoView({
           behavior: "smooth",
           block: "start",
         });
       }, 80);
     }
-  }, [rebuildTimeline, persistState, showResults]);
+  }, [rebuildTimeline, setState, state, showResults]);
 
   const handleCopyLink = useCallback(async () => {
-    persistState(showResults);
+    setState({ ...state, calculated: showResults });
     const url = window.location.href;
     try {
       await navigator.clipboard.writeText(url);
@@ -377,7 +394,7 @@ export function useRecipeForm() {
     } catch {
       showToast(url);
     }
-  }, [persistState, showResults, showToast]);
+  }, [setState, state, showResults, showToast]);
 
   const selectScheduleOption = useCallback(
     (option: ScheduleOption) => {
@@ -393,9 +410,18 @@ export function useRecipeForm() {
       }
       setTimelinePlan(option.plan);
       setShowTimeline(true);
-      persistState(showResults);
+      setState({ ...state, calculated: showResults });
     },
-    [persistState, showResults, showToast],
+    [
+      setTargetBakeTime,
+      setColdRetardHours,
+      setFermentationPace,
+      setStarterRatioPreset,
+      setState,
+      state,
+      showResults,
+      showToast,
+    ],
   );
 
   const applyWeatherPlan = useCallback(
@@ -404,7 +430,7 @@ export function useRecipeForm() {
       setRoomTemp(plan.roomTemp);
       setHoursToAutolyse(plan.hoursToAutolyse);
       setBulkHoursOverride(plan.bulkHours);
-      persistState(showResults);
+      setState({ ...state, calculated: showResults });
 
       if (targetBakeTime) {
         const nextInput = {
@@ -424,7 +450,16 @@ export function useRecipeForm() {
         }
       }
     },
-    [persistState, showResults, targetBakeTime, timelineInput],
+    [
+      setStarterPct,
+      setRoomTemp,
+      setHoursToAutolyse,
+      setState,
+      state,
+      showResults,
+      targetBakeTime,
+      timelineInput,
+    ],
   );
 
   const openStarterOnlyGuide = useCallback(() => {
@@ -503,6 +538,8 @@ export function useRecipeForm() {
     handleCopyLink,
     handleClearStorage,
     rebuildTimeline,
+    recipeParams: state,
+    isParamsReady: isReady,
   };
 }
 

@@ -7,7 +7,7 @@ import { AdviceList } from "@/components/AdviceList";
 import { Card } from "@/components/ui/Card";
 import { MasterBakerTip } from "@/components/ui/MasterBakerTip";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { getBassinageAmounts } from "@/lib/dough";
+import { getBassinageAmounts } from "@/lib/bakingMath";
 import { describeFlourMix } from "@/lib/flour";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 

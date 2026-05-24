@@ -32,8 +32,8 @@ export const STEP_KIND_STYLES: Record<
     badge: "bg-stone-200/80 text-stone-700",
   },
   milestone: {
-    card: "border-emerald-300 bg-gradient-to-br from-emerald-50 to-white ring-1 ring-emerald-200/50",
-    dot: "border-emerald-600 bg-emerald-700 text-white shadow-md shadow-emerald-900/20",
-    badge: "bg-emerald-100 text-emerald-900",
+    card: "border-wheat bg-gradient-to-br from-wheat-muted to-white ring-1 ring-wheat/50",
+    dot: "border-crust bg-crust text-dough shadow-md shadow-crust/25",
+    badge: "bg-wheat-muted text-crust",
   },
 };

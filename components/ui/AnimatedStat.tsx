@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { MorphingValue } from "@/components/motion/MorphingValue";
 import { StatHighlight } from "@/components/ui/StatHighlight";
 import { cn } from "@/lib/cn";
 
@@ -19,29 +19,22 @@ export function AnimatedStat({
   featured,
   className,
 }: AnimatedStatProps) {
-  const [pulse, setPulse] = useState(false);
-  const prev = useRef(value);
-
-  useEffect(() => {
-    if (prev.current !== value) {
-      prev.current = value;
-      setPulse(true);
-      const t = window.setTimeout(() => setPulse(false), 450);
-      return () => window.clearTimeout(t);
-    }
-  }, [value]);
-
   return (
     <StatHighlight
       label={label}
-      value={value}
+      value={
+        <MorphingValue
+          value={value}
+          emphasize={featured}
+          className={cn(
+            featured ? "text-3xl sm:text-4xl" : "text-xl",
+            "font-serif font-semibold leading-none text-charcoal",
+          )}
+        />
+      }
       sublabel={sublabel}
       featured={featured}
-      className={cn(
-        className,
-        "transition-all duration-300",
-        pulse && "animate-stat-pulse scale-[1.02]",
-      )}
+      className={className}
     />
   );
 }

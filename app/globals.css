@@ -1,15 +1,32 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-cream: #f9f6f1;
-  --color-parchment: #f0ebe3;
+  /* Brand — artisan sourdough */
+  --color-crust: #7a4f2e;
+  --color-crust-dark: #5c3a22;
+  --color-crust-light: #9a6b45;
+  --color-wheat: #d4a574;
+  --color-wheat-light: #e8cfa0;
+  --color-wheat-muted: #f5edd8;
+  --color-dough: #faf7f2;
+  --color-charcoal: #2e2b28;
+  --color-charcoal-muted: #5c5650;
+  --color-warm-border: #e8dfd4;
+
+  /* Legacy aliases (mapped to brand) */
+  --color-cream: var(--color-dough);
+  --color-parchment: #ede6d8;
+  --color-wheat-50: #faf6ee;
+  --color-wheat-100: var(--color-wheat-muted);
+  --color-wheat-200: #e8d5b5;
   --color-surface: #ffffff;
-  --color-forest: #065f46;
-  --color-forest-light: #047857;
-  --color-terracotta: #b45309;
-  --color-ink: #2c2420;
-  --color-ink-muted: #5c534c;
-  --color-border: #e5dfd6;
+  --color-forest: var(--color-crust);
+  --color-forest-light: var(--color-crust-light);
+  --color-terracotta: var(--color-crust);
+  --color-ink: var(--color-charcoal);
+  --color-ink-muted: var(--color-charcoal-muted);
+  --color-border: var(--color-warm-border);
+
   --font-serif: var(--font-frank), "David Libre", Georgia, serif;
   --font-sans: var(--font-heebo), "Segoe UI", Tahoma, sans-serif;
 }
@@ -21,11 +38,12 @@
   }
 
   body {
-    @apply min-h-screen bg-cream text-ink leading-relaxed;
+    @apply min-h-screen bg-dough text-charcoal leading-relaxed;
     background-image:
-      radial-gradient(ellipse 90% 50% at 50% -5%, rgba(209, 231, 221, 0.35), transparent),
+      radial-gradient(ellipse 80% 45% at 50% -8%, rgb(212 165 116 / 0.14), transparent),
+      radial-gradient(ellipse 60% 40% at 100% 50%, rgb(122 79 46 / 0.06), transparent),
       radial-gradient(var(--color-parchment) 1px, transparent 1px);
-    background-size: 100% 100%, 22px 22px;
+    background-size: 100% 100%, 100% 100%, 24px 24px;
   }
 
   h1,
@@ -33,7 +51,7 @@
   h3,
   h4 {
     font-family: var(--font-serif);
-    @apply text-ink tracking-tight;
+    @apply text-charcoal tracking-tight;
   }
 }
 
@@ -47,17 +65,29 @@
   }
 
   .timeline-rail {
-    @apply absolute top-3 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-emerald-300 via-stone-300 to-amber-300;
+    @apply absolute top-3 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-wheat via-warm-border to-crust-light;
     right: 1.25rem;
   }
 
   .step-card {
-    @apply rounded-2xl border border-stone-200/90 bg-white p-5 shadow-sm sm:p-6;
+    @apply rounded-2xl border border-warm-border/90 bg-white/90 p-5 shadow-sm backdrop-blur-sm sm:p-6;
   }
 
-  .app-shell {
-    --sidebar-width: 18rem;
-    --sidebar-collapsed-width: 4.25rem;
+  .glass-panel {
+    @apply rounded-2xl border border-warm-border/80 bg-white/75 shadow-lg shadow-crust/5 backdrop-blur-md;
+  }
+
+  .glass-input {
+    @apply rounded-2xl border-2 border-warm-border/90 bg-white/90 px-4 py-3.5 text-center text-base text-charcoal;
+    @apply focus:border-crust focus:outline-none focus:ring-2 focus:ring-wheat/40;
+  }
+
+  .brand-choice-active {
+    @apply border-crust bg-wheat-muted/90 shadow-md shadow-crust/10 ring-2 ring-wheat/50;
+  }
+
+  .brand-choice-idle {
+    @apply border-warm-border bg-white hover:border-wheat hover:bg-wheat-muted/40;
   }
 }
 
@@ -92,18 +122,27 @@
 
   @keyframes stat-pulse {
     0% {
-      box-shadow: 0 0 0 0 rgb(5 150 105 / 0.35);
+      box-shadow: 0 0 0 0 rgb(212 165 116 / 0.45);
     }
     70% {
-      box-shadow: 0 0 0 10px rgb(5 150 105 / 0);
+      box-shadow: 0 0 0 10px rgb(212 165 116 / 0);
     }
     100% {
-      box-shadow: 0 0 0 0 rgb(5 150 105 / 0);
+      box-shadow: 0 0 0 0 rgb(212 165 116 / 0);
     }
   }
 
   .recipe-results-enter {
     animation: results-enter 0.4s ease-out;
+  }
+
+  @keyframes sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
 
   @keyframes results-enter {

@@ -1,15 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  BeakerIcon,
-  CalendarDaysIcon,
-  ClockIcon,
-  FireIcon,
-  HandRaisedIcon,
-  ArchiveBoxIcon,
-  ChevronDownIcon,
-} from "@heroicons/react/24/outline";
+import { CalendarDaysIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { AnimatedScheduleTimeline } from "@/components/motion/AnimatedScheduleTimeline";
+import { DoughLifecycleBar } from "@/components/motion/DoughLifecycleBar";
 import { AlarmButtonGroup, alarmToastMessage } from "@/components/AlarmButton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -26,31 +20,10 @@ import {
   generateScheduleOptions,
   type ScheduleOption,
 } from "@/lib/scheduleOptions";
-import {
-  STEP_KIND_STYLES,
-  getTimelineStepKind,
-} from "@/lib/timelineVisual";
+import { SmartWarningBanner } from "@/components/feedback/SmartWarningBanner";
+import { useBakerAlerts } from "@/hooks/useBakerAlerts";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
-import type { TimelineStep } from "@/lib/types";
 import { cn } from "@/lib/cn";
-
-function StepIcon({ step }: { step: TimelineStep }) {
-  const cls = "h-5 w-5";
-  const stroke = 1.75;
-  if (step.title.includes("מחמצת"))
-    return <BeakerIcon className={cls} strokeWidth={stroke} />;
-  if (step.title.includes("אוטוליזה"))
-    return <ClockIcon className={cls} strokeWidth={stroke} />;
-  if (step.title.includes("Bulk") || step.title.includes("מחמצת, מלח"))
-    return <HandRaisedIcon className={cls} strokeWidth={stroke} />;
-  if (step.title.includes("עיצוב"))
-    return <HandRaisedIcon className={cls} strokeWidth={stroke} />;
-  if (step.title.includes("מקרר"))
-    return <ArchiveBoxIcon className={cls} strokeWidth={stroke} />;
-  if (step.title.includes("אפייה"))
-    return <FireIcon className={cls} strokeWidth={stroke} />;
-  return <ClockIcon className={cls} strokeWidth={stroke} />;
-}
 
 function ScheduleOptionCard({
   option,
@@ -72,15 +45,11 @@ function ScheduleOptionCard({
       onClick={onSelect}
       className={cn(
         "w-full rounded-2xl border-2 p-4 text-right transition sm:p-5",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat focus-visible:ring-offset-2",
         !option.feasible &&
-          "cursor-not-allowed border-stone-200 bg-stone-50 opacity-60",
-        option.feasible &&
-          !selected &&
-          "border-stone-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/40",
-        option.feasible &&
-          selected &&
-          "border-emerald-600 bg-emerald-50/80 shadow-md shadow-emerald-900/5",
+          "cursor-not-allowed border-warm-border bg-dough opacity-60",
+        option.feasible && !selected && "brand-choice-idle",
+        option.feasible && selected && "brand-choice-active",
       )}
     >
       <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
@@ -88,7 +57,7 @@ function ScheduleOptionCard({
           <p className="font-serif text-lg font-semibold text-stone-900">
             {option.title}
           </p>
-          <p className="mt-0.5 text-sm text-emerald-800">
+          <p className="mt-0.5 text-sm text-crust">
             לחם מוכן: {option.bakeLabel}
             {option.isExpress && (
               <span className="ms-2 rounded-full bg-amber-200 px-2 py-0.5 text-xs font-bold text-amber-950">
@@ -98,7 +67,7 @@ function ScheduleOptionCard({
           </p>
         </div>
         {selected && (
-          <span className="rounded-full bg-emerald-700 px-3 py-1 text-xs font-bold text-white">
+          <span className="rounded-full bg-crust px-3 py-1 text-xs font-bold text-dough">
             נבחר
           </span>
         )}
@@ -142,6 +111,7 @@ function ScheduleOptionCard({
 }
 
 export function ReverseTimeline({ form }: { form: RecipeForm }) {
+  const bakerAlerts = useBakerAlerts(form);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCustom, setShowCustom] = useState(false);
 
@@ -263,7 +233,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
             id="targetBakeTime"
             type="datetime-local"
             step={300}
-            className="mb-3 w-full rounded-2xl border-2 border-stone-200 bg-white px-4 py-3 text-center text-base text-stone-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+            className="mb-3 w-full rounded-2xl border-2 border-warm-border bg-white px-4 py-3 text-center text-base text-charcoal focus:border-crust focus:outline-none focus:ring-2 focus:ring-wheat/40"
             value={form.targetBakeTime}
             onChange={(e) => {
               form.setTargetBakeTime(e.target.value);
@@ -281,19 +251,26 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
         אוטוליזה ו־{form.roomTemp}°C — עדכנו במזג האוויר או במדריך האפייה.
       </p>
 
+      {bakerAlerts.length > 0 && (
+        <SmartWarningBanner
+          alerts={bakerAlerts.filter((a) => a.id.startsWith("schedule"))}
+          className="mb-6"
+        />
+      )}
+
       {form.showTimeline && form.timelinePlan && (
         <div id="schedule-plan" className="mt-8 border-t border-stone-200 pt-8">
           <h3 className="mb-6 font-serif text-xl font-semibold text-stone-900">
             התוכנית המלאה שלכם
           </h3>
 
-          <div className="mb-8 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 sm:p-6">
+          <div className="mb-8 rounded-2xl border border-wheat/60 bg-gradient-to-br from-wheat-muted to-white p-5 sm:p-6">
             <p className="text-sm text-stone-600">מתחילים בהאכלת מחמצת</p>
             <p className="mt-1 font-serif text-xl font-semibold text-stone-900">
               {formatScheduleTime(form.timelinePlan.summary.starterFeed)}
             </p>
             <p className="mt-4 text-sm text-stone-600">סיום אפייה ביעד</p>
-            <p className="mt-1 font-serif text-xl font-semibold text-emerald-900">
+            <p className="mt-1 font-serif text-xl font-semibold text-crust">
               {formatScheduleTime(form.timelinePlan.summary.bakeEnd)}
             </p>
             <p className="mt-4 text-sm text-stone-500">
@@ -304,8 +281,8 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
           </div>
 
           {isAndroidDevice() && (
-            <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 text-sm leading-relaxed text-stone-700">
-              <p className="font-semibold text-emerald-950">התראות באנדרואיד</p>
+            <div className="mb-6 rounded-2xl border border-wheat/60 bg-wheat-muted/80 p-4 text-sm leading-relaxed text-charcoal-muted">
+              <p className="font-semibold text-crust">התראות באנדרואיד</p>
               <p className="mt-1">
                 <strong>שעון</strong> — פותח את אפל שעון/שעון Google (אשרו ושמרו).
                 אם לא נפתח: <strong>יומן</strong> → שיתוף ליומן או Google Calendar.
@@ -332,93 +309,36 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
             </div>
           )}
 
+          <DoughLifecycleBar plan={form.timelinePlan} />
+
           <div className="mb-4 flex flex-wrap gap-4 text-xs text-stone-600">
             <span className="inline-flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-amber-400" />
+              מחמצת
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-3 w-3 rounded-full bg-sky-400" />
+              אוטוליזה
+            </span>
+            <span className="inline-flex items-center gap-2">
               <span className="h-3 w-3 rounded-full bg-orange-400" />
-              פעולה (קיפול / עבודה)
+              Bulk
             </span>
             <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-stone-300" />
-              המתנה (התפחה)
+              <span className="h-3 w-3 rounded-full bg-stone-400" />
+              מקרר
             </span>
             <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-emerald-600" />
+              <span className="h-3 w-3 rounded-full bg-crust" />
               אפייה
             </span>
           </div>
 
-          <ol
-            className="relative m-0 list-none space-y-0 p-0 pr-2"
-            aria-label="לוח זמנים כרונולוגי"
-          >
-            <span className="timeline-rail" aria-hidden />
-            {form.timelinePlan.steps.map((step, index) => {
-              const kind = getTimelineStepKind(step);
-              const styles = STEP_KIND_STYLES[kind];
-              const isAction = kind === "action";
-
-              return (
-                <li
-                  key={`${step.title}-${step.start}`}
-                  className={cn(
-                    "relative pb-8 pr-14 last:pb-0 sm:pr-16",
-                    index % 2 === 1 && "sm:pr-[4.5rem]",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "absolute right-0 top-2 flex h-10 w-10 items-center justify-center rounded-full border-2 shadow-sm",
-                      styles.dot,
-                    )}
-                    aria-hidden
-                  >
-                    <StepIcon step={step} />
-                  </span>
-
-                  <article
-                    className={cn(
-                      "rounded-2xl border p-5 shadow-sm sm:p-6",
-                      styles.card,
-                    )}
-                  >
-                    <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
-                      <h4 className="m-0 font-serif text-lg font-semibold text-stone-900">
-                        {step.title}
-                      </h4>
-                      <span
-                        className={cn(
-                          "shrink-0 rounded-full px-3 py-1 text-xs font-bold",
-                          styles.badge,
-                        )}
-                      >
-                        {isAction ? "פעולה" : kind === "wait" ? "המתנה" : "אפייה"} ·{" "}
-                        {step.duration}
-                      </span>
-                    </div>
-
-                    <p className="m-0 text-lg font-semibold text-stone-800">
-                      {formatScheduleTime(step.start)}
-                    </p>
-                    <p className="mt-2 text-sm leading-relaxed text-stone-600">
-                      {step.meta}
-                    </p>
-
-                    {step.alarms && step.alarms.length > 0 && (
-                      <div className="mt-4 border-t border-orange-200/60 pt-4">
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-800">
-                          התראות לשלב זה
-                        </p>
-                        <AlarmButtonGroup
-                          alarms={step.alarms}
-                          onResult={handleAlarmResult}
-                        />
-                      </div>
-                    )}
-                  </article>
-                </li>
-              );
-            })}
-          </ol>
+          <AnimatedScheduleTimeline
+            plan={form.timelinePlan}
+            planKey={`${form.timelinePlan.summary.bakeEnd}-${form.timelinePlan.summary.starterFeed}-${form.timelinePlan.summary.bulkHours}`}
+            onAlarmResult={handleAlarmResult}
+          />
         </div>
       )}
 

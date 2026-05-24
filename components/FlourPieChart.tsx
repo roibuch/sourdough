@@ -89,7 +89,7 @@ export function FlourPieChart({
     >
       <div className="mb-4 flex items-center gap-2">
         <ChartPieIcon
-          className="h-5 w-5 text-emerald-800"
+          className="h-5 w-5 text-crust"
           strokeWidth={1.75}
           aria-hidden
         />
@@ -120,7 +120,7 @@ export function FlourPieChart({
               <span
                 className={cn(
                   "font-serif font-semibold leading-none",
-                  isComplete ? "text-emerald-800" : "text-amber-700",
+                  isComplete ? "text-crust" : "text-amber-700",
                   compact ? "text-xl" : "text-2xl sm:text-3xl",
                 )}
               >

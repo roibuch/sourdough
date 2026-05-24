@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Frank_Ruhl_Libre, Heebo } from "next/font/google";
 import Script from "next/script";
 import { OpenWeatherRuntimeConfig } from "@/components/OpenWeatherRuntimeConfig";
+import { BRAND, brandAssetPath } from "@/lib/brand";
 import { getBasePath } from "@/lib/basePath";
 import "./globals.css";
 
@@ -19,17 +20,32 @@ const frank = Frank_Ruhl_Libre({
 });
 
 const basePath = getBasePath();
+const appleTouchIcon = brandAssetPath("icon-512x512.png");
 
 export const metadata: Metadata = {
   title: "Sourdough Master | מחשבון ומדריך מחמצת",
   description:
     "מחשבון בצק מחמצת, תערובות קמח, הידרציה אמיתית ומדריך אפייה — בעברית, מותאם לכולם.",
-  manifest: "/manifest.json",
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: {
+    icon: [
+      { url: brandAssetPath("logo.png"), sizes: "192x192", type: "image/png" },
+      {
+        url: brandAssetPath("icon-512x512.png"),
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+    apple: [{ url: appleTouchIcon, sizes: "180x180", type: "image/png" }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "מחמצת",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#065f46",
+  themeColor: BRAND.themeColor,
   width: "device-width",
   initialScale: 1,
 };
@@ -41,6 +57,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="he" dir="rtl" className={`${heebo.variable} ${frank.variable}`}>
+      <head>
+        <link rel="apple-touch-icon" href={appleTouchIcon} />
+        <meta name="theme-color" content={BRAND.themeColor} />
+      </head>
       <body className="font-sans antialiased">
         <OpenWeatherRuntimeConfig />
         <Script src={`${basePath}/config.js`} strategy="beforeInteractive" />

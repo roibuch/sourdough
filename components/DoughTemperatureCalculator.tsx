@@ -4,14 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import { FireIcon, BeakerIcon } from "@heroicons/react/24/outline";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { AnimatedStat } from "@/components/ui/AnimatedStat";
+import { FieldLabelWithTip, InfoTooltip } from "@/components/ui/InfoTooltip";
 import {
   calculateWaterTempDDT,
   DDT_FRICTION_OPTIONS,
   DDT_TARGET_DEFAULT,
-} from "@/lib/doughTemperature";
+} from "@/lib/bakingMath";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import { cn } from "@/lib/cn";
 
+/**
+ * DDT: desired dough temp + room/flour temps → exact water temperature.
+ */
 export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
   const { results, showResults, roomTemp } = form;
 
@@ -24,6 +28,7 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
   useEffect(() => {
     setAmbientTemp(roomTemp);
     setStarterTemp(roomTemp);
+    setFlourTemp(roomTemp);
   }, [roomTemp]);
 
   const flourG = results?.flour ?? 500;
@@ -56,40 +61,58 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
   );
 
   return (
-    <article className="rounded-2xl border border-orange-200/80 bg-gradient-to-br from-orange-50/80 to-white p-5 sm:p-6">
+    <article className="rounded-2xl border border-stone-200/80 bg-white/60 p-4 sm:p-5">
       <div className="mb-4 flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-800">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-wheat-100 text-amber-900">
           <FireIcon className="h-5 w-5" strokeWidth={1.75} />
         </span>
         <div>
-          <h3 className="font-serif text-lg font-semibold text-stone-900">
-            מחשבון טמפרטורת מים (DDT)
+          <h3 className="flex flex-wrap items-center gap-2 font-serif text-lg font-semibold text-charcoal">
+            מחשבון טמפרטורת מים
+            <InfoTooltip term="ddt" />
           </h3>
           <p className="mt-1 text-sm leading-relaxed text-stone-600">
-            חישוב טמפרטורת מים ליעד טמפרטורת בצק סופית — לפי קמח, מים, מחמצת
-            וחום מהלישה.
+            הזינו טמפרטורת חדר ויעד לבצק — נחשב בדיוק באיזו טמפרטורה לשפוך את
+            המים.
           </p>
         </div>
       </div>
 
       {!fromRecipe && (
-        <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
-          משקלים לדוגמה (500 ג קמח) — אחרי «חישוב מרכיבים» יתעדכנו לפי המתכון.
+        <p className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
+          משקלים לדוגמה — אחרי «חישוב מרכיבים» יתעדכנו לפי המתכון שלכם.
         </p>
       )}
 
       <div className="mb-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div>
+          <FieldLabelWithTip term="ddt" />
+          <SmartNumberInput
+            id="ddt-target"
+            label=""
+            suffix="°C"
+            value={targetDdt}
+            min={20}
+            max={28}
+            step={0.5}
+            onChange={setTargetDdt}
+            minusLabel="הורד יעד בצק"
+            plusLabel="העלה יעד בצק"
+            compact
+          />
+          <p className="mt-1 text-xs text-stone-500">יעד בצק סופי (בדרך כלל 24–26°C)</p>
+        </div>
         <SmartNumberInput
-          id="ddt-target"
-          label="יעד טמפרטורת בצק (DDT)"
+          id="ddt-room"
+          label="טמפרטורת חדר"
           suffix="°C"
-          value={targetDdt}
-          min={20}
-          max={28}
-          step={0.5}
-          onChange={setTargetDdt}
-          minusLabel="הורד יעד"
-          plusLabel="העלה יעד"
+          value={ambientTemp}
+          min={16}
+          max={32}
+          step={1}
+          onChange={setAmbientTemp}
+          minusLabel="הורד"
+          plusLabel="העלה"
           compact
         />
         <SmartNumberInput
@@ -101,19 +124,6 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
           max={35}
           step={1}
           onChange={setFlourTemp}
-          minusLabel="הורד"
-          plusLabel="העלה"
-          compact
-        />
-        <SmartNumberInput
-          id="ddt-room"
-          label="טמפרטורת חדר"
-          suffix="°C"
-          value={ambientTemp}
-          min={16}
-          max={32}
-          step={1}
-          onChange={setAmbientTemp}
           minusLabel="הורד"
           plusLabel="העלה"
           compact
@@ -134,8 +144,8 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
       </div>
 
       <fieldset className="mb-5">
-        <legend className="mb-2 text-sm font-semibold text-stone-800">
-          חום מלישה (Friction)
+        <legend className="mb-2 text-sm font-semibold text-slate-800">
+          חום מלישה
         </legend>
         <div className="flex flex-wrap gap-2">
           {DDT_FRICTION_OPTIONS.map((opt) => (
@@ -146,8 +156,8 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
               className={cn(
                 "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
                 friction === opt.value
-                  ? "border-orange-400 bg-orange-100 text-orange-950"
-                  : "border-stone-200 bg-white text-stone-700 hover:border-orange-200",
+                  ? "border-crust bg-wheat-muted text-crust shadow-[0_0_10px_rgb(212_165_116_/_0.3)] ring-2 ring-wheat/50"
+                  : "border-warm-border bg-white text-charcoal-muted hover:border-wheat",
               )}
             >
               {opt.label}
@@ -157,35 +167,25 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
       </fieldset>
 
       {ddt && (
-        <div
-          className={cn(
-            "grid gap-4 sm:grid-cols-2",
-            ddt.band === "ok"
-              ? "animate-section-in"
-              : "",
-          )}
-        >
+        <div className="grid gap-4 sm:grid-cols-2">
           <AnimatedStat
-            label="טמפרטורת מים מומלצת"
+            label="שפכו מים בטמפרטורה"
             value={`${ddt.waterTempC}°C`}
             featured
             className={cn(
-              ddt.band === "too_cold" && "border-blue-300 ring-blue-200/60",
-              ddt.band === "too_hot" && "border-red-300 ring-red-200/60",
+              ddt.band === "too_cold" && "border-blue-300",
+              ddt.band === "too_hot" && "border-red-300",
             )}
           />
-          <div className="flex flex-col justify-center rounded-2xl border border-stone-200 bg-white/80 p-4 text-sm text-stone-600">
-            <p className="flex items-center gap-2 font-medium text-stone-800">
-              <BeakerIcon className="h-4 w-4 text-stone-500" aria-hidden />
-              מסה בחישוב: {Math.round(ddt.totalMassG)} גרם
+          <div className="flex flex-col justify-center rounded-2xl border border-stone-200/80 bg-white/80 p-4 text-sm text-stone-600">
+            <p className="flex items-center gap-2 font-medium text-slate-800">
+              <BeakerIcon className="h-4 w-4" aria-hidden />
+              לפי {Math.round(ddt.totalMassG)} גרם בבצק
             </p>
-            <p className="mt-2">
-              קמח {Math.round(flourG)} ג · מים {Math.round(waterG)} ג · מחמצת{" "}
-              {Math.round(starterG)} ג
+            <p className="mt-2 text-xs">
+              חדר {ambientTemp}°C · יעד בצק {targetDdt}°C
+              {fromRecipe && " · משקלים מהמתכון"}
             </p>
-            {fromRecipe && (
-              <p className="mt-1 text-xs text-emerald-800">לפי מתכון שחושב</p>
-            )}
           </div>
         </div>
       )}

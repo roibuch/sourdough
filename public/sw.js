@@ -1,4 +1,4 @@
-const CACHE_NAME = "sourdough-master-next-v3";
+const CACHE_NAME = "sourdough-master-next-v4";
 
 function getBasePath() {
   const scope = self.registration?.scope || self.location.href;
@@ -21,7 +21,8 @@ self.addEventListener("install", (event) => {
         `${BASE}/`,
         `${BASE}/index.html`,
         `${BASE}/manifest.json`,
-        `${BASE}/icon.svg`,
+        `${BASE}/logo.png`,
+        `${BASE}/icon-512x512.png`,
         `${BASE}/config.js`,
       ]),
     ),

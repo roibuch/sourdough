@@ -70,6 +70,10 @@ export interface DoughWorkflow {
   riseTarget: string;
 }
 
+/**
+ * Legacy URL / localStorage record (short keys).
+ * Domain model: {@link import("@/lib/types/recipe").RecipeState}
+ */
 export interface RecipeState {
   w: string;
   wa: string;

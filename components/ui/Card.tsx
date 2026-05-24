@@ -13,7 +13,7 @@ export function Card({ id, children, className, nested }: CardProps) {
     <section
       id={id}
       className={cn(
-        "rounded-2xl border border-stone-200/90 bg-white shadow-lg shadow-stone-300/25",
+        "rounded-2xl border border-warm-border/90 bg-white shadow-lg shadow-crust/8",
         nested ? "p-5 sm:p-6" : "p-6 sm:p-8 md:p-10",
         className,
       )}

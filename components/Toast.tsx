@@ -27,7 +27,7 @@ export function Toast({ message }: { message: string | null }) {
     >
       <div className="flex items-start gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-4 shadow-xl shadow-stone-400/20">
         <CheckCircleIcon
-          className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700"
+          className="mt-0.5 h-5 w-5 shrink-0 text-crust"
           strokeWidth={1.75}
           aria-hidden
         />

@@ -88,7 +88,7 @@ export function AlarmButton({
             btnClass,
             ios
               ? "bg-orange-700 shadow-orange-900/25 hover:bg-orange-800 focus-visible:ring-orange-500"
-              : "bg-emerald-800 shadow-emerald-900/20 hover:bg-emerald-900 focus-visible:ring-emerald-500",
+              : "bg-crust shadow-crust/25 hover:bg-crust-dark focus-visible:ring-wheat",
           )}
           title={alarmTimeTitle(timestampMs)}
           onClick={() =>

@@ -71,7 +71,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
       <article className="step-card">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-wheat-muted text-crust">
               <BeakerIcon className="h-5 w-5" strokeWidth={1.75} />
             </span>
             <h3 className="font-serif text-xl font-semibold">האכלת המחמצת</h3>
@@ -84,7 +84,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
           {showResults ? (
             <>
               הוציאו מהמקרר והאכלו. לבצק תצטרכו{" "}
-              <strong className="text-emerald-900">
+              <strong className="text-crust">
                 {results?.starter} גרם
               </strong>{" "}
               מחמצת בשיא. חכו לכפילות נפח (בדרך כלל 4–8 שעות).
@@ -168,7 +168,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
                 className="mb-2 block text-sm font-semibold text-stone-800"
               >
                 שעות עד אוטוליזה:{" "}
-                <span className="font-serif text-lg text-emerald-900">
+                <span className="font-serif text-lg text-crust">
                   {hoursToAutolyse}
                 </span>
               </label>
@@ -179,7 +179,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
                 max={16}
                 step={0.5}
                 value={hoursToAutolyse}
-                className="h-2.5 w-full cursor-pointer accent-emerald-700"
+                className="h-2.5 w-full cursor-pointer accent-crust"
                 onChange={(e) =>
                   setHoursToAutolyse(parseFloat(e.target.value))
                 }
@@ -193,11 +193,11 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
 
           {starterResult && (
             <div id="starter-feed-results" className="mt-5 space-y-4">
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4">
-                <h4 className="mb-2 font-serif font-semibold text-emerald-950">
+              <div className="rounded-2xl border border-wheat/60 bg-wheat-muted/50 p-4">
+                <h4 className="mb-2 font-serif font-semibold text-crust-dark">
                   יחס מומלץ (מחמצת : קמח : מים)
                 </h4>
-                <p className="inline-block rounded-full bg-white px-4 py-2 font-serif text-2xl font-bold text-emerald-900 shadow-sm">
+                <p className="inline-block rounded-full bg-white px-4 py-2 font-serif text-2xl font-bold text-crust shadow-sm">
                   {starterResult.ratioLabel}
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-stone-700">

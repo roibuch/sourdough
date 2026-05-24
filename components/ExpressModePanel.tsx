@@ -53,8 +53,8 @@ export function ExpressModePanel({ form }: { form: RecipeForm }) {
             className={cn(
               "rounded-xl border-2 px-3 py-3 text-sm font-semibold transition",
               fermentationPace === "standard"
-                ? "border-emerald-600 bg-emerald-50 text-emerald-900"
-                : "border-stone-200 bg-white text-stone-700 hover:border-stone-300",
+                ? "brand-choice-active text-crust"
+                : "brand-choice-idle text-charcoal-muted",
             )}
           >
             רגיל
@@ -65,8 +65,8 @@ export function ExpressModePanel({ form }: { form: RecipeForm }) {
             className={cn(
               "rounded-xl border-2 px-3 py-3 text-sm font-semibold transition",
               fermentationPace === "express"
-                ? "border-amber-500 bg-amber-50 text-amber-950"
-                : "border-stone-200 bg-white text-stone-700 hover:border-stone-300",
+                ? "border-crust bg-wheat-muted text-crust shadow-[0_0_12px_rgb(212_165_116_/_0.3)] ring-2 ring-wheat/50"
+                : "brand-choice-idle text-charcoal-muted",
             )}
           >
             ⚡ מואץ — אין מספיק זמן
@@ -90,8 +90,8 @@ export function ExpressModePanel({ form }: { form: RecipeForm }) {
               className={cn(
                 "rounded-full border-2 px-3 py-1.5 text-sm font-medium transition",
                 starterRatioPreset === opt.id
-                  ? "border-emerald-600 bg-emerald-50 text-emerald-900"
-                  : "border-stone-200 text-stone-600 hover:border-emerald-300",
+                  ? "border-crust bg-wheat-muted text-crust shadow-[0_0_8px_rgb(212_165_116_/_0.25)]"
+                  : "border-warm-border text-charcoal-muted hover:border-wheat",
               )}
             >
               {opt.label}

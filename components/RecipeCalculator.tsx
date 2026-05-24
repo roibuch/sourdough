@@ -23,7 +23,7 @@ import {
   maxFlourPctAtIndex,
 } from "@/lib/validation/recipeValidation";
 import { cn } from "@/lib/cn";
-import { getBassinageAmounts } from "@/lib/dough";
+import { getBassinageAmounts } from "@/lib/bakingMath";
 import {
   FLOUR_FIELDS,
   PRESET_OPTIONS,
