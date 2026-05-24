@@ -1,4 +1,4 @@
-const CACHE_NAME = "sourdough-master-next-v5";
+const CACHE_NAME = "sourdough-master-next-v6";
 
 function getBasePath() {
   const scope = self.registration?.scope || self.location.href;
@@ -50,7 +50,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Always fetch fresh HTML (avoids stale app without API key)
+  // Navigation: always network (fresh HTML)
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request).catch(() =>
@@ -60,14 +60,23 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Next.js hashed bundles: network-only (prevents stale/mismatched JS → "Unexpected token '<'")
+  if (url.pathname.includes("/_next/")) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (response?.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, clone);
-          });
+        if (response?.status === 200 && response.type === "basic") {
+          const type = response.headers.get("content-type") || "";
+          if (type.includes("javascript") || type.includes("css") || type.includes("image")) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, clone);
+            });
+          }
         }
         return response;
       })

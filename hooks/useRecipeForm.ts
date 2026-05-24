@@ -33,16 +33,31 @@ const toasts = heContent.toasts;
 
 const BLACKOUTS_STORAGE_KEY = "sourdough-blackouts-v1";
 
+function isValidBlackout(entry: unknown): entry is BlackoutPeriod {
+  if (!entry || typeof entry !== "object") return false;
+  const b = entry as BlackoutPeriod;
+  return (
+    typeof b.id === "string" &&
+    typeof b.label === "string" &&
+    typeof b.startMinutes === "number" &&
+    typeof b.endMinutes === "number" &&
+    Number.isFinite(b.startMinutes) &&
+    Number.isFinite(b.endMinutes)
+  );
+}
+
 function loadBlackouts(): BlackoutPeriod[] {
   if (typeof window === "undefined") return SchedulingEngine.defaultBlackouts();
   try {
     const raw = localStorage.getItem(BLACKOUTS_STORAGE_KEY);
     if (!raw) return SchedulingEngine.defaultBlackouts();
-    const parsed = JSON.parse(raw) as BlackoutPeriod[];
+    const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed) || parsed.length === 0) {
       return SchedulingEngine.defaultBlackouts();
     }
-    return parsed;
+    const valid = parsed.filter(isValidBlackout);
+    if (valid.length === 0) return SchedulingEngine.defaultBlackouts();
+    return valid;
   } catch {
     return SchedulingEngine.defaultBlackouts();
   }

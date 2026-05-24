@@ -23,7 +23,9 @@ export function PresetScheduleCard({
   onSelect,
 }: PresetScheduleCardProps) {
   const starter = option.highlights[0];
-  const finish = option.highlights[4] ?? option.highlights.at(-1);
+  const finish =
+    option.highlights[4] ??
+    option.highlights[option.highlights.length - 1];
   const expanded = selected && option.feasible;
 
   return (

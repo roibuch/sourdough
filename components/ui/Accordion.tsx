@@ -38,36 +38,24 @@ export function Accordion({
   const isControlled = controlledValue !== undefined;
   const open = isControlled ? controlledValue : uncontrolledOpen;
 
-  const setOpen = useCallback(
-    (next: string[] | ((prev: string[]) => string[])) => {
-      const apply = (prev: string[]) => {
-        const resolved = typeof next === "function" ? next(prev) : next;
-        if (!isControlled) {
-          setUncontrolledOpen(resolved);
-        }
-        onValueChange?.(resolved);
-        return resolved;
-      };
-      if (isControlled) {
-        apply(open);
-      } else {
-        setUncontrolledOpen(apply);
-      }
-    },
-    [isControlled, onValueChange, open],
-  );
-
   const toggle = useCallback(
     (id: string) => {
-      setOpen((prev) => {
-        const isOpen = prev.includes(id);
-        if (type === "single") {
-          return isOpen ? [] : [id];
-        }
-        return isOpen ? prev.filter((x) => x !== id) : [...prev, id];
-      });
+      const prev = open;
+      const isOpen = prev.includes(id);
+      const next =
+        type === "single"
+          ? isOpen
+            ? []
+            : [id]
+          : isOpen
+            ? prev.filter((x) => x !== id)
+            : [...prev, id];
+      if (!isControlled) {
+        setUncontrolledOpen(next);
+      }
+      onValueChange?.(next);
     },
-    [setOpen, type],
+    [isControlled, onValueChange, open, type],
   );
 
   return (

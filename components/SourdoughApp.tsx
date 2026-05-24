@@ -3,6 +3,7 @@
 import { BakingGuide } from "@/components/BakingGuide";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { RecipeResultsPanel } from "@/components/dashboard/RecipeResultsPanel";
+import { SectionErrorBoundary } from "@/components/feedback/SectionErrorBoundary";
 import { SmartWarningBanner } from "@/components/feedback/SmartWarningBanner";
 import { useBakerAlerts } from "@/hooks/useBakerAlerts";
 import { ReferenceTables } from "@/components/ReferenceTables";
@@ -35,7 +36,9 @@ export function SourdoughApp() {
             </p>
           </div>
           <div className="p-5 sm:p-6 md:p-8">
-            <ReverseTimeline form={form} />
+            <SectionErrorBoundary title="שגיאה באזור התזמון">
+              <ReverseTimeline form={form} />
+            </SectionErrorBoundary>
           </div>
         </div>
       </section>

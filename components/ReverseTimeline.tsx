@@ -32,6 +32,7 @@ import { InteractiveDayTimeline } from "@/components/scheduling/InteractiveDayTi
 import { useBakerAlerts } from "@/hooks/useBakerAlerts";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import { heContent, t } from "@/lib/content";
+import { SectionErrorBoundary } from "@/components/feedback/SectionErrorBoundary";
 import { cn } from "@/lib/cn";
 
 const sch = heContent.inputs.schedule;
@@ -49,10 +50,14 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
   const [showCustom, setShowCustom] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>([SECTION_PRESETS]);
 
-  const options = useMemo(
-    () => generateScheduleOptions(form.timelineInput),
-    [form.timelineInput],
-  );
+  const options = useMemo(() => {
+    try {
+      return generateScheduleOptions(form.timelineInput);
+    } catch (err) {
+      console.error("generateScheduleOptions failed", err);
+      return [];
+    }
+  }, [form.timelineInput]);
 
   const feasibleOptions = options.filter((o) => o.feasible);
   const infeasibleOptions = options.filter((o) => !o.feasible);
@@ -144,6 +149,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
     (form.adaptiveSchedule && !form.adaptiveSchedule.feasible ? 1 : 0);
 
   return (
+    <SectionErrorBoundary title="שגיאה בלוח האפייה">
     <div ref={schedulePanelRef}>
       <SectionHeader
         icon={<CalendarIcon className="h-6 w-6" strokeWidth={1.75} />}
@@ -384,6 +390,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
         </AccordionItem>
       </Accordion>
     </div>
+    </SectionErrorBoundary>
   );
 }
 

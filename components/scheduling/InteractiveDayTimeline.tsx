@@ -109,13 +109,15 @@ export function InteractiveDayTimeline({
 }: InteractiveDayTimelineProps) {
   const activeBlocks = schedule.blocks.filter((b) => b.activity === "active");
   const rangeStart = useMemo(() => {
+    if (!schedule.blocks.length) return schedule.plan.summary.starterFeed - 0.5 * MS_H;
     const min = Math.min(...schedule.blocks.map((b) => b.startMs));
     return min - 0.5 * MS_H;
-  }, [schedule.blocks]);
+  }, [schedule.blocks, schedule.plan.summary.starterFeed]);
   const rangeEnd = useMemo(() => {
+    if (!schedule.blocks.length) return schedule.plan.summary.bakeEnd + 0.5 * MS_H;
     const max = Math.max(...schedule.blocks.map((b) => b.endMs));
     return max + 0.5 * MS_H;
-  }, [schedule.blocks]);
+  }, [schedule.blocks, schedule.plan.summary.bakeEnd]);
 
   const dayMs = schedule.plan.summary.starterFeed;
   const [trackWidthPx, setTrackWidthPx] = useState(640);
