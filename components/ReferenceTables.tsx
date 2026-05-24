@@ -49,7 +49,7 @@ function Table({
 
 export function ReferenceTables() {
   return (
-    <Card className="mb-10">
+    <Card nested className="border-0 bg-transparent p-0 shadow-none">
       <SectionHeader
         icon={<BookOpenIcon className="h-6 w-6" strokeWidth={1.75} />}
         title="טבלאות עזר"

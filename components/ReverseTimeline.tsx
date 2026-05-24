@@ -11,7 +11,6 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { AlarmButtonGroup, alarmToastMessage } from "@/components/AlarmButton";
-import { ExpressModePanel } from "@/components/ExpressModePanel";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -214,14 +213,12 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
   };
 
   return (
-    <Card id="schedule-card" className="mb-8 sm:mb-10">
+    <Card nested className="border-0 bg-transparent p-0 shadow-none">
       <SectionHeader
         icon={<CalendarDaysIcon className="h-6 w-6" strokeWidth={1.75} />}
         title="מתי תרצו שהלחם יהיה מוכן?"
         subtitle={`בחרו מועד — עבודה פעילה רק בין ${ACTIVE_HOUR_START}:00 ל־${ACTIVE_HOUR_END}:00 (בלי לילה).`}
       />
-
-      <ExpressModePanel form={form} />
 
       {feasibleOptions.length === 0 && (
         <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">

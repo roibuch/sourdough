@@ -18,6 +18,9 @@ export interface SmartNumberInputProps {
   /** Allow clearing the field while typing; on blur empty → 0 or min */
   allowEmpty?: boolean;
   suffix?: string;
+  error?: boolean;
+  warning?: boolean;
+  hint?: string;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -47,6 +50,9 @@ export function SmartNumberInput({
   compact,
   allowEmpty = true,
   suffix,
+  error,
+  warning,
+  hint,
 }: SmartNumberInputProps) {
   const [text, setText] = useState(() => toDisplay(value, step));
 
@@ -89,12 +95,32 @@ export function SmartNumberInput({
 
   return (
     <div className="flex flex-col gap-2.5">
-      <label htmlFor={id} className="text-sm font-semibold text-stone-800">
+      <label
+        htmlFor={id}
+        className={cn(
+          "text-sm font-semibold",
+          error ? "text-red-800" : warning ? "text-amber-900" : "text-stone-800",
+        )}
+      >
         {label}
         {suffix && (
           <span className="ms-1 font-normal text-stone-500">{suffix}</span>
         )}
       </label>
+      {hint && (
+        <p
+          id={`${id}-hint`}
+          role={error ? "alert" : undefined}
+          className={cn(
+            "-mt-1 text-xs leading-relaxed",
+            error && "text-red-700",
+            warning && !error && "text-amber-800",
+            !error && !warning && "text-stone-500",
+          )}
+        >
+          {hint}
+        </p>
+      )}
       <div className="flex items-center gap-2 sm:gap-3">
         <button
           type="button"
@@ -109,9 +135,21 @@ export function SmartNumberInput({
           type="text"
           inputMode={step < 1 ? "decimal" : "numeric"}
           autoComplete="off"
+          aria-invalid={error || undefined}
+          aria-describedby={hint ? `${id}-hint` : undefined}
           className={cn(
-            "min-w-0 flex-1 rounded-2xl border-2 border-stone-200 bg-amber-50/70 text-center font-semibold text-stone-900 tabular-nums",
-            "focus:border-emerald-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30",
+            "min-w-0 flex-1 rounded-2xl border-2 bg-amber-50/70 text-center font-semibold text-stone-900 tabular-nums transition-colors duration-200",
+            error
+              ? "border-red-400 bg-red-50/80 focus:border-red-500 focus:ring-red-500/30"
+              : warning
+                ? "border-amber-400 bg-amber-50/90 focus:border-amber-500 focus:ring-amber-500/30"
+                : "border-stone-200 focus:border-emerald-600",
+            "focus:bg-white focus:outline-none focus:ring-2",
+            error
+              ? "focus:ring-red-500/30"
+              : warning
+                ? "focus:ring-amber-500/30"
+                : "focus:ring-emerald-500/30",
             "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
             compact ? "px-3 py-3 text-lg" : "px-4 py-4 text-xl sm:text-2xl",
           )}

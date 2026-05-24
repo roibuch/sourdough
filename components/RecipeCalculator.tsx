@@ -16,7 +16,13 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { MasterBakerTip } from "@/components/ui/MasterBakerTip";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { StatHighlight } from "@/components/ui/StatHighlight";
+import { AnimatedStat } from "@/components/ui/AnimatedStat";
+import { useRecipeValidation } from "@/hooks/useRecipeValidation";
+import {
+  clampFlourPctAtIndex,
+  maxFlourPctAtIndex,
+} from "@/lib/validation/recipeValidation";
+import { cn } from "@/lib/cn";
 import { getBassinageAmounts } from "@/lib/dough";
 import {
   FLOUR_FIELDS,
@@ -53,6 +59,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
     handleCopyLink,
     handleClearStorage,
     openStarterOnlyGuide,
+    showToast,
   } = form;
 
   const fermentationAlert = useMemo(
@@ -66,16 +73,38 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
     schedulePersist();
   };
 
+  const validation = useRecipeValidation({
+    totalWeight,
+    waterPct,
+    starterPct,
+    saltPct,
+    mix,
+  });
+
   const handleFlourPctChange = (index: number, value: number) => {
     setPreset("custom");
     form.setFlourPcts((prev) => {
       const next = [...prev];
-      next[index] = value;
+      next[index] = clampFlourPctAtIndex(prev, index, value);
       return next;
     });
     setPresetNote(
       `עריכה ידנית: סך הקמחים כרגע ${mix.totalPct}% (יתעדכן). צריך להגיע ל־100%.`,
     );
+  };
+
+  const onCalculate = () => {
+    if (!validation.canCalculate) {
+      const first =
+        validation.fields.totalWeight?.message ??
+        validation.fields.flourTotal?.message ??
+        validation.fields.waterPct?.message ??
+        validation.fields.starterPct?.message ??
+        validation.fields.saltPct?.message;
+      showToast(first ?? "תקנו את השדות המסומנים לפני החישוב.");
+      return;
+    }
+    handleCalculate();
   };
 
   useEffect(() => {
@@ -100,7 +129,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
 
   return (
     <>
-      <Card className="mb-8 sm:mb-10">
+      <Card nested className="border-0 bg-transparent p-0 shadow-none">
         <SectionHeader
           icon={<CalculatorIcon className="h-6 w-6" strokeWidth={1.75} />}
           title="מתכון הבצק"
@@ -137,15 +166,35 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             <input
               id="totalWeight"
               type="number"
-              className="w-full rounded-2xl border-2 border-stone-200 bg-amber-50/70 px-4 py-5 text-center text-2xl font-semibold text-stone-900 focus:border-emerald-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+              aria-invalid={validation.fields.totalWeight?.invalid || undefined}
+              aria-describedby={
+                validation.fields.totalWeight?.message
+                  ? "totalWeight-hint"
+                  : undefined
+              }
+              className={cn(
+                "w-full rounded-2xl border-2 bg-amber-50/70 px-4 py-5 text-center text-2xl font-semibold text-stone-900 transition-colors duration-200 focus:bg-white focus:outline-none focus:ring-2",
+                validation.fields.totalWeight?.invalid
+                  ? "border-red-400 bg-red-50/80 focus:border-red-500 focus:ring-red-500/30"
+                  : "border-stone-200 focus:border-emerald-600 focus:ring-emerald-500/30",
+              )}
               placeholder="1000"
               min={1}
               step={1}
               inputMode="numeric"
               value={totalWeight}
               onChange={(e) => setTotalWeight(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCalculate()}
+              onKeyDown={(e) => e.key === "Enter" && onCalculate()}
             />
+            {validation.fields.totalWeight?.message && (
+              <p
+                id="totalWeight-hint"
+                role="alert"
+                className="text-xs text-red-700"
+              >
+                {validation.fields.totalWeight.message}
+              </p>
+            )}
           </div>
 
           <SmartNumberInput
@@ -159,6 +208,9 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             onChange={setWaterPct}
             minusLabel="הפחת מים"
             plusLabel="הוסף מים"
+            error={validation.fields.waterPct?.invalid}
+            warning={validation.fields.waterPct?.warning}
+            hint={validation.fields.waterPct?.message}
           />
           <SmartNumberInput
             id="starterPct"
@@ -171,6 +223,9 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             onChange={setStarterPct}
             minusLabel="הפחת מחמצת"
             plusLabel="הוסף מחמצת"
+            error={validation.fields.starterPct?.invalid}
+            warning={validation.fields.starterPct?.warning}
+            hint={validation.fields.starterPct?.message}
           />
           <SmartNumberInput
             id="saltPct"
@@ -183,12 +238,22 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             onChange={setSaltPct}
             minusLabel="הפחת מלח"
             plusLabel="הוסף מלח"
+            error={validation.fields.saltPct?.invalid}
+            warning={validation.fields.saltPct?.warning}
+            hint={validation.fields.saltPct?.message}
           />
         </div>
 
         <WeatherPanel form={form} />
 
-        <Card nested className="mb-8 border-stone-200/80 bg-stone-50/50">
+        <Card
+          nested
+          className={cn(
+            "mb-8 border-stone-200/80 bg-stone-50/50",
+            validation.flourTotalInvalid &&
+              "ring-2 ring-red-300/80 ring-offset-2",
+          )}
+        >
           <h3 className="mb-2 font-serif text-xl font-semibold text-stone-900">
             תערובת קמחים
           </h3>
@@ -227,13 +292,19 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
                 label={`${field.label} (%)`}
                 value={flourPcts[i] ?? 0}
                 min={0}
-                max={100}
+                max={maxFlourPctAtIndex(flourPcts, i)}
                 step={1}
                 allowEmpty
                 onChange={(v) => handleFlourPctChange(i, v)}
                 minusLabel={`הפחת ${field.label}`}
                 plusLabel={`הוסף ${field.label}`}
                 compact
+                error={validation.flourTotalInvalid}
+                hint={
+                  i === 0 && validation.fields.flourTotal?.message
+                    ? validation.fields.flourTotal.message
+                    : undefined
+                }
               />
             ))}
           </div>
@@ -250,7 +321,12 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
         </Card>
 
         <div className="flex flex-col gap-3">
-          <Button variant="primary" fullWidth onClick={handleCalculate}>
+          <Button
+            variant="primary"
+            fullWidth
+            onClick={onCalculate}
+            disabled={!validation.canCalculate}
+          >
             <ScaleIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
             חישוב מרכיבים
           </Button>
@@ -262,7 +338,12 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
       </Card>
 
       {showResults && results && (
-        <Card id="recipe-results" aria-live="polite" className="mb-8 sm:mb-10">
+        <Card
+          id="recipe-results"
+          aria-live="polite"
+          className="recipe-results-enter mb-8 sm:mb-10"
+          key={`${results.flour}-${results.water}-${results.starter}-${results.salt}`}
+        >
           <SectionHeader
             icon={<ScaleIcon className="h-6 w-6" strokeWidth={1.75} />}
             title="תוצאות המתכון"
@@ -270,13 +351,13 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
           />
 
           <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5">
-            <StatHighlight
+            <AnimatedStat
               label="משקל בצק משוער"
               value={displayTotal}
               featured
               className="col-span-2 sm:col-span-1"
             />
-            <StatHighlight
+            <AnimatedStat
               label="הידרציה אמיתית"
               value={`${results.trueHydration}%`}
               sublabel="כולל מחמצת"
@@ -292,7 +373,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
               { label: "מחמצת", value: `${results.starter} גרם` },
               { label: "מלח", value: `${results.salt} גרם` },
             ].map((item) => (
-              <StatHighlight
+              <AnimatedStat
                 key={item.label}
                 label={item.label}
                 value={item.value}
@@ -322,7 +403,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
               {mix.items
                 .filter((item) => item.pct > 0)
                 .map((item) => (
-                  <StatHighlight
+                  <AnimatedStat
                     key={item.key}
                     label={`${item.label} (${item.pct}%)`}
                     value={`${Math.round((results.flour * item.pct) / 100)} גרם`}

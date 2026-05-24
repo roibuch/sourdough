@@ -338,7 +338,7 @@ export function useRecipeForm() {
     }
 
     requestAnimationFrame(() => {
-      document.getElementById("baking-guide")?.scrollIntoView({
+      document.getElementById("section-guide")?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
@@ -431,7 +431,7 @@ export function useRecipeForm() {
     setShowGuide(true);
     setStarterOnlyMode(true);
     setTimeout(() => {
-      document.getElementById("baking-guide")?.scrollIntoView({
+      document.getElementById("section-guide")?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });

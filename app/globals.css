@@ -54,4 +54,82 @@
   .step-card {
     @apply rounded-2xl border border-stone-200/90 bg-white p-5 shadow-sm sm:p-6;
   }
+
+  .app-shell {
+    --sidebar-width: 18rem;
+    --sidebar-collapsed-width: 4.25rem;
+  }
+}
+
+@layer utilities {
+  .sr-only {
+    @apply absolute -m-px h-px w-px overflow-hidden whitespace-nowrap border-0 p-0;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .animate-section-in {
+    animation: section-in 0.35s ease-out;
+  }
+
+  .section-panel-body > * {
+    animation: section-in 0.35s ease-out;
+  }
+
+  @keyframes section-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-stat-pulse {
+    animation: stat-pulse 0.45s ease-out;
+  }
+
+  @keyframes stat-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgb(5 150 105 / 0.35);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgb(5 150 105 / 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgb(5 150 105 / 0);
+    }
+  }
+
+  .recipe-results-enter {
+    animation: results-enter 0.4s ease-out;
+  }
+
+  @keyframes results-enter {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-section-in,
+    .section-panel-body > * {
+      animation: none;
+    }
+
+    .section-panel,
+    aside,
+    main,
+    .animate-stat-pulse,
+    .recipe-results-enter {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
 }
