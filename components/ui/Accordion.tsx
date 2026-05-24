@@ -22,15 +22,40 @@ const AccordionContext = createContext<AccordionContextValue | null>(null);
 export function Accordion({
   type = "single",
   defaultValue = [],
+  value: controlledValue,
+  onValueChange,
   className,
   children,
 }: {
   type?: "single" | "multiple";
   defaultValue?: string[];
+  value?: string[];
+  onValueChange?: (value: string[]) => void;
   className?: string;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState<string[]>(defaultValue);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState<string[]>(defaultValue);
+  const isControlled = controlledValue !== undefined;
+  const open = isControlled ? controlledValue : uncontrolledOpen;
+
+  const setOpen = useCallback(
+    (next: string[] | ((prev: string[]) => string[])) => {
+      const apply = (prev: string[]) => {
+        const resolved = typeof next === "function" ? next(prev) : next;
+        if (!isControlled) {
+          setUncontrolledOpen(resolved);
+        }
+        onValueChange?.(resolved);
+        return resolved;
+      };
+      if (isControlled) {
+        apply(open);
+      } else {
+        setUncontrolledOpen(apply);
+      }
+    },
+    [isControlled, onValueChange, open],
+  );
 
   const toggle = useCallback(
     (id: string) => {
@@ -42,7 +67,7 @@ export function Accordion({
         return isOpen ? prev.filter((x) => x !== id) : [...prev, id];
       });
     },
-    [type],
+    [setOpen, type],
   );
 
   return (
@@ -55,15 +80,21 @@ export function Accordion({
 export function AccordionItem({
   id,
   title,
+  subtitle,
   icon,
+  badge,
   children,
   className,
+  contentClassName,
 }: {
   id: string;
   title: string;
+  subtitle?: string;
   icon?: ReactNode;
+  badge?: ReactNode;
   children: ReactNode;
   className?: string;
+  contentClassName?: string;
 }) {
   const ctx = useContext(AccordionContext);
   const panelId = useId();
@@ -93,9 +124,15 @@ export function AccordionItem({
             {icon}
           </span>
         )}
-        <span className="min-w-0 flex-1 font-semibold text-charcoal">
-          {title}
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold text-charcoal">{title}</span>
+          {subtitle ? (
+            <span className="mt-0.5 block text-xs font-normal text-stone-500">
+              {subtitle}
+            </span>
+          ) : null}
         </span>
+        {badge}
         <ChevronDownIcon
           className={cn(
             "h-5 w-5 shrink-0 text-stone-500 transition-transform duration-200",
@@ -115,7 +152,12 @@ export function AccordionItem({
         )}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-stone-100 px-4 pb-4 pt-3">
+          <div
+            className={cn(
+              "border-t border-stone-100 px-4 pb-4 pt-3",
+              contentClassName,
+            )}
+          >
             {children}
           </div>
         </div>

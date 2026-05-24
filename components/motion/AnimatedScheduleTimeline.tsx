@@ -142,24 +142,22 @@ function ScheduleStepRow({
           </span>
         </div>
 
-        <p className="m-0 text-lg font-semibold text-stone-800">
-          {formatScheduleTime(step.start)}
-        </p>
-        <p className="mt-2 text-sm leading-relaxed text-stone-600">
-          {step.meta}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="m-0 text-lg font-semibold tabular-nums text-stone-800">
+            {formatScheduleTime(step.start)}
+          </p>
+          {step.alarms && step.alarms.length > 0 && (
+            <div className="flex flex-wrap justify-end gap-2">
+              <AlarmButtonGroup
+                alarms={step.alarms}
+                onResult={onAlarmResult}
+                compact
+              />
+            </div>
+          )}
+        </div>
 
-        {step.alarms && step.alarms.length > 0 && (
-          <div className="mt-4 border-t border-orange-200/60 pt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-800">
-              התראות לשלב זה
-            </p>
-            <AlarmButtonGroup
-              alarms={step.alarms}
-              onResult={onAlarmResult}
-            />
-          </div>
-        )}
+        <p className="mt-2 text-sm leading-relaxed text-stone-600">{step.meta}</p>
       </motion.article>
     </motion.li>
   );

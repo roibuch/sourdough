@@ -1,29 +1,34 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { CalendarDaysIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  CalendarDaysIcon,
+  CalendarIcon,
+  ChevronDownIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+} from "@heroicons/react/24/outline";
 import { AnimatedScheduleTimeline } from "@/components/motion/AnimatedScheduleTimeline";
 import { DoughLifecycleBar } from "@/components/motion/DoughLifecycleBar";
-import { AlarmButtonGroup, alarmToastMessage } from "@/components/AlarmButton";
+import { alarmToastMessage } from "@/components/AlarmButton";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import {
   exportAllAlarmsToCalendar,
   isAndroidDevice,
   isIOSDevice,
 } from "@/lib/alarms";
-import { ACTIVE_HOUR_END, ACTIVE_HOUR_START } from "@/lib/scheduleFriendly";
 import { formatScheduleTime } from "@/lib/timeline";
 import {
   findScheduleOptionByTarget,
   generateScheduleOptions,
   type ScheduleOption,
 } from "@/lib/scheduleOptions";
-import { SmartWarningBanner } from "@/components/feedback/SmartWarningBanner";
-import { BlackoutPeriodsEditor } from "@/components/scheduling/BlackoutPeriodsEditor";
+import { PresetScheduleCard } from "@/components/scheduling/PresetScheduleCard";
+import { ScheduleAdjustmentsPanel } from "@/components/scheduling/ScheduleAdjustmentsPanel";
+import { ScheduleSmartAlerts } from "@/components/scheduling/ScheduleSmartAlerts";
 import { InteractiveDayTimeline } from "@/components/scheduling/InteractiveDayTimeline";
-import { ScheduleAdaptationsBanner } from "@/components/scheduling/ScheduleAdaptationsBanner";
 import { useBakerAlerts } from "@/hooks/useBakerAlerts";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import { heContent, t } from "@/lib/content";
@@ -31,95 +36,18 @@ import { cn } from "@/lib/cn";
 
 const sch = heContent.inputs.schedule;
 
-function ScheduleOptionCard({
-  option,
-  selected,
-  onSelect,
-}: {
-  option: ScheduleOption;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const startHighlight = option.highlights[0];
-  const activeHighlight = option.highlights[2];
-  const freeHighlight = option.highlights[3];
-
-  return (
-    <button
-      type="button"
-      disabled={!option.feasible}
-      onClick={onSelect}
-      className={cn(
-        "w-full rounded-2xl border-2 p-4 text-right transition sm:p-5",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat focus-visible:ring-offset-2",
-        !option.feasible &&
-          "cursor-not-allowed border-warm-border bg-dough opacity-60",
-        option.feasible && !selected && "brand-choice-idle",
-        option.feasible && selected && "brand-choice-active",
-      )}
-    >
-      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <p className="font-serif text-lg font-semibold text-stone-900">
-            {option.title}
-          </p>
-          <p className="mt-0.5 text-sm text-crust">
-            {t(sch.readyAt, { time: option.bakeLabel })}
-            {option.isExpress && (
-              <span className="ms-2 rounded-full bg-amber-200 px-2 py-0.5 text-xs font-bold text-amber-950">
-                {sch.express}
-              </span>
-            )}
-          </p>
-        </div>
-        {selected && (
-            <span className="rounded-full bg-crust px-3 py-1 text-xs font-bold text-dough">
-            {sch.selected}
-          </span>
-        )}
-      </div>
-
-      {option.feasible ? (
-        <ul className="space-y-2 text-sm text-stone-700">
-          <li className="flex gap-2">
-            <span aria-hidden>{startHighlight.icon}</span>
-            <span>
-              <strong className="text-stone-900">{startHighlight.label}</strong>
-              <br />
-              <span className="text-stone-600">{startHighlight.detail}</span>
-            </span>
-          </li>
-          <li className="flex gap-2">
-            <span aria-hidden>{activeHighlight.icon}</span>
-            <span>
-              <strong className="text-stone-900">{activeHighlight.label}</strong>
-              <br />
-              <span className="text-stone-600">{activeHighlight.detail}</span>
-            </span>
-          </li>
-          <li className="flex gap-2">
-            <span aria-hidden>{freeHighlight.icon}</span>
-            <span>
-              <strong className="text-stone-900">{freeHighlight.label}</strong>
-              <br />
-              <span className="text-stone-600">{freeHighlight.detail}</span>
-            </span>
-          </li>
-          <li className="mt-2 text-xs text-stone-500">
-            סה״כ ~{option.plan.summary.totalHours} שעות מההאכלה ועד האפייה
-          </li>
-        </ul>
-      ) : (
-        <p className="text-sm text-amber-900">{option.infeasibleReason}</p>
-      )}
-    </button>
-  );
-}
+const SECTION_PRESETS = "presets";
+const SECTION_ADJUSTMENTS = "adjustments";
+const SECTION_TIMELINE = "timeline";
 
 export function ReverseTimeline({ form }: { form: RecipeForm }) {
   const bakerAlerts = useBakerAlerts(form);
+  const scheduleAlerts = bakerAlerts.filter((a) => a.id.startsWith("schedule"));
+  const schedulePanelRef = useRef<HTMLDivElement>(null);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showCustom, setShowCustom] = useState(false);
+  const [openSections, setOpenSections] = useState<string[]>([SECTION_PRESETS]);
 
   const options = useMemo(
     () => generateScheduleOptions(form.timelineInput),
@@ -127,6 +55,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
   );
 
   const feasibleOptions = options.filter((o) => o.feasible);
+  const infeasibleOptions = options.filter((o) => !o.feasible);
 
   const allAlarms = useMemo(() => {
     if (!form.timelinePlan) return [];
@@ -137,22 +66,44 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
     return list;
   }, [form.timelinePlan]);
 
+  const revealSchedule = useCallback(() => {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      next.add(SECTION_TIMELINE);
+      return [...next];
+    });
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const el =
+          document.getElementById("schedule-timeline-panel") ??
+          schedulePanelRef.current;
+        el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
+    });
+  }, []);
+
   useEffect(() => {
     if (!form.targetBakeTime) return;
     const match = findScheduleOptionByTarget(options, form.targetBakeTime);
     setSelectedId(match?.id ?? null);
   }, [options, form.targetBakeTime]);
 
+  useEffect(() => {
+    if (form.showTimeline && form.timelinePlan) {
+      setOpenSections((prev) => {
+        if (prev.includes(SECTION_TIMELINE)) return prev;
+        const next = new Set(prev);
+        next.add(SECTION_TIMELINE);
+        return [...next];
+      });
+    }
+  }, [form.showTimeline, form.timelinePlan]);
+
   const handleSelectOption = (option: ScheduleOption) => {
     if (!option.feasible) return;
     setSelectedId(option.id);
     form.selectScheduleOption(option);
-    setTimeout(() => {
-      document.getElementById("schedule-plan")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 80);
+    revealSchedule();
   };
 
   const handleAlarmResult = (type: Parameters<typeof alarmToastMessage>[0]) => {
@@ -179,218 +130,274 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
     if (plan) {
       const match = findScheduleOptionByTarget(options, form.targetBakeTime);
       setSelectedId(match?.id ?? null);
-      setTimeout(() => {
-        document.getElementById("schedule-plan")?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 80);
+      revealSchedule();
     }
   };
 
+  const timelineSubtitle = form.timelinePlan
+    ? `${formatScheduleTime(form.timelinePlan.summary.starterFeed)} → ${formatScheduleTime(form.timelinePlan.summary.bakeEnd)}`
+    : sch.selectPrompt;
+
+  const alertCount =
+    scheduleAlerts.length +
+    (form.adaptiveSchedule?.adaptations.length ?? 0) +
+    (form.adaptiveSchedule && !form.adaptiveSchedule.feasible ? 1 : 0);
+
   return (
-    <Card nested className="border-0 bg-transparent p-0 shadow-none">
+    <div ref={schedulePanelRef}>
       <SectionHeader
-        icon={<CalendarDaysIcon className="h-6 w-6" strokeWidth={1.75} />}
+        icon={<CalendarIcon className="h-6 w-6" strokeWidth={1.75} />}
         title={sch.title}
         subtitle={sch.subtitle}
       />
 
-      {feasibleOptions.length === 0 && (
-        <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          {sch.noOptions}
-        </p>
-      )}
-
-      <div className="mb-6 grid gap-3 sm:grid-cols-2" role="list">
-        {options.map((option) => (
-          <ScheduleOptionCard
-            key={option.id}
-            option={option}
-            selected={selectedId === option.id}
-            onSelect={() => handleSelectOption(option)}
-          />
-        ))}
-      </div>
-
-      <details
-        className="mb-6 rounded-2xl border border-stone-200 bg-stone-50/60"
-        open={showCustom}
-        onToggle={(e) => setShowCustom((e.target as HTMLDetailsElement).open)}
+      <Accordion
+        type="multiple"
+        value={openSections}
+        onValueChange={setOpenSections}
+        className="mt-6"
       >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-stone-800 [&::-webkit-details-marker]:hidden">
-          <span>{sch.customTime}</span>
-          <ChevronDownIcon
-            className={cn(
-              "h-5 w-5 shrink-0 text-stone-500 transition",
-              showCustom && "rotate-180",
-            )}
-          />
-        </summary>
-        <div className="border-t border-stone-200 px-4 pb-4 pt-3">
-          <label
-            htmlFor="targetBakeTime"
-            className="mb-2 block text-sm text-stone-600"
+        <AccordionItem
+          id={SECTION_PRESETS}
+          title={sch.accordion.presets}
+          subtitle={sch.accordion.presetsHint}
+          icon={<ClockIcon className="h-5 w-5" strokeWidth={1.75} />}
+        >
+          {feasibleOptions.length === 0 && (
+            <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+              {sch.noOptions}
+            </p>
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-2" role="list">
+            {feasibleOptions.map((option) => (
+              <PresetScheduleCard
+                key={option.id}
+                option={option}
+                selected={selectedId === option.id}
+                onSelect={() => handleSelectOption(option)}
+              />
+            ))}
+          </div>
+
+          {infeasibleOptions.length > 0 && (
+            <details className="mt-4 rounded-xl border border-stone-200 bg-stone-50/50">
+              <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium text-stone-600">
+                מועדים לא זמינים ({infeasibleOptions.length})
+              </summary>
+              <div className="grid gap-3 border-t border-stone-200 p-3 sm:grid-cols-2">
+                {infeasibleOptions.map((option) => (
+                  <PresetScheduleCard
+                    key={option.id}
+                    option={option}
+                    selected={selectedId === option.id}
+                    onSelect={() => handleSelectOption(option)}
+                  />
+                ))}
+              </div>
+            </details>
+          )}
+
+          <details
+            className="mt-4 rounded-2xl border border-stone-200 bg-stone-50/60"
+            open={showCustom}
+            onToggle={(e) =>
+              setShowCustom((e.target as HTMLDetailsElement).open)
+            }
           >
-            {sch.customBakeLabel}
-          </label>
-          <input
-            id="targetBakeTime"
-            type="datetime-local"
-            step={300}
-            className="mb-3 w-full rounded-2xl border-2 border-warm-border bg-white px-4 py-3 text-center text-base text-charcoal focus:border-crust focus:outline-none focus:ring-2 focus:ring-wheat/40"
-            value={form.targetBakeTime}
-            onChange={(e) => {
-              form.setTargetBakeTime(e.target.value);
-              setSelectedId(null);
-            }}
-          />
-          <Button variant="secondary" fullWidth onClick={handleCustomBuild}>
-            {sch.showPlan}
-          </Button>
-        </div>
-      </details>
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-stone-800 [&::-webkit-details-marker]:hidden">
+              <span>{sch.customTime}</span>
+              <ChevronDownIcon
+                className={cn(
+                  "h-5 w-5 shrink-0 text-stone-500 transition",
+                  showCustom && "rotate-180",
+                )}
+              />
+            </summary>
+            <div className="border-t border-stone-200 px-4 pb-4 pt-3">
+              <label
+                htmlFor="targetBakeTime"
+                className="mb-2 block text-sm text-stone-600"
+              >
+                {sch.customBakeLabel}
+              </label>
+              <input
+                id="targetBakeTime"
+                type="datetime-local"
+                step={300}
+                className="mb-3 w-full rounded-2xl border-2 border-warm-border bg-white px-4 py-3 text-center text-base text-charcoal focus:border-crust focus:outline-none focus:ring-2 focus:ring-wheat/40"
+                value={form.targetBakeTime}
+                onChange={(e) => {
+                  form.setTargetBakeTime(e.target.value);
+                  setSelectedId(null);
+                }}
+              />
+              <Button variant="secondary" fullWidth onClick={handleCustomBuild}>
+                {sch.showPlan}
+              </Button>
+            </div>
+          </details>
+        </AccordionItem>
 
-      <p className="mb-2 text-xs text-stone-500">
-        {t(sch.planFooter, {
-          starter: form.starterPct,
-          autolyse: form.hoursToAutolyse,
-          temp: form.roomTemp,
-        })}
-      </p>
+        <AccordionItem
+          id={SECTION_ADJUSTMENTS}
+          title={sch.accordion.adjustments}
+          subtitle={sch.accordion.adjustmentsHint}
+          icon={<Cog6ToothIcon className="h-5 w-5" strokeWidth={1.75} />}
+        >
+          <ScheduleAdjustmentsPanel form={form} />
+        </AccordionItem>
 
-      <BlackoutPeriodsEditor
-        className="mb-6"
-        blackouts={form.blackouts}
-        onChange={(next) => {
-          form.setBlackouts(next);
-          if (form.showTimeline && form.targetBakeTime) {
-            form.rebuildTimeline(true);
+        <AccordionItem
+          id={SECTION_TIMELINE}
+          title={sch.accordion.timeline}
+          subtitle={timelineSubtitle}
+          icon={<CalendarDaysIcon className="h-5 w-5" strokeWidth={1.75} />}
+          badge={
+            alertCount > 0 ? (
+              <span className="shrink-0 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">
+                {alertCount}
+              </span>
+            ) : undefined
           }
-        }}
-      />
-
-      {bakerAlerts.length > 0 && (
-        <SmartWarningBanner
-          alerts={bakerAlerts.filter((a) => a.id.startsWith("schedule"))}
-          className="mb-6"
-        />
-      )}
-
-      {form.showTimeline && form.timelinePlan && (
-        <div id="schedule-plan" className="mt-8 border-t border-stone-200 pt-8">
-          <h3 className="mb-6 font-serif text-xl font-semibold text-stone-900">
-            {sch.fullPlan}
-          </h3>
-
-          {form.adaptiveSchedule && (
-            <>
-              <ScheduleAdaptationsBanner
-                className="mb-6"
-                adaptations={form.adaptiveSchedule.adaptations}
-                feasible={form.adaptiveSchedule.feasible}
-              />
-              <InteractiveDayTimeline
-                className="mb-8"
-                schedule={form.adaptiveSchedule}
-                blackouts={form.blackouts}
-                engineInput={form.schedulingEngineInput}
-                onScheduleChange={form.applyAdaptiveSchedule}
-              />
-            </>
-          )}
-
-          <div className="mb-8 rounded-2xl border border-wheat/60 bg-gradient-to-br from-wheat-muted to-white p-5 sm:p-6">
-            <p className="text-sm text-stone-600">{sch.startFeed}</p>
-            <p className="mt-1 font-serif text-xl font-semibold text-stone-900">
-              {formatScheduleTime(form.timelinePlan.summary.starterFeed)}
-            </p>
-            <p className="mt-4 text-sm text-stone-600">{sch.bakeTarget}</p>
-            <p className="mt-1 font-serif text-xl font-semibold text-crust">
-              {formatScheduleTime(form.timelinePlan.summary.bakeEnd)}
-            </p>
-            <p className="mt-4 text-sm text-stone-500">
-              סה״כ ~{form.timelinePlan.summary.totalHours} שעות · התפחה ראשונית ~
-              {form.timelinePlan.summary.bulkHours} שעות ·{" "}
-              {form.timelinePlan.summary.starterPct}% מחמצת
-            </p>
-          </div>
-
-          {isAndroidDevice() && (
-            <div className="mb-6 rounded-2xl border border-wheat/60 bg-wheat-muted/80 p-4 text-sm leading-relaxed text-charcoal-muted">
-              <p className="font-semibold text-crust">
-                {heContent.alarms.deviceHelp.androidTitle}
+          contentClassName="!px-3 sm:!px-4"
+        >
+          <div id="schedule-timeline-panel">
+            {!form.showTimeline || !form.timelinePlan ? (
+              <p className="rounded-xl border border-dashed border-stone-300 bg-stone-50/80 px-4 py-8 text-center text-sm text-stone-600">
+                {sch.selectPrompt}
               </p>
-              <p className="mt-1">{heContent.alarms.deviceHelp.androidBody}</p>
-            </div>
-          )}
+            ) : (
+              <div className="space-y-6">
+                <ScheduleSmartAlerts
+                  alerts={scheduleAlerts}
+                  adaptations={form.adaptiveSchedule?.adaptations}
+                  adaptationsFeasible={form.adaptiveSchedule?.feasible}
+                />
 
-          {isIOSDevice() && !isAndroidDevice() && (
-            <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50/80 p-4 text-sm leading-relaxed text-stone-700">
-              <p className="font-semibold text-sky-950">
-                {heContent.alarms.deviceHelp.iosTitle}
-              </p>
-              <p className="mt-1">{heContent.alarms.deviceHelp.iosBody}</p>
-            </div>
-          )}
-
-          {allAlarms.length > 0 && (
-            <div className="mb-6 space-y-2">
-              <p className="text-sm text-stone-600">
-                {heContent.alarms.results.exportClockHint}
-              </p>
-              <details className="rounded-2xl border border-stone-200 bg-stone-50/60">
-                <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-stone-700 [&::-webkit-details-marker]:hidden">
-                  {heContent.alarms.buttons.exportAllCalendar} ({allAlarms.length})
-                </summary>
-                <div className="border-t border-stone-200 px-4 pb-4 pt-2">
-                  <Button variant="secondary" fullWidth onClick={handleExportAllAlarms}>
-                    <CalendarDaysIcon className="h-5 w-5" aria-hidden />
-                    {heContent.alarms.buttons.exportAllCalendar}
-                  </Button>
+                <div className="rounded-2xl border border-wheat/60 bg-gradient-to-br from-wheat-muted/90 to-white p-4 sm:p-5">
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-stone-500">
+                    {sch.accordion.summary}
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <p className="text-sm text-stone-600">{sch.startFeed}</p>
+                      <p className="mt-0.5 font-serif text-xl font-semibold tabular-nums text-stone-900">
+                        {formatScheduleTime(form.timelinePlan.summary.starterFeed)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-stone-600">{sch.bakeTarget}</p>
+                      <p className="mt-0.5 font-serif text-xl font-semibold tabular-nums text-crust">
+                        {formatScheduleTime(form.timelinePlan.summary.bakeEnd)}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs text-stone-500">
+                    סה״כ ~{form.timelinePlan.summary.totalHours} שעות · התפחה
+                    ראשונית ~{form.timelinePlan.summary.bulkHours} שעות ·{" "}
+                    {form.timelinePlan.summary.starterPct}% מחמצת
+                  </p>
                 </div>
-              </details>
-            </div>
-          )}
 
-          <DoughLifecycleBar plan={form.timelinePlan} />
+                {form.adaptiveSchedule && (
+                  <details className="rounded-2xl border border-stone-200 bg-white/80">
+                    <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-stone-800 [&::-webkit-details-marker]:hidden">
+                      {sch.accordion.interactiveDay}
+                    </summary>
+                    <div className="border-t border-stone-100 p-3 sm:p-4">
+                      <InteractiveDayTimeline
+                        schedule={form.adaptiveSchedule}
+                        blackouts={form.blackouts}
+                        engineInput={form.schedulingEngineInput}
+                        onScheduleChange={form.applyAdaptiveSchedule}
+                      />
+                    </div>
+                  </details>
+                )}
 
-          <div className="mb-4 flex flex-wrap gap-4 text-xs text-stone-600">
-            <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-amber-400" />
-              מחמצת
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-sky-400" />
-              אוטוליזה
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-orange-400" />
-              התפחה ראשונית
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-stone-400" />
-              מקרר
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-crust" />
-              אפייה
-            </span>
+                <DoughLifecycleBar plan={form.timelinePlan} />
+
+                <div className="flex flex-wrap gap-3 text-xs text-stone-600">
+                  <LegendDot className="bg-amber-400" label="מחמצת" />
+                  <LegendDot className="bg-sky-400" label="אוטוליזה" />
+                  <LegendDot className="bg-orange-400" label="התפחה ראשונית" />
+                  <LegendDot className="bg-stone-400" label="מקרר" />
+                  <LegendDot className="bg-crust" label="אפייה" />
+                </div>
+
+                <AnimatedScheduleTimeline
+                  plan={form.timelinePlan}
+                  planKey={`${form.timelinePlan.summary.bakeEnd}-${form.timelinePlan.summary.starterFeed}-${form.timelinePlan.summary.bulkHours}`}
+                  onAlarmResult={handleAlarmResult}
+                />
+
+                {(isAndroidDevice() || isIOSDevice()) && (
+                  <details className="rounded-xl border border-stone-200 bg-stone-50/80 text-sm">
+                    <summary className="cursor-pointer px-4 py-2.5 font-medium text-stone-700">
+                      עזרה להגדרת מעוררים
+                    </summary>
+                    <div className="border-t border-stone-200 px-4 py-3 leading-relaxed text-stone-600">
+                      {isAndroidDevice() ? (
+                        <>
+                          <p className="font-semibold text-crust">
+                            {heContent.alarms.deviceHelp.androidTitle}
+                          </p>
+                          <p className="mt-1">
+                            {heContent.alarms.deviceHelp.androidBody}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-semibold text-sky-950">
+                            {heContent.alarms.deviceHelp.iosTitle}
+                          </p>
+                          <p className="mt-1">
+                            {heContent.alarms.deviceHelp.iosBody}
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </details>
+                )}
+
+                {allAlarms.length > 0 && (
+                  <div className="rounded-xl border border-stone-200 bg-stone-50/60 p-3">
+                    <p className="mb-2 text-xs text-stone-600">
+                      {heContent.alarms.results.exportClockHint}
+                    </p>
+                    <Button
+                      variant="secondary"
+                      fullWidth
+                      className="min-h-[2.5rem] py-2 text-sm"
+                      onClick={handleExportAllAlarms}
+                    >
+                      <CalendarDaysIcon className="h-4 w-4" aria-hidden />
+                      {heContent.alarms.buttons.exportAllCalendar} (
+                      {allAlarms.length})
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+        </AccordionItem>
+      </Accordion>
+    </div>
+  );
+}
 
-          <AnimatedScheduleTimeline
-            plan={form.timelinePlan}
-            planKey={`${form.timelinePlan.summary.bakeEnd}-${form.timelinePlan.summary.starterFeed}-${form.timelinePlan.summary.bulkHours}`}
-            onAlarmResult={handleAlarmResult}
-          />
-        </div>
-      )}
-
-      {!form.showTimeline && feasibleOptions.length > 0 && (
-        <p className="mt-4 text-center text-sm text-stone-500">
-          {sch.selectPrompt}
-        </p>
-      )}
-    </Card>
+function LegendDot({
+  className,
+  label,
+}: {
+  className: string;
+  label: string;
+}) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span className={cn("h-2.5 w-2.5 rounded-full", className)} aria-hidden />
+      {label}
+    </span>
   );
 }
