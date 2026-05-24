@@ -64,13 +64,14 @@ export function AlarmButton({
   );
 
   return (
-    <div className="inline-flex flex-col gap-1.5">
+    <div className={cn("inline-flex flex-col gap-1.5", compact && "w-full min-w-0")}>
       <button
         type="button"
         disabled={busy}
         className={cn(
           btnClass,
           "bg-orange-700 shadow-orange-900/25 hover:bg-orange-800 focus-visible:ring-orange-500",
+          compact && "w-full justify-center",
         )}
         title={alarmTimeTitle(timestampMs)}
         onClick={() =>
@@ -130,14 +131,21 @@ export function AlarmButtonGroup({
   alarms,
   onResult,
   compact,
+  stacked,
 }: {
   alarms: { ts: number; message: string; short: string }[];
   onResult?: (type: AlarmResult) => void;
   compact?: boolean;
+  stacked?: boolean;
 }) {
   if (!alarms.length) return null;
   return (
-    <div className="flex flex-wrap gap-2.5">
+    <div
+      className={cn(
+        "flex gap-2",
+        stacked || compact ? "w-full min-w-0 flex-col" : "flex-wrap gap-2.5",
+      )}
+    >
       {alarms.map((a, i) => (
         <AlarmButton
           key={`${a.ts}-${i}`}

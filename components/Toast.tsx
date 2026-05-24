@@ -21,7 +21,7 @@ export function Toast({ message }: { message: string | null }) {
     <div
       role="status"
       aria-live="polite"
-      className={`fixed bottom-6 left-1/2 z-[100] w-[min(92vw,24rem)] -translate-x-1/2 transition-all duration-300 ${
+      className={`fixed left-1/2 z-[100] w-[min(calc(100vw-1.5rem),24rem)] -translate-x-1/2 transition-all duration-300 bottom-[calc(var(--shell-nav-h,4.25rem)+env(safe-area-inset-bottom,0px)+0.75rem)] lg:bottom-6 ${
         message ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
       }`}
     >

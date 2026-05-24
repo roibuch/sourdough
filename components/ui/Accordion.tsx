@@ -105,7 +105,7 @@ export function AccordionItem({
         aria-expanded={isOpen}
         aria-controls={`${panelId}-panel`}
         onClick={() => ctx.toggle(id)}
-        className="flex w-full items-center gap-3 px-4 py-3.5 text-start transition hover:bg-wheat-muted/50"
+        className="flex w-full items-start gap-2.5 px-3 py-3 text-start transition hover:bg-wheat-muted/50 sm:items-center sm:gap-3 sm:px-4 sm:py-3.5"
       >
         {icon && (
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-wheat-muted text-crust">
@@ -113,9 +113,11 @@ export function AccordionItem({
           </span>
         )}
         <span className="min-w-0 flex-1">
-          <span className="block font-semibold text-charcoal">{title}</span>
+          <span className="block text-sm font-semibold text-charcoal sm:text-base">
+            {title}
+          </span>
           {subtitle ? (
-            <span className="mt-0.5 block text-xs font-normal text-stone-500">
+            <span className="mt-0.5 line-clamp-2 block text-[11px] font-normal leading-snug text-stone-500 sm:text-xs">
               {subtitle}
             </span>
           ) : null}
@@ -133,10 +135,11 @@ export function AccordionItem({
         id={`${panelId}-panel`}
         role="region"
         aria-labelledby={`${panelId}-trigger`}
-        hidden={!isOpen}
+        aria-hidden={!isOpen}
         className={cn(
           "grid transition-[grid-template-rows] duration-200 ease-out",
           isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+          !isOpen && "pointer-events-none",
         )}
       >
         <div className="overflow-hidden">

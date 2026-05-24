@@ -42,7 +42,7 @@ export function MobileBottomNav({
       )}
       aria-label="ניווט ראשי"
     >
-      <div className="flex items-stretch justify-around px-1 pt-1">
+      <div className="flex items-stretch justify-around gap-0.5 px-1 pt-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = active === tab.id;
@@ -52,15 +52,15 @@ export function MobileBottomNav({
               type="button"
               onClick={() => onSelect(tab.id)}
               className={cn(
-                "flex min-h-[3.25rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-2 transition",
+                "flex min-h-[3rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-1.5 transition sm:min-h-[3.25rem] sm:px-1 sm:py-2",
                 isActive
                   ? "bg-wheat-muted text-crust shadow-[0_0_12px_rgb(212_165_116_/_0.35)] ring-1 ring-wheat/60"
                   : "text-charcoal-muted hover:bg-wheat-muted/40",
               )}
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className="h-6 w-6" strokeWidth={isActive ? 2 : 1.5} />
-              <span className="text-[10px] font-semibold leading-tight">
+              <Icon className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={isActive ? 2 : 1.5} />
+              <span className="max-w-full truncate text-[9px] font-semibold leading-tight sm:text-[10px]">
                 {tab.label}
               </span>
             </button>

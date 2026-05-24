@@ -27,11 +27,10 @@ const listVariants: Variants = {
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, x: 24, filter: "blur(6px)" },
+  hidden: { opacity: 0, y: 10 },
   show: {
     opacity: 1,
-    x: 0,
-    filter: "blur(0px)",
+    y: 0,
     transition: { type: "spring", stiffness: 260, damping: 24 },
   },
 };
@@ -52,7 +51,7 @@ export function AnimatedScheduleTimeline({
   return (
     <motion.ol
       key={planKey}
-      className="relative m-0 list-none space-y-0 p-0 pr-2"
+      className="relative m-0 min-w-0 list-none space-y-0 overflow-x-clip p-0 pr-1 sm:pr-2"
       aria-label="לוח זמנים כרונולוגי"
       variants={reduceMotion ? undefined : listVariants}
       initial={reduceMotion ? false : "hidden"}
@@ -64,7 +63,7 @@ export function AnimatedScheduleTimeline({
         <Fragment key={`${step.title}-${step.start}`}>
           {isMixingPhaseStep(step.title) && (
             <motion.li
-              className="relative list-none pb-8 pr-14 sm:pr-16"
+              className="relative list-none pb-6 pr-11 sm:pb-8 sm:pr-14"
               variants={reduceMotion ? undefined : itemVariants}
               aria-label="תזכורת מבחן הציפה"
             >
@@ -101,16 +100,13 @@ function ScheduleStepRow({
 
   return (
     <motion.li
-      className={cn(
-        "relative list-none pb-8 pr-14 last:pb-0 sm:pr-16",
-        index % 2 === 1 && "sm:pr-[4.5rem]",
-      )}
+      className="relative list-none pb-6 pr-11 last:pb-0 sm:pb-8 sm:pr-14"
       variants={reduceMotion ? undefined : itemVariants}
       layout={!reduceMotion}
     >
       <motion.span
         className={cn(
-          "absolute right-0 top-2 flex h-10 w-10 items-center justify-center rounded-full border-2 shadow-sm",
+          "absolute right-0 top-2 flex h-9 w-9 items-center justify-center rounded-full border-2 shadow-sm sm:h-10 sm:w-10",
           styles.dot,
         )}
         aria-hidden
@@ -122,13 +118,13 @@ function ScheduleStepRow({
 
       <motion.article
         className={cn(
-          "rounded-2xl border p-5 shadow-sm sm:p-6",
+          "min-w-0 rounded-2xl border p-4 shadow-sm sm:p-5 md:p-6",
           styles.card,
         )}
         layout={!reduceMotion}
       >
         <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
-          <h4 className="m-0 font-serif text-lg font-semibold text-stone-900">
+          <h4 className="m-0 min-w-0 flex-1 font-serif text-base font-semibold leading-snug text-stone-900 sm:text-lg">
             {step.title}
           </h4>
           <span
@@ -142,18 +138,17 @@ function ScheduleStepRow({
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="m-0 text-lg font-semibold tabular-nums text-stone-800">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3">
+          <p className="m-0 text-base font-semibold tabular-nums text-stone-800 sm:text-lg">
             {formatScheduleTime(step.start)}
           </p>
           {step.alarms && step.alarms.length > 0 && (
-            <div className="flex flex-wrap justify-end gap-2">
-              <AlarmButtonGroup
-                alarms={step.alarms}
-                onResult={onAlarmResult}
-                compact
-              />
-            </div>
+            <AlarmButtonGroup
+              alarms={step.alarms}
+              onResult={onAlarmResult}
+              compact
+              stacked
+            />
           )}
         </div>
 

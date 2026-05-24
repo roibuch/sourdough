@@ -127,7 +127,7 @@ function TimeHighlight({
         <p className="text-xs font-medium text-stone-600">{label}</p>
         <p
           className={cn(
-            "truncate font-semibold tabular-nums",
+            "break-words font-semibold tabular-nums leading-snug",
             tone === "bake" ? "text-crust" : "text-stone-900",
           )}
         >

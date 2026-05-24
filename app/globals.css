@@ -35,10 +35,12 @@
   html {
     font-family: var(--font-sans);
     -webkit-tap-highlight-color: transparent;
+    overflow-x: clip;
   }
 
   body {
     @apply min-h-screen bg-dough text-charcoal leading-relaxed;
+    overflow-x: clip;
     background-image:
       radial-gradient(ellipse 80% 45% at 50% -8%, rgb(212 165 116 / 0.14), transparent),
       radial-gradient(ellipse 60% 40% at 100% 50%, rgb(122 79 46 / 0.06), transparent),
@@ -66,7 +68,35 @@
 
   .timeline-rail {
     @apply absolute top-3 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-wheat via-warm-border to-crust-light;
-    right: 1.25rem;
+    right: 0.625rem;
+  }
+
+  @media (min-width: 640px) {
+    .timeline-rail {
+      right: 1.25rem;
+    }
+  }
+
+  .dashboard-shell {
+    --shell-header-h: 3.5rem;
+    --shell-metrics-h: 2.75rem;
+    --shell-nav-h: 4.25rem;
+  }
+
+  @media (min-width: 640px) {
+    .dashboard-shell {
+      --shell-header-h: 4rem;
+    }
+  }
+
+  .content-safe-bottom {
+    padding-bottom: calc(var(--shell-nav-h) + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 1024px) {
+    .content-safe-bottom {
+      padding-bottom: 2rem;
+    }
   }
 
   .step-card {

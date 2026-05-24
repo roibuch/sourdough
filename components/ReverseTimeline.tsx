@@ -150,7 +150,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
 
   return (
     <SectionErrorBoundary title="שגיאה בלוח האפייה">
-    <div ref={schedulePanelRef}>
+    <div ref={schedulePanelRef} className="min-w-0">
       <SectionHeader
         icon={<CalendarIcon className="h-6 w-6" strokeWidth={1.75} />}
         title={sch.title}
@@ -175,7 +175,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
             </p>
           )}
 
-          <div className="grid gap-3 sm:grid-cols-2" role="list">
+          <div className="grid grid-cols-1 gap-3 min-[520px]:grid-cols-2" role="list">
             {feasibleOptions.map((option) => (
               <PresetScheduleCard
                 key={option.id}
@@ -191,7 +191,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
               <summary className="cursor-pointer px-4 py-2.5 text-sm font-medium text-stone-600">
                 מועדים לא זמינים ({infeasibleOptions.length})
               </summary>
-              <div className="grid gap-3 border-t border-stone-200 p-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 border-t border-stone-200 p-3 min-[520px]:grid-cols-2">
                 {infeasibleOptions.map((option) => (
                   <PresetScheduleCard
                     key={option.id}

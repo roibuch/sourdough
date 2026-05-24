@@ -154,10 +154,10 @@ export function InteractiveDayTimeline({
         האפייה וההתפחה.
       </p>
 
-      <div className="relative overflow-x-auto rounded-2xl border border-warm-border bg-white/80 p-3">
+      <div className="relative -mx-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-warm-border bg-white/80 p-2 sm:mx-0 sm:p-3">
         <div
-          className="relative h-28 min-w-[640px]"
-          style={{ touchAction: "pan-y" }}
+          className="relative h-28 w-full min-w-[280px] sm:min-w-[480px] lg:min-w-[560px]"
+          style={{ touchAction: "pan-x pan-y" }}
         >
           {blackouts.map((b) =>
             blackoutIntervalsForDay(b, dayMs).map((interval, idx) => {

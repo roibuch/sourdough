@@ -25,17 +25,20 @@ export function SourdoughApp() {
         <SmartWarningBanner alerts={hydrationAlerts} />
       )}
       <RecipeResultsPanel form={form} />
-      <section id="section-schedule" className="scroll-mt-28">
-        <div className="glass-panel overflow-hidden">
-          <div className="border-b border-stone-200/70 px-5 py-4 sm:px-6">
-            <h2 className="font-serif text-xl font-semibold text-charcoal sm:text-2xl">
+      <section
+        id="section-schedule"
+        className="scroll-mt-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.5rem)]"
+      >
+        <div className="glass-panel min-w-0 overflow-x-clip">
+          <div className="border-b border-stone-200/70 px-4 py-3 sm:px-6 sm:py-4">
+            <h2 className="font-serif text-lg font-semibold text-charcoal sm:text-xl md:text-2xl">
               תזמון ולוח אפייה
             </h2>
-            <p className="mt-1 text-sm text-stone-600">
+            <p className="mt-1 text-xs text-stone-600 sm:text-sm">
               מועד מוכן, מזג אוויר והתראות — עדכון מיידי לפי הפרמטרים.
             </p>
           </div>
-          <div className="p-5 sm:p-6 md:p-8">
+          <div className="p-3 sm:p-6 md:p-8">
             <SectionErrorBoundary title="שגיאה באזור התזמון">
               <ReverseTimeline form={form} />
             </SectionErrorBoundary>
@@ -47,14 +50,17 @@ export function SourdoughApp() {
 
   const guide =
     form.showGuide ? (
-      <section id="section-guide" className="scroll-mt-28">
-        <div className="glass-panel overflow-hidden">
-          <div className="border-b border-stone-200/70 px-5 py-4 sm:px-6">
+      <section
+        id="section-guide"
+        className="scroll-mt-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.5rem)]"
+      >
+        <div className="glass-panel min-w-0 overflow-x-clip">
+          <div className="border-b border-stone-200/70 px-4 py-3 sm:px-6 sm:py-4">
             <h2 className="font-serif text-xl font-semibold text-charcoal">
               מדריך אפייה
             </h2>
           </div>
-          <div className="p-5 sm:p-6 md:p-8">
+          <div className="p-3 sm:p-6 md:p-8">
             <BakingGuide form={form} />
           </div>
         </div>
@@ -62,14 +68,17 @@ export function SourdoughApp() {
     ) : null;
 
   const reference = (
-    <section id="section-reference" className="scroll-mt-28">
-      <div className="glass-panel overflow-hidden">
-        <div className="border-b border-stone-200/70 px-5 py-4 sm:px-6">
+    <section
+      id="section-reference"
+      className="scroll-mt-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.5rem)]"
+    >
+      <div className="glass-panel min-w-0 overflow-x-clip">
+        <div className="border-b border-stone-200/70 px-4 py-3 sm:px-6 sm:py-4">
           <h2 className="font-serif text-xl font-semibold text-charcoal">
             טבלאות עזר
           </h2>
         </div>
-        <div className="p-5 sm:p-6 md:p-8">
+        <div className="p-3 sm:p-6 md:p-8">
           <ReferenceTables />
         </div>
       </div>

@@ -36,25 +36,26 @@ export function DashboardShell({
   };
 
   return (
-    <div className="dashboard-shell flex min-h-screen flex-col">
-      <header className="sticky top-0 z-30 border-b border-warm-border/70 bg-dough/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:h-16 sm:px-6">
+    <div className="dashboard-shell flex min-h-screen min-w-0 flex-col">
+      <header className="sticky top-0 z-30 border-b border-warm-border/70 bg-dough/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6">
           <AppBrandHeader
-            tagline="מחשבון בצק, לוח אפייה ומדריך — מותאם לנייד"
-            logoSize={48}
+            tagline="מחשבון בצק, לוח אפייה ומדריך"
+            logoSize={44}
           />
         </div>
       </header>
 
       <StickyMetricsBar form={form} />
 
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col lg:flex-row">
-        {/* Desktop: sticky inputs sidebar */}
+      <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-1 flex-col lg:flex-row">
         <aside
           className={cn(
-            "hidden w-full shrink-0 border-warm-border/70 lg:block lg:w-[22rem] xl:w-96",
-            "lg:sticky lg:top-[7.25rem] lg:self-start lg:border-e",
-            "lg:max-h-[calc(100vh-7.25rem)] lg:overflow-y-auto lg:overscroll-contain",
+            "hidden min-w-0 shrink-0 border-warm-border/70 lg:block lg:w-[min(100%,22rem)] xl:w-96",
+            "lg:sticky lg:self-start lg:border-e",
+            "lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h))]",
+            "lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h))]",
+            "lg:overflow-y-auto lg:overscroll-contain",
             "lg:px-4 lg:py-6",
           )}
           aria-label="פרמטרי מתכון"
@@ -65,31 +66,31 @@ export function DashboardShell({
           <RecipeInputsPanel form={form} />
         </aside>
 
-        {/* Main outputs */}
         <main
           id="main"
           className={cn(
-            "min-w-0 flex-1 px-4 py-5 sm:px-6 sm:py-6",
-            "pb-24 lg:pb-8",
+            "min-w-0 flex-1 overflow-x-clip",
+            "px-3 py-4 sm:px-6 sm:py-6",
+            "content-safe-bottom",
           )}
         >
           <div className="lg:hidden">
             {mobileTab === "outputs" && (
-              <div className="space-y-6">{outputs}</div>
+              <div className="space-y-4 sm:space-y-6">{outputs}</div>
             )}
             {mobileTab === "guide" && guide && (
-              <div className="space-y-6">{guide}</div>
+              <div className="space-y-4 sm:space-y-6">{guide}</div>
             )}
             {mobileTab === "reference" && (
-              <div className="space-y-6">{reference}</div>
+              <div className="space-y-4 sm:space-y-6">{reference}</div>
             )}
           </div>
 
-          <div className="hidden space-y-8 lg:block">{outputs}</div>
-          {guide && <div className="mt-8 hidden lg:block">{guide}</div>}
-          <div className="mt-8 hidden lg:block">{reference}</div>
+          <div className="hidden min-w-0 space-y-8 lg:block">{outputs}</div>
+          {guide && <div className="mt-8 hidden min-w-0 lg:block">{guide}</div>}
+          <div className="mt-8 hidden min-w-0 lg:block">{reference}</div>
 
-          <footer className="mt-12 border-t border-warm-border/70 pt-6 text-center text-xs text-charcoal-muted">
+          <footer className="mt-8 border-t border-warm-border/70 pt-5 text-center text-xs text-charcoal-muted sm:mt-12 sm:pt-6">
             {heContent.app.footerShort}
           </footer>
         </main>

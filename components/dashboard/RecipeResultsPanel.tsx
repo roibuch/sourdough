@@ -47,7 +47,7 @@ export function RecipeResultsPanel({ form }: { form: RecipeForm }) {
       className="recipe-results-enter glass-panel border-0 p-0 shadow-none"
       nested
     >
-      <div className="p-5 sm:p-6 md:p-8">
+      <div className="min-w-0 p-3 sm:p-6 md:p-8">
         <SectionHeader
           icon={<ScaleIcon className="h-6 w-6" strokeWidth={1.75} />}
           title="תוצאות המתכון"

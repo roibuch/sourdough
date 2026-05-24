@@ -52,8 +52,9 @@ export function Sheet({
         aria-modal="true"
         aria-labelledby="sheet-title"
         className={cn(
-          "absolute inset-x-0 bottom-0 flex max-h-[min(92vh,720px)] flex-col",
+          "absolute inset-x-0 bottom-0 flex max-h-[min(88dvh,720px)] flex-col",
           "rounded-t-3xl border border-stone-200/80 bg-stone-50/95 shadow-2xl backdrop-blur-xl",
+          "pb-[env(safe-area-inset-bottom)]",
           "animate-[sheet-up_0.3s_ease-out]",
           className,
         )}
@@ -75,7 +76,7 @@ export function Sheet({
             <XMarkIcon className="h-5 w-5" />
           </button>
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-8">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 pb-6 sm:px-4 sm:pb-8">
           {children}
         </div>
       </div>
