@@ -1,4 +1,4 @@
-const CACHE_NAME = "sourdough-master-next-v4";
+const CACHE_NAME = "sourdough-master-next-v5";
 
 function getBasePath() {
   const scope = self.registration?.scope || self.location.href;
