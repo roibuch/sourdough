@@ -128,7 +128,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
 
   const defaultOpen = compact
     ? ["dough"]
-    : ["dough", "flour", "starter", "timing"];
+    : ["dough", "flour"];
 
   return (
     <div className={cn("space-y-4", compact && "pb-2")}>

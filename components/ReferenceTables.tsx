@@ -1,6 +1,4 @@
-import { Card } from "@/components/ui/Card";
-import { SectionHeader } from "@/components/ui/SectionHeader";
-import { BookOpenIcon } from "@heroicons/react/24/outline";
+import { cn } from "@/lib/cn";
 
 function Table({
   headers,
@@ -10,10 +8,10 @@ function Table({
   rows: string[][];
 }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-stone-200">
+    <div className="overflow-x-auto rounded-2xl border border-warm-border/80 bg-white">
       <table className="w-full min-w-[280px] border-collapse text-sm">
         <thead>
-          <tr className="bg-stone-100/80">
+          <tr className="bg-wheat-muted/60">
             {headers.map((h) => (
               <th
                 key={h}
@@ -29,7 +27,7 @@ function Table({
           {rows.map((row, i) => (
             <tr
               key={i}
-              className={i % 2 === 1 ? "bg-stone-50/60" : "bg-white"}
+              className={i % 2 === 1 ? "bg-dough/80" : "bg-white"}
             >
               {row.map((cell, j) => (
                 <td
@@ -47,16 +45,14 @@ function Table({
   );
 }
 
-export function ReferenceTables() {
+export function ReferenceTables({ className }: { className?: string }) {
   return (
-    <Card nested className="border-0 bg-transparent p-0 shadow-none">
-      <SectionHeader
-        icon={<BookOpenIcon className="h-6 w-6" strokeWidth={1.75} />}
-        title="טבלאות עזר"
-        subtitle="הערכות לחדר טיפוסי — עדיף להסתמך על תחושת הבצק."
-      />
+    <div className={cn("space-y-8", className)}>
+      <p className="text-sm leading-relaxed text-stone-600">
+        הערכות לחדר טיפוסי — עדיף להסתמך על תחושת הבצק.
+      </p>
 
-      <h3 className="mb-3 mt-2 font-serif text-lg font-semibold text-stone-900">
+      <h3 className="mb-3 font-serif text-lg font-semibold text-stone-900">
         התפחה ראשונית לפי טמפרטורה
       </h3>
       <Table
@@ -94,6 +90,6 @@ export function ReferenceTables() {
           ["18–24+ שעות", "חמוץ חזק — עקבו אחרי הבצק"],
         ]}
       />
-    </Card>
+    </div>
   );
 }

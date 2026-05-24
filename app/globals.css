@@ -104,7 +104,21 @@
   }
 
   .glass-panel {
-    @apply rounded-2xl border border-warm-border/80 bg-white/75 shadow-lg shadow-crust/5 backdrop-blur-md;
+    @apply rounded-2xl border border-warm-border/80 bg-white/90 shadow-lg shadow-crust/5 backdrop-blur-md;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(212 165 116 / 0.45) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: rgb(212 165 116 / 0.45);
   }
 
   .glass-input {

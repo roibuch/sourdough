@@ -81,7 +81,7 @@ export function RecipeResultsPanel({ form }: { form: RecipeForm }) {
           </MasterBakerTip>
         )}
 
-        <div className="rounded-2xl border border-stone-200/80 bg-stone-50/50 p-4 sm:p-5">
+        <div className="rounded-2xl border border-wheat/50 bg-wheat-muted/35 p-4 sm:p-5">
           <h4 className="mb-3 font-serif text-lg font-semibold text-charcoal">
             חלוקת קמח
           </h4>
