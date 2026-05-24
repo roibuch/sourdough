@@ -1,4 +1,7 @@
+import { heContent, t } from "@/lib/content";
 import type { WeatherRecommendation } from "./types";
+
+const weatherCopy = heContent.weather.recommendations;
 
 export type { WeatherRecommendation };
 
@@ -125,31 +128,17 @@ export function averageTempNext6Hours(forecastList: ForecastItem[]): number | nu
 }
 
 export function recommendStarterFromAvgTemp(avgC: number): WeatherRecommendation {
+  const avg = avgC.toFixed(1);
   if (avgC > 27) {
-    return {
-      tier: "hot",
-      pct: 12,
-      range: "10%–15%",
-      title: "חם מאוד — האטת התפחה",
-      body: `ממוצע ${avgC.toFixed(1)}°C בחלון העבודה (Bulk). התפחה תהיה מהירה — מומלץ להפחית מחמצת ל־10%–15%.`,
-    };
+    const r = weatherCopy.hot;
+    return { ...r, body: t(r.body, { avg }) };
   }
   if (avgC >= 22 && avgC <= 26) {
-    return {
-      tier: "ideal",
-      pct: 20,
-      range: "20%",
-      title: "טמפרטורת חדר אידיאלית",
-      body: `ממוצע ${avgC.toFixed(1)}°C בחלון העבודה (Bulk) — טווח נוח לאפייה. מומלץ ~20% מחמצת.`,
-    };
+    const r = weatherCopy.ideal;
+    return { ...r, body: t(r.body, { avg }) };
   }
-  return {
-    tier: "cold",
-    pct: 27,
-    range: "25%–30%",
-    title: "קריר — האיצת התפחה",
-    body: `ממוצע ${avgC.toFixed(1)}°C בחלון העבודה (Bulk) — התפחה איטית יותר. מומלץ להעלות מחמצת ל־25%–30%.`,
-  };
+  const r = weatherCopy.cold;
+  return { ...r, body: t(r.body, { avg }) };
 }
 
 export async function fetchLocalWeatherForecast(): Promise<{

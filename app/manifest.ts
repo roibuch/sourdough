@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { BRAND, brandAssetPath } from "@/lib/brand";
+import { heContent } from "@/lib/content";
 import { getBasePath } from "@/lib/basePath";
 
 export const dynamic = "force-static";
@@ -9,7 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
   const startUrl = base ? `${base}/` : "/";
 
   return {
-    name: "Sourdough Master | מחשבון מחמצת",
+    name: heContent.app.metadata.title,
     short_name: "מחמצת",
     description:
       "מחשבון בצק מחמצת, מדריך שלבים ולוח זמנים הפוך — עובד גם ללא אינטרנט.",

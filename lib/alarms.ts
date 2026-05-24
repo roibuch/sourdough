@@ -1,4 +1,7 @@
+import { heContent } from "@/lib/content";
 import { formatScheduleTime } from "./timeline";
+
+const alarmCopy = heContent.alarms;
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
@@ -97,7 +100,7 @@ export function buildIcsCalendar(events: IcsEventInput[]): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Sourdough Master//HE",
+    `PRODID:-//${alarmCopy.ics.calendarName}//HE`,
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
   ];
@@ -115,7 +118,7 @@ export function buildIcsCalendar(events: IcsEventInput[]): string {
       `DTSTART:${formatIcsLocal(ev.startMs)}`,
       `DTEND:${formatIcsLocal(endMs)}`,
       `SUMMARY:${summary}`,
-      "DESCRIPTION:Sourdough Master",
+      `DESCRIPTION:${alarmCopy.ics.calendarName}`,
       "BEGIN:VALARM",
       "TRIGGER:-PT10M",
       "ACTION:DISPLAY",
@@ -145,7 +148,7 @@ function buildGoogleCalendarUrl(
     action: "TEMPLATE",
     text: title,
     dates: `${fmt(startMs)}/${fmt(endMs)}`,
-    details: "Sourdough Master",
+    details: alarmCopy.ics.calendarName,
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
@@ -205,7 +208,7 @@ export async function exportAllAlarmsToCalendar(
   const shared = await shareIcsFile(
     ics,
     "sourdough-schedule.ics",
-    "לוח אפייה — מחמצת",
+    alarmCopy.ics.exportTitle,
   );
   if (shared) return "shared";
 
@@ -216,12 +219,23 @@ export async function exportAllAlarmsToCalendar(
 export type AlarmResult =
   | "android"
   | "android-fallback"
+  | "ios-clock"
   | "shared"
   | "opened"
   | "google"
   | "invalid";
 
-export async function triggerHardwareAlarm(
+/** Opens the iOS Clock app (user sets alarm manually). */
+export function openIOSClockApp(): void {
+  try {
+    window.location.href = "clock-worldclock://";
+  } catch {
+    /* noop */
+  }
+}
+
+/** Primary path: hardware clock alarm (Android intent / iOS Clock app). */
+export async function triggerClockAlarm(
   timestampMs: number,
   message: string,
 ): Promise<AlarmResult> {
@@ -235,7 +249,21 @@ export async function triggerHardwareAlarm(
     return "android";
   }
 
-  return downloadIcsAlarm(timestampMs, message);
+  if (isIOSDevice()) {
+    openIOSClockApp();
+    return "ios-clock";
+  }
+
+  openAndroidClockAlarm(hour, minute, message);
+  return "android-fallback";
+}
+
+/** @deprecated Use triggerClockAlarm — kept for callers migrating gradually. */
+export async function triggerHardwareAlarm(
+  timestampMs: number,
+  message: string,
+): Promise<AlarmResult> {
+  return triggerClockAlarm(timestampMs, message);
 }
 
 export function openGoogleCalendarEvent(
@@ -253,24 +281,25 @@ export function alarmTimeTitle(timestampMs: number): string {
 }
 
 export function alarmResultMessage(result: AlarmResult): string {
+  const r = alarmCopy.results;
   switch (result) {
     case "android":
-      return "אמור להיפתח אפליקציית השעון — אשרו/י את השעה ושמרו. אם לא נפתח, נסו «יומן».";
+      return r.android;
+    case "ios-clock":
+      return r.iosClock;
     case "android-fallback":
-      return "לא נפתח שעון — נשלח קובץ יומן. פתחו/י אותו או בחרו «יומן» במסך השיתוף.";
+      return r.androidFallback;
     case "shared":
-      return isAndroidDevice()
-        ? "בחרו «שעון» או «יומן» / Google Calendar במסך השיתוף."
-        : "בחרו «יומן» (Calendar) במסך השיתוף — האירוע ייכנס עם התראה.";
+      return isAndroidDevice() ? r.sharedAndroid : r.sharedIos;
     case "opened":
       return isAndroidDevice()
-        ? "נשמר קובץ .ics — פתחו/י ביומן או ב-Google Calendar."
+        ? r.openedAndroid
         : isIOSDevice()
-          ? "אם נפתח קובץ — לחצו «הוסף ליומן». אחרת השתמשו ב«יומן»."
-          : "נשמר קובץ .ics — פתחו/י אותו ביומן.";
+          ? r.openedIos
+          : r.openedDesktop;
     case "google":
-      return "נפתח Google Calendar — שמרו/י את האירוע.";
+      return r.google;
     default:
-      return "אין שעה מתוכננת — בנו/י לוח זמנים קודם.";
+      return r.invalid;
   }
 }

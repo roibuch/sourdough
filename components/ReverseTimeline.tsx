@@ -21,9 +21,15 @@ import {
   type ScheduleOption,
 } from "@/lib/scheduleOptions";
 import { SmartWarningBanner } from "@/components/feedback/SmartWarningBanner";
+import { BlackoutPeriodsEditor } from "@/components/scheduling/BlackoutPeriodsEditor";
+import { InteractiveDayTimeline } from "@/components/scheduling/InteractiveDayTimeline";
+import { ScheduleAdaptationsBanner } from "@/components/scheduling/ScheduleAdaptationsBanner";
 import { useBakerAlerts } from "@/hooks/useBakerAlerts";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
+import { heContent, t } from "@/lib/content";
 import { cn } from "@/lib/cn";
+
+const sch = heContent.inputs.schedule;
 
 function ScheduleOptionCard({
   option,
@@ -58,17 +64,17 @@ function ScheduleOptionCard({
             {option.title}
           </p>
           <p className="mt-0.5 text-sm text-crust">
-            לחם מוכן: {option.bakeLabel}
+            {t(sch.readyAt, { time: option.bakeLabel })}
             {option.isExpress && (
               <span className="ms-2 rounded-full bg-amber-200 px-2 py-0.5 text-xs font-bold text-amber-950">
-                מואץ
+                {sch.express}
               </span>
             )}
           </p>
         </div>
         {selected && (
-          <span className="rounded-full bg-crust px-3 py-1 text-xs font-bold text-dough">
-            נבחר
+            <span className="rounded-full bg-crust px-3 py-1 text-xs font-bold text-dough">
+            {sch.selected}
           </span>
         )}
       </div>
@@ -162,7 +168,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
       })),
     );
     if (result === "empty") {
-      form.showToast("אין התראות — בחרו מועד ובנו לוח זמנים.");
+      form.showToast(heContent.alarms.results.exportEmpty);
       return;
     }
     form.showToast(alarmToastMessage(result));
@@ -186,14 +192,13 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
     <Card nested className="border-0 bg-transparent p-0 shadow-none">
       <SectionHeader
         icon={<CalendarDaysIcon className="h-6 w-6" strokeWidth={1.75} />}
-        title="מתי תרצו שהלחם יהיה מוכן?"
-        subtitle={`בחרו מועד — עבודה פעילה רק בין ${ACTIVE_HOUR_START}:00 ל־${ACTIVE_HOUR_END}:00 (בלי לילה).`}
+        title={sch.title}
+        subtitle={sch.subtitle}
       />
 
       {feasibleOptions.length === 0 && (
         <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          אין מועדים מתאימים עם הזמן שנשאר. השתמשו בזמן מותאם אישית למטה, או
-          חשבו מתכון עם פחות שעות מקרר.
+          {sch.noOptions}
         </p>
       )}
 
@@ -214,7 +219,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
         onToggle={(e) => setShowCustom((e.target as HTMLDetailsElement).open)}
       >
         <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-stone-800 [&::-webkit-details-marker]:hidden">
-          <span>זמן יעד אחר (מותאם אישית)</span>
+          <span>{sch.customTime}</span>
           <ChevronDownIcon
             className={cn(
               "h-5 w-5 shrink-0 text-stone-500 transition",
@@ -227,7 +232,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
             htmlFor="targetBakeTime"
             className="mb-2 block text-sm text-stone-600"
           >
-            סיום אפייה
+            {sch.customBakeLabel}
           </label>
           <input
             id="targetBakeTime"
@@ -241,15 +246,29 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
             }}
           />
           <Button variant="secondary" fullWidth onClick={handleCustomBuild}>
-            הצג/י תוכנית לזמן זה
+            {sch.showPlan}
           </Button>
         </div>
       </details>
 
       <p className="mb-2 text-xs text-stone-500">
-        התכנון מבוסס על {form.starterPct}% מחמצת, {form.hoursToAutolyse} שעות עד
-        אוטוליזה ו־{form.roomTemp}°C — עדכנו במזג האוויר או במדריך האפייה.
+        {t(sch.planFooter, {
+          starter: form.starterPct,
+          autolyse: form.hoursToAutolyse,
+          temp: form.roomTemp,
+        })}
       </p>
+
+      <BlackoutPeriodsEditor
+        className="mb-6"
+        blackouts={form.blackouts}
+        onChange={(next) => {
+          form.setBlackouts(next);
+          if (form.showTimeline && form.targetBakeTime) {
+            form.rebuildTimeline(true);
+          }
+        }}
+      />
 
       {bakerAlerts.length > 0 && (
         <SmartWarningBanner
@@ -261,20 +280,37 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
       {form.showTimeline && form.timelinePlan && (
         <div id="schedule-plan" className="mt-8 border-t border-stone-200 pt-8">
           <h3 className="mb-6 font-serif text-xl font-semibold text-stone-900">
-            התוכנית המלאה שלכם
+            {sch.fullPlan}
           </h3>
 
+          {form.adaptiveSchedule && (
+            <>
+              <ScheduleAdaptationsBanner
+                className="mb-6"
+                adaptations={form.adaptiveSchedule.adaptations}
+                feasible={form.adaptiveSchedule.feasible}
+              />
+              <InteractiveDayTimeline
+                className="mb-8"
+                schedule={form.adaptiveSchedule}
+                blackouts={form.blackouts}
+                engineInput={form.schedulingEngineInput}
+                onScheduleChange={form.applyAdaptiveSchedule}
+              />
+            </>
+          )}
+
           <div className="mb-8 rounded-2xl border border-wheat/60 bg-gradient-to-br from-wheat-muted to-white p-5 sm:p-6">
-            <p className="text-sm text-stone-600">מתחילים בהאכלת מחמצת</p>
+            <p className="text-sm text-stone-600">{sch.startFeed}</p>
             <p className="mt-1 font-serif text-xl font-semibold text-stone-900">
               {formatScheduleTime(form.timelinePlan.summary.starterFeed)}
             </p>
-            <p className="mt-4 text-sm text-stone-600">סיום אפייה ביעד</p>
+            <p className="mt-4 text-sm text-stone-600">{sch.bakeTarget}</p>
             <p className="mt-1 font-serif text-xl font-semibold text-crust">
               {formatScheduleTime(form.timelinePlan.summary.bakeEnd)}
             </p>
             <p className="mt-4 text-sm text-stone-500">
-              סה״כ ~{form.timelinePlan.summary.totalHours} שעות · Bulk ~
+              סה״כ ~{form.timelinePlan.summary.totalHours} שעות · התפחה ראשונית ~
               {form.timelinePlan.summary.bulkHours} שעות ·{" "}
               {form.timelinePlan.summary.starterPct}% מחמצת
             </p>
@@ -282,30 +318,38 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
 
           {isAndroidDevice() && (
             <div className="mb-6 rounded-2xl border border-wheat/60 bg-wheat-muted/80 p-4 text-sm leading-relaxed text-charcoal-muted">
-              <p className="font-semibold text-crust">התראות באנדרואיד</p>
-              <p className="mt-1">
-                <strong>שעון</strong> — פותח את אפל שעון/שעון Google (אשרו ושמרו).
-                אם לא נפתח: <strong>יומן</strong> → שיתוף ליומן או Google Calendar.
-                מומלץ לפתוח באתר ב-<strong>Chrome</strong> (לא רק PWA) לשעון.
+              <p className="font-semibold text-crust">
+                {heContent.alarms.deviceHelp.androidTitle}
               </p>
+              <p className="mt-1">{heContent.alarms.deviceHelp.androidBody}</p>
             </div>
           )}
 
           {isIOSDevice() && !isAndroidDevice() && (
             <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50/80 p-4 text-sm leading-relaxed text-stone-700">
-              <p className="font-semibold text-sky-950">התראות ב-iPhone</p>
-              <p className="mt-1">
-                לחצו «יומן» ובמסך השיתוף בחרו יומן (Calendar). אפשר גם Google.
+              <p className="font-semibold text-sky-950">
+                {heContent.alarms.deviceHelp.iosTitle}
               </p>
+              <p className="mt-1">{heContent.alarms.deviceHelp.iosBody}</p>
             </div>
           )}
 
           {allAlarms.length > 0 && (
-            <div className="mb-6">
-              <Button variant="secondary" fullWidth onClick={handleExportAllAlarms}>
-                <CalendarDaysIcon className="h-5 w-5" aria-hidden />
-                הוספת כל ההתראות ליומן ({allAlarms.length})
-              </Button>
+            <div className="mb-6 space-y-2">
+              <p className="text-sm text-stone-600">
+                {heContent.alarms.results.exportClockHint}
+              </p>
+              <details className="rounded-2xl border border-stone-200 bg-stone-50/60">
+                <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-stone-700 [&::-webkit-details-marker]:hidden">
+                  {heContent.alarms.buttons.exportAllCalendar} ({allAlarms.length})
+                </summary>
+                <div className="border-t border-stone-200 px-4 pb-4 pt-2">
+                  <Button variant="secondary" fullWidth onClick={handleExportAllAlarms}>
+                    <CalendarDaysIcon className="h-5 w-5" aria-hidden />
+                    {heContent.alarms.buttons.exportAllCalendar}
+                  </Button>
+                </div>
+              </details>
             </div>
           )}
 
@@ -322,7 +366,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
             </span>
             <span className="inline-flex items-center gap-2">
               <span className="h-3 w-3 rounded-full bg-orange-400" />
-              Bulk
+              התפחה ראשונית
             </span>
             <span className="inline-flex items-center gap-2">
               <span className="h-3 w-3 rounded-full bg-stone-400" />
@@ -344,7 +388,7 @@ export function ReverseTimeline({ form }: { form: RecipeForm }) {
 
       {!form.showTimeline && feasibleOptions.length > 0 && (
         <p className="mt-4 text-center text-sm text-stone-500">
-          בחרו מועד למעלה כדי לראות את כל השלבים והתראות
+          {sch.selectPrompt}
         </p>
       )}
     </Card>

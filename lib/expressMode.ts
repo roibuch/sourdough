@@ -1,4 +1,7 @@
+import { heContent } from "@/lib/content";
 import type { BuildTimelineInput } from "./timeline";
+
+const expressCopy = heContent.express;
 
 export type FermentationPace = "standard" | "express";
 
@@ -17,44 +20,21 @@ export interface StarterRatioOption {
   note: string;
 }
 
-export const STARTER_RATIO_OPTIONS: StarterRatioOption[] = [
-  {
-    id: "auto",
-    label: "אוטומטי",
-    ratioLabel: "לפי זמן",
-    flourMult: -1,
-    waterMult: -1,
-    typicalPeakHours: 5,
-    note: "המערכת בוחרת יחס לפי השעות עד האוטוליזה.",
-  },
-  {
-    id: "equal",
-    label: "1:1:1",
-    ratioLabel: "1 : 1 : 1",
-    flourMult: 1,
-    waterMult: 1,
-    typicalPeakHours: 3.5,
-    note: "האכלה קטנה ומהירה — מגיעה לשיא בכ־3–4 שעות בחום.",
-  },
-  {
-    id: "half",
-    label: "1:0.5:0.5",
-    ratioLabel: "1 : 0.5 : 0.5",
-    flourMult: 0.5,
-    waterMult: 0.5,
-    typicalPeakHours: 2.5,
-    note: "האכלה מינימלית — הכי מהיר, דורש מחמצת חזקה.",
-  },
-  {
-    id: "peak",
-    label: "בשיא מהצנצנת",
-    ratioLabel: "ללא האכלה",
-    flourMult: 0,
-    waterMult: 0,
-    typicalPeakHours: 0.5,
-    note: "רק אם יש מספיק מחמצת פעילה בצנצנת — בלי האכלה נוספת.",
-  },
-];
+const RATIO_MULT: Record<
+  StarterRatioPreset,
+  Pick<StarterRatioOption, "flourMult" | "waterMult">
+> = {
+  auto: { flourMult: -1, waterMult: -1 },
+  equal: { flourMult: 1, waterMult: 1 },
+  half: { flourMult: 0.5, waterMult: 0.5 },
+  peak: { flourMult: 0, waterMult: 0 },
+};
+
+export const STARTER_RATIO_OPTIONS: StarterRatioOption[] =
+  expressCopy.starterRatios.map((r) => ({
+    ...r,
+    ...RATIO_MULT[r.id],
+  }));
 
 export interface WarmZoneRecommendation {
   id: WarmZoneId;
@@ -137,47 +117,26 @@ export function getWarmZoneRecommendation(
   if (!needsHeat) return null;
 
   if (hoursToAutolyse <= 3 || ratioPreset === "half" || ratioPreset === "peak") {
+    const z = expressCopy.warmZones.microwave;
     return {
-      id: "microwave-off",
-      title: "מיקרוגל כלול (כבוי)",
-      targetTemp: "28–32°C",
-      steps: [
-        "שימו את המחמצת בקערה מכוסה בתוך המיקרוגל — **המיקרוגל כבוי לחלוטין**.",
-        "סגרו את הדלת — יוצר תא חם ולח ללא חום ישיר.",
-        "בדקו נפח כל 45–60 דקות.",
-      ],
-      warning: "לא להדליק מיקרוגל! רק שימוש כמחסן חם.",
+      id: z.id,
+      title: z.title,
+      targetTemp: z.targetTemp,
+      steps: [...z.steps],
+      warning: z.warning,
     };
   }
 
   if (hoursToAutolyse <= 5 || pace === "express") {
-    return {
-      id: "oven-light",
-      title: "תנור — נורה בלבד",
-      targetTemp: "26–30°C",
-      steps: [
-        "הדליקו **רק** את נורת התנור (בלי חום / בלי טורבו).",
-        "שימו קערה מכוסה על המדף האמצעי.",
-        "אם חם מדי מעל 32°C — פתחו מעט את הדלת.",
-      ],
-    };
+    const z = expressCopy.warmZones.ovenLight;
+    return { id: z.id, title: z.title, targetTemp: z.targetTemp, steps: [...z.steps] };
   }
 
-  return {
-    id: "warm-corner",
-    title: "פינה חמה בבית",
-    targetTemp: "24–26°C",
-    steps: [
-      "ליד תנור פועל, מעל מקרר, או חלון שמשי חלש.",
-      "כיסוי הדוק על הקערה — שמרו על לחות.",
-    ],
-  };
+  const z = expressCopy.warmZones.warmCorner;
+  return { id: z.id, title: z.title, targetTemp: z.targetTemp, steps: [...z.steps] };
 }
 
 export function expressModeSummary(pace: FermentationPace): string | null {
   if (pace !== "express") return null;
-  return (
-    "מצב מואץ: האכלה מהירה, אוטוליזה 30 דק׳, Bulk קצר יותר, מקרר 4–8 שעות, " +
-    "ומומלץ אזור חימום."
-  );
+  return expressCopy.summary;
 }

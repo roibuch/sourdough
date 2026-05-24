@@ -1,3 +1,4 @@
+import { heContent, t } from "@/lib/content";
 import type { FlourMix } from "@/lib/types";
 
 export const FLOUR_TOTAL_TARGET = 100;
@@ -30,6 +31,8 @@ export interface RecipeValidation {
   canCalculate: boolean;
 }
 
+const v = heContent.validation;
+
 /** Hard bounds (match SmartNumberInput) */
 const HARD = {
   waterPct: { min: 1, max: 120 },
@@ -39,19 +42,10 @@ const HARD = {
 
 /** Soft guidance — visual warning, calculation still allowed */
 const SOFT = {
-  waterPct: { min: 55, max: 90, label: "מים" },
-  starterPct: { min: 10, max: 30, label: "מחמצת" },
-  saltPct: { min: 1.8, max: 2.4, label: "מלח" },
+  waterPct: { min: 55, max: 95 },
+  starterPct: { min: 10, max: 30 },
+  saltPct: { min: 1.8, max: 2.2 },
 } as const;
-
-function softMessage(
-  label: string,
-  min: number,
-  max: number,
-  value: number,
-): string {
-  return `${label} ${value}% — טווח נוח בדרך כלל ${min}–${max}%`;
-}
 
 export function validateRecipeForm(
   input: RecipeValidationInput,
@@ -62,12 +56,12 @@ export function validateRecipeForm(
   if (!input.totalWeight.trim() || Number.isNaN(w) || w <= 0) {
     fields.totalWeight = {
       invalid: true,
-      message: "הזינו משקל בצק סופי חיובי (גרם).",
+      message: v.totalWeight.required,
     };
   } else if (w > 10000) {
     fields.totalWeight = {
       invalid: true,
-      message: "משקל גבוה מאוד — בדקו שהערך בגרם.",
+      message: v.totalWeight.tooHigh,
     };
   }
 
@@ -77,7 +71,11 @@ export function validateRecipeForm(
   ) {
     fields.waterPct = {
       invalid: true,
-      message: `מים: ${input.waterPct}% — חייב להיות בין ${HARD.waterPct.min}% ל־${HARD.waterPct.max}%.`,
+      message: t(v.waterPct.hard, {
+        value: input.waterPct,
+        min: HARD.waterPct.min,
+        max: HARD.waterPct.max,
+      }),
     };
   } else if (
     input.waterPct < SOFT.waterPct.min ||
@@ -85,12 +83,11 @@ export function validateRecipeForm(
   ) {
     fields.waterPct = {
       warning: true,
-      message: softMessage(
-        SOFT.waterPct.label,
-        SOFT.waterPct.min,
-        SOFT.waterPct.max,
-        input.waterPct,
-      ),
+      message: t(v.waterPct.soft, {
+        value: input.waterPct,
+        min: SOFT.waterPct.min,
+        max: SOFT.waterPct.max,
+      }),
     };
   }
 
@@ -100,7 +97,11 @@ export function validateRecipeForm(
   ) {
     fields.starterPct = {
       invalid: true,
-      message: `מחמצת: ${input.starterPct}% — חייב להיות בין ${HARD.starterPct.min}% ל־${HARD.starterPct.max}%.`,
+      message: t(v.starterPct.hard, {
+        value: input.starterPct,
+        min: HARD.starterPct.min,
+        max: HARD.starterPct.max,
+      }),
     };
   } else if (
     input.starterPct < SOFT.starterPct.min ||
@@ -108,12 +109,11 @@ export function validateRecipeForm(
   ) {
     fields.starterPct = {
       warning: true,
-      message: softMessage(
-        SOFT.starterPct.label,
-        SOFT.starterPct.min,
-        SOFT.starterPct.max,
-        input.starterPct,
-      ),
+      message: t(v.starterPct.soft, {
+        value: input.starterPct,
+        min: SOFT.starterPct.min,
+        max: SOFT.starterPct.max,
+      }),
     };
   }
 
@@ -123,7 +123,11 @@ export function validateRecipeForm(
   ) {
     fields.saltPct = {
       invalid: true,
-      message: `מלח: ${input.saltPct}% — חייב להיות בין ${HARD.saltPct.min}% ל־${HARD.saltPct.max}%.`,
+      message: t(v.saltPct.hard, {
+        value: input.saltPct,
+        min: HARD.saltPct.min,
+        max: HARD.saltPct.max,
+      }),
     };
   } else if (
     input.saltPct < SOFT.saltPct.min ||
@@ -131,12 +135,11 @@ export function validateRecipeForm(
   ) {
     fields.saltPct = {
       warning: true,
-      message: softMessage(
-        SOFT.saltPct.label,
-        SOFT.saltPct.min,
-        SOFT.saltPct.max,
-        input.saltPct,
-      ),
+      message: t(v.saltPct.soft, {
+        value: input.saltPct,
+        min: SOFT.saltPct.min,
+        max: SOFT.saltPct.max,
+      }),
     };
   }
 
@@ -145,10 +148,13 @@ export function validateRecipeForm(
 
   if (flourTotalInvalid) {
     const dir =
-      input.mix.totalPct > FLOUR_TOTAL_TARGET ? "מעל" : "מתחת";
+      input.mix.totalPct > FLOUR_TOTAL_TARGET ? "over" : "under";
     fields.flourTotal = {
       invalid: true,
-      message: `סך הקמחים ${input.mix.totalPct}% — ${dir} ל־100%.`,
+      message: t(
+        dir === "over" ? v.flourTotal.over : v.flourTotal.under,
+        { total: input.mix.totalPct },
+      ),
     };
   }
 
@@ -185,3 +191,7 @@ export function clampFlourPctAtIndex(
     maxFlourPctAtIndex(pcts, index),
   );
 }
+
+export const VALIDATION_BLOCKED_MESSAGE = v.calculateBlocked;
+export const CUSTOM_FLOUR_NOTE = (total: number) =>
+  t(v.customFlourNote, { total });

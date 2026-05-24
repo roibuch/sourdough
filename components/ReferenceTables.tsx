@@ -57,10 +57,10 @@ export function ReferenceTables() {
       />
 
       <h3 className="mb-3 mt-2 font-serif text-lg font-semibold text-stone-900">
-        Bulk לפי טמפרטורה
+        התפחה ראשונית לפי טמפרטורה
       </h3>
       <Table
-        headers={["טמפ׳ חדר", "זמן Bulk"]}
+        headers={["טמפ׳ חדר", "זמן התפחה בקערה"]}
         rows={[
           ["18°C", "כ־5–8 שעות"],
           ["20°C", "כ־4–6 שעות"],

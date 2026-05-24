@@ -33,7 +33,7 @@ export function buildWorkflowSchedule(
   for (let i = 0; i < foldCount; i++) {
     folds.push({
       ts: anchors.tBulkStart + (i + 1) * foldEveryMin * 60_000,
-      message: `Fold Dough ${i + 1}`,
+      message: `קיפול בצק ${i + 1}`,
       short: `קיפול ${i + 1}`,
     });
   }
@@ -44,8 +44,8 @@ export function buildWorkflowSchedule(
     folds,
     endBulk: {
       ts: anchors.tBulkEnd,
-      message: "End Bulk Fermentation",
-      short: "סיום Bulk",
+      message: "סיום התפחה ראשונית",
+      short: "סיום התפחה בקערה",
     },
   };
 }

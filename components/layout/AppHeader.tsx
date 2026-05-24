@@ -22,7 +22,7 @@ export function AppHeader({ layout }: AppHeaderProps) {
           <Bars3Icon className="h-6 w-6" strokeWidth={1.75} />
         </button>
 
-        <AppBrandHeader tagline={APP_TAGLINE} logoSize={44} />
+        <AppBrandHeader tagline={APP_TAGLINE} logoSize={48} />
       </div>
     </header>
   );

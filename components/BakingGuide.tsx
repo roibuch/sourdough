@@ -7,9 +7,12 @@ import { AdviceList } from "@/components/AdviceList";
 import { Card } from "@/components/ui/Card";
 import { MasterBakerTip } from "@/components/ui/MasterBakerTip";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { heContent, t } from "@/lib/content";
 import { getBassinageAmounts } from "@/lib/bakingMath";
 import { describeFlourMix } from "@/lib/flour";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
+
+const g = heContent.guide;
 
 export function BakingGuide({ form }: { form: RecipeForm }) {
   const {
@@ -47,13 +50,13 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
     <Card nested className="border-0 bg-transparent p-0 shadow-none">
       <SectionHeader
         icon={<SparklesIcon className="h-6 w-6" strokeWidth={1.75} />}
-        title="מדריך אפייה — שלב אחר שלב"
-        subtitle="האכלת מחמצת, אוטוליזה, קיפולים ואפייה — מותאם למתכון שלכם."
+        title={g.title}
+        subtitle={g.subtitle}
       />
 
       {starterOnlyMode && !showResults && (
         <p className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          מצב מחמצת בלבד — שאר השלבים יתמלאו אחרי חישוב מתכון הבצק.
+          {g.starterOnly}
         </p>
       )}
 
@@ -64,39 +67,38 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
               <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-900">
                 🥣
               </span>
-              <h3 className="font-serif text-xl font-semibold">1. אוטוליזה</h3>
+              <h3 className="font-serif text-xl font-semibold">
+                {g.steps.autolyse.title}
+              </h3>
             </div>
             <p className="text-sm leading-relaxed text-stone-600">
-              מערבבים{" "}
-              <strong>{results.flour} גרם</strong> קמח עם{" "}
-              <strong>{bassinage?.autolyseG ?? results.water} גרם</strong> מים
-              (בלי מחמצת ומלח).
-              {bassinage && (
-                <>
-                  {" "}
-                  <strong>בסינאז׳:</strong> החזיקו בצד כ־
-                  <strong>{bassinage.holdG} גרם</strong> מים (
-                  {bassinage.minG}–{bassinage.maxG}).
-                </>
-              )}{" "}
-              כיסוי 30–60 דקות.
+              {t(g.steps.autolyse.body, {
+                flour: results.flour,
+                water: bassinage?.autolyseG ?? results.water,
+              })}
+              {bassinage &&
+                t(g.steps.autolyse.bassinage, {
+                  hold: bassinage.holdG,
+                  min: bassinage.minG,
+                  max: bassinage.maxG,
+                })}
+              {g.steps.autolyse.rest}
             </p>
             <p className="mt-2 text-xs text-stone-500">{describeFlourMix(mix)}</p>
           </article>
 
           <article className="step-card mb-5">
             <h3 className="mb-2 font-serif text-xl font-semibold">
-              2. מחמצת, מלח ובסינאז׳
+              {g.steps.finalMix.title}
             </h3>
             <p className="text-sm text-stone-600">
-              הוסיפו <strong>{results.starter} גרם</strong> מחמצת,{" "}
-              <strong>{results.salt} גרם</strong> מלח
-              {bassinage && (
-                <>
-                  , ו־<strong>{bassinage.holdG} גרם</strong> מי בסינאז׳
-                </>
-              )}
-              . לשו עד אחידות.
+              {t(g.steps.finalMix.body, {
+                starter: results.starter,
+                salt: results.salt,
+                bassinage: bassinage
+                  ? t(g.steps.finalMix.bassinage, { hold: bassinage.holdG })
+                  : "",
+              })}
             </p>
           </article>
 
@@ -104,18 +106,21 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
             <>
               <article className="step-card mb-5">
                 <h3 className="mb-2 font-serif text-xl font-semibold">
-                  3. קיפולים
+                  {g.steps.folds.title}
                 </h3>
                 <p className="mb-3 text-sm text-stone-600">
-                  {workflow.profile} — Bulk משוער{" "}
-                  {workflow.bulkLow}–{workflow.bulkHigh} שעות.
+                  {t(g.steps.folds.profile, {
+                    profile: workflow.profile,
+                    low: workflow.bulkLow,
+                    high: workflow.bulkHigh,
+                  })}
                 </p>
                 {foldAdvice && <AdviceList items={foldAdvice} />}
                 {bulkAlarms && bulkAlarms.length > 0 && (
                   <div className="mt-4">
                     <AlarmButtonGroup
                       alarms={bulkAlarms}
-                      onResult={(t) => showToast(alarmToastMessage(t))}
+                      onResult={(type) => showToast(alarmToastMessage(type))}
                     />
                   </div>
                 )}
@@ -123,7 +128,7 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
 
               <article className="step-card mb-5">
                 <h3 className="mb-2 font-serif text-xl font-semibold">
-                  4. Bulk ועיצוב
+                  {g.steps.bulkShape.title}
                 </h3>
                 <p className="text-sm text-stone-600">{workflow.riseTarget}</p>
               </article>
@@ -134,36 +139,34 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
             <div className="mb-2 flex items-center gap-2">
               <ClockIcon className="h-5 w-5 text-stone-500" />
               <h3 className="font-serif text-xl font-semibold">
-                5. התפחה במקרר
+                {g.steps.coldRetard.title}
               </h3>
             </div>
             <p className="text-sm text-stone-600">
-              כיסוי הדוק, {form.coldRetardHours} שעות בקירור לאיטיות וטעם עמוק.
+              {t(g.steps.coldRetard.body, { hours: form.coldRetardHours })}
             </p>
           </article>
 
           <article className="step-card mb-5">
             <div className="mb-2 flex items-center gap-2">
               <FireIcon className="h-5 w-5 text-orange-700" />
-              <h3 className="font-serif text-xl font-semibold">6. אפייה</h3>
+              <h3 className="font-serif text-xl font-semibold">
+                {g.steps.bake.title}
+              </h3>
             </div>
-            <p className="text-sm text-stone-600">
-              חימום מראש (~250°C), אדים בהתחלה, ללא טורבו אם נוטה לשרוף. הורידו
-              חום אחרי קרום ראשוני.
-            </p>
+            <p className="text-sm text-stone-600">{g.steps.bake.body}</p>
           </article>
 
           <article className="step-card">
-            <h3 className="mb-2 font-serif text-xl font-semibold">7. קירור</h3>
-            <p className="text-sm text-stone-600">
-              לפחות 2–3 שעות על רשת לפני חיתוך.
-            </p>
+            <h3 className="mb-2 font-serif text-xl font-semibold">
+              {g.steps.cool.title}
+            </h3>
+            <p className="text-sm text-stone-600">{g.steps.cool.body}</p>
           </article>
 
           {bassinage && (
             <MasterBakerTip className="mt-6">
-              בסינאז׳: החזיקו {bassinage.holdG} גרם מים להוספה בשלב 2 — משפר
-              מרקם ושליטה בבצק.
+              {t(g.tipBassinage, { hold: bassinage.holdG })}
             </MasterBakerTip>
           )}
         </>

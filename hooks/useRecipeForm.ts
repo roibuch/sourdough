@@ -19,7 +19,34 @@ import {
   generateScheduleOptions,
 } from "@/lib/scheduleOptions";
 import { buildReverseTimeline, defaultTargetBakeLocal } from "@/lib/timeline";
+import {
+  SchedulingEngine,
+  type AdaptiveScheduleResult,
+  type BlackoutPeriod,
+} from "@/lib/scheduling";
+import type { SchedulingEngineInput } from "@/lib/scheduling/types";
+import { MS_MIN } from "@/lib/scheduling/timeUtils";
+import { heContent, t } from "@/lib/content";
 import { normalizeFlourPercentages } from "@/lib/schemas/recipeParamsSchema";
+
+const toasts = heContent.toasts;
+
+const BLACKOUTS_STORAGE_KEY = "sourdough-blackouts-v1";
+
+function loadBlackouts(): BlackoutPeriod[] {
+  if (typeof window === "undefined") return SchedulingEngine.defaultBlackouts();
+  try {
+    const raw = localStorage.getItem(BLACKOUTS_STORAGE_KEY);
+    if (!raw) return SchedulingEngine.defaultBlackouts();
+    const parsed = JSON.parse(raw) as BlackoutPeriod[];
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return SchedulingEngine.defaultBlackouts();
+    }
+    return parsed;
+  } catch {
+    return SchedulingEngine.defaultBlackouts();
+  }
+}
 import type { ScheduleOption } from "@/lib/scheduleOptions";
 import type { BakingWeatherPlan } from "@/lib/weatherPlan";
 import type { DoughResult, PresetKey, TimelinePlan } from "@/lib/types";
@@ -45,6 +72,9 @@ export function useRecipeForm() {
   const [results, setResults] = useState<DoughResult | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [timelinePlan, setTimelinePlan] = useState<TimelinePlan | null>(null);
+  const [adaptiveSchedule, setAdaptiveSchedule] =
+    useState<AdaptiveScheduleResult | null>(null);
+  const [blackouts, setBlackoutsState] = useState<BlackoutPeriod[]>(loadBlackouts);
   const [showTimeline, setShowTimeline] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const initDone = useRef(false);
@@ -72,6 +102,15 @@ export function useRecipeForm() {
 
   const mix = useMemo(() => buildFlourMix(flourPcts), [flourPcts]);
 
+  const setBlackouts = useCallback((next: BlackoutPeriod[]) => {
+    setBlackoutsState(next);
+    try {
+      localStorage.setItem(BLACKOUTS_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const timelineInput = useMemo(() => {
     const base = {
       targetBakeTime,
@@ -97,6 +136,38 @@ export function useRecipeForm() {
     bulkHoursOverride,
     fermentationPace,
   ]);
+
+  const schedulingEngineInput = useMemo((): SchedulingEngineInput => {
+    return {
+      ...timelineInput,
+      blackouts,
+      earliestStartMs: Date.now(),
+    };
+  }, [timelineInput, blackouts]);
+
+  const applyAdaptiveResult = useCallback((result: AdaptiveScheduleResult) => {
+    setAdaptiveSchedule(result);
+    setTimelinePlan(result.plan);
+    setShowTimeline(true);
+    if (Math.abs(result.applied.bulkHoursDelta) > 0.05) {
+      setBulkHoursOverride(
+        Math.round(result.plan.summary.bulkHours * 10) / 10,
+      );
+    }
+    if (Math.abs(result.applied.bakeShiftMs) > MS_MIN) {
+      const bakeEnd = new Date(result.plan.summary.bakeEnd);
+      const y = bakeEnd.getFullYear();
+      const mo = String(bakeEnd.getMonth() + 1).padStart(2, "0");
+      const d = String(bakeEnd.getDate()).padStart(2, "0");
+      const h = String(bakeEnd.getHours()).padStart(2, "0");
+      const mi = String(bakeEnd.getMinutes()).padStart(2, "0");
+      patchState({
+        schedule: {
+          targetBakeTime: `${y}-${mo}-${d}T${h}:${mi}`,
+        },
+      });
+    }
+  }, [patchState]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -225,7 +296,7 @@ export function useRecipeForm() {
   const applyPreset = useCallback(
     (key: PresetKey) => {
       if (key === "custom") {
-        setPresetNote("עריכה ידנית: ודא/י שהאחוזים מסתכמים ל־100%.");
+        setPresetNote("עריכה ידנית: ודאו שהאחוזים מסתכמים ל־100%.");
         patchState({ flourBlend: { ...state.flourBlend, preset: "custom" } });
         return;
       }
@@ -246,19 +317,37 @@ export function useRecipeForm() {
 
   const rebuildTimeline = useCallback(
     (silent: boolean) => {
-      const plan = buildReverseTimeline(timelineInput);
-      if (!plan) {
+      const result = SchedulingEngine.buildAdaptivePlan(schedulingEngineInput);
+      if (!result) {
         if (!silent) {
-          if (!targetBakeTime) showToast("בחר/י זמן יעד לאפייה.");
-          else showToast("תאריך/שעה לא תקינים.");
+          if (!targetBakeTime) showToast(toasts.selectBakeTime);
+          else showToast(toasts.invalidDateTime);
         }
         return null;
       }
-      setTimelinePlan(plan);
-      setShowTimeline(true);
-      return plan;
+      applyAdaptiveResult(result);
+      if (!silent && result.adaptations.length > 0) {
+        const first = result.adaptations[0];
+        if (first.id !== "unresolved") {
+          showToast(first.message);
+        }
+      }
+      return result.plan;
     },
-    [timelineInput, targetBakeTime, showToast],
+    [
+      schedulingEngineInput,
+      applyAdaptiveResult,
+      targetBakeTime,
+      showToast,
+    ],
+  );
+
+  const applyAdaptiveSchedule = useCallback(
+    (next: AdaptiveScheduleResult) => {
+      applyAdaptiveResult(next);
+      schedulePersist();
+    },
+    [applyAdaptiveResult, schedulePersist],
   );
 
   useEffect(() => {
@@ -266,7 +355,7 @@ export function useRecipeForm() {
     initDone.current = true;
 
     if (flourAdjusted) {
-      showToast("תערובת הקמחים עודכנה לסכום 100%.");
+      showToast(toasts.flourNormalized);
     }
 
     const fp = state.flourBlend.preset;
@@ -293,7 +382,7 @@ export function useRecipeForm() {
     }
 
     if (state.schedule.targetBakeTime) {
-      const plan = buildReverseTimeline({
+      const result = SchedulingEngine.buildAdaptivePlan({
         targetBakeTime: state.schedule.targetBakeTime,
         coldRetardHours: state.schedule.coldRetardHours,
         starterPct: state.starterPercent,
@@ -302,11 +391,10 @@ export function useRecipeForm() {
         hoursToAutolyse: state.schedule.hoursToAutolyse,
         flourPcts: state.flourBlend.percentages,
         fermentationPace: state.schedule.fermentationPace,
+        blackouts,
+        earliestStartMs: Date.now(),
       });
-      if (plan) {
-        setTimelinePlan(plan);
-        setShowTimeline(true);
-      }
+      if (result) applyAdaptiveResult(result);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady]);
@@ -318,18 +406,21 @@ export function useRecipeForm() {
 
   useEffect(() => {
     if (!showTimeline || !targetBakeTime) return;
-    const plan = buildReverseTimeline(timelineInput);
-    if (plan) setTimelinePlan(plan);
-  }, [timelineInput, showTimeline, targetBakeTime]);
+    const result = SchedulingEngine.buildAdaptivePlan(schedulingEngineInput);
+    if (result) {
+      setAdaptiveSchedule(result);
+      setTimelinePlan(result.plan);
+    }
+  }, [schedulingEngineInput, showTimeline, targetBakeTime, blackouts.length]);
 
   const handleCalculate = useCallback(() => {
     const w = state.totalWeightG;
     if (!w || w <= 0) {
-      showToast("הזן/י משקל בצק תקין.");
+      showToast(toasts.invalidDoughWeight);
       return;
     }
     if (Math.abs(mix.totalPct - 100) > 0.1) {
-      showToast(`אחוזי הקמחים צריכים להסתכם ל־100%. כרגע: ${mix.totalPct}%.`);
+      showToast(t(toasts.flourNot100, { total: mix.totalPct }));
       return;
     }
     const dough = calculateDough(
@@ -390,7 +481,7 @@ export function useRecipeForm() {
     const url = window.location.href;
     try {
       await navigator.clipboard.writeText(url);
-      showToast("הקישור הועתק — אפשר לשתף את המתכון.");
+      showToast(toasts.linkCopied);
     } catch {
       showToast(url);
     }
@@ -399,7 +490,7 @@ export function useRecipeForm() {
   const selectScheduleOption = useCallback(
     (option: ScheduleOption) => {
       if (!option.feasible) {
-        showToast(option.infeasibleReason ?? "המועד לא זמין.");
+        showToast(option.infeasibleReason ?? toasts.scheduleUnavailable);
         return;
       }
       setTargetBakeTime(option.targetBakeTime);
@@ -408,8 +499,17 @@ export function useRecipeForm() {
       if (option.isExpress) {
         setStarterRatioPreset("equal");
       }
-      setTimelinePlan(option.plan);
-      setShowTimeline(true);
+      const result = SchedulingEngine.buildAdaptivePlan({
+        ...schedulingEngineInput,
+        targetBakeTime: option.targetBakeTime,
+        coldRetardHours: option.coldRetardHours,
+        fermentationPace: option.isExpress ? "express" : "standard",
+      });
+      if (result) applyAdaptiveResult(result);
+      else {
+        setTimelinePlan(option.plan);
+        setShowTimeline(true);
+      }
       setState({ ...state, calculated: showResults });
     },
     [
@@ -417,6 +517,8 @@ export function useRecipeForm() {
       setColdRetardHours,
       setFermentationPace,
       setStarterRatioPreset,
+      schedulingEngineInput,
+      applyAdaptiveResult,
       setState,
       state,
       showResults,
@@ -443,8 +545,17 @@ export function useRecipeForm() {
         };
         const options = generateScheduleOptions(nextInput);
         const match = findScheduleOptionByTarget(options, targetBakeTime);
-        const rebuilt = match?.plan ?? buildReverseTimeline(nextInput);
-        if (rebuilt) {
+        const engineResult = SchedulingEngine.buildAdaptivePlan({
+          ...nextInput,
+          blackouts,
+          earliestStartMs: Date.now(),
+        });
+        const rebuilt =
+          engineResult?.plan ??
+          match?.plan ??
+          buildReverseTimeline(nextInput);
+        if (engineResult) applyAdaptiveResult(engineResult);
+        else if (rebuilt) {
           setTimelinePlan(rebuilt);
           setShowTimeline(true);
         }
@@ -459,6 +570,8 @@ export function useRecipeForm() {
       showResults,
       targetBakeTime,
       timelineInput,
+      blackouts,
+      applyAdaptiveResult,
     ],
   );
 
@@ -481,7 +594,7 @@ export function useRecipeForm() {
     }
     const path = window.location.pathname;
     window.history.replaceState(null, "", path);
-    showToast("השמירה המקומית אופסה.");
+    showToast(toasts.storageCleared);
   }, [showToast]);
 
   return {
@@ -526,6 +639,11 @@ export function useRecipeForm() {
     results,
     showResults,
     timelinePlan,
+    adaptiveSchedule,
+    applyAdaptiveSchedule,
+    blackouts,
+    setBlackouts,
+    schedulingEngineInput,
     showTimeline,
     mix,
     toast,

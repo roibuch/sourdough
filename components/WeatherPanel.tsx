@@ -19,7 +19,10 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import type { WeatherRecommendation } from "@/lib/types";
+import { heContent } from "@/lib/content";
 import { cn } from "@/lib/cn";
+
+const wx = heContent.weather.panel;
 
 const TIER_STYLES: Record<
   WeatherRecommendation["tier"],
@@ -60,9 +63,8 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
         tier: "error",
         pct: 0,
         range: "",
-        title: "לא ניתן לטעון תחזית",
-        body:
-          "חסר מפתח API. נסו: רענון קשיח (Ctrl+Shift+R), חלון פרטי, או מחיקת נתוני האתר בהגדרות הדפדפן. מקומית: .env.local + npm run dev. ב-GitHub: Secret NEXT_PUBLIC_OPENWEATHER_API_KEY ואז Re-run של ה-workflow.",
+        title: wx.loadErrorTitle,
+        body: wx.loadErrorBody,
       });
       setPlan(null);
       return;
@@ -92,13 +94,13 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
     } catch (e) {
       const msg =
         e instanceof Error && e.message === "no_geolocation"
-          ? "לא ניתן לקבל מיקום — אפשרו גישה למיקום בדפדפן."
-          : "לא הצלחנו לתכנן לפי התחזית. נסו/י שוב מאוחר יותר.";
+          ? wx.geoDenied
+          : wx.planFailed;
       setRec({
         tier: "error",
         pct: 0,
         range: "",
-        title: "שגיאה בטעינה",
+        title: wx.fetchErrorTitle,
         body: msg,
       });
       setPlan(null);
@@ -112,7 +114,7 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
     form.applyWeatherPlan(plan);
     form.schedulePersist();
     form.showToast(
-      `תוכנן לפי מזג האוויר: ${plan.starterPct}% מחמצת, ${plan.hoursToAutolyse} שעות עד אוטוליזה, Bulk ~${plan.bulkHours} שעות.`,
+      `תוכנן לפי מזג האוויר: ${plan.starterPct}% מחמצת, ${plan.hoursToAutolyse} שעות עד אוטוליזה, התפחה ראשונית ~${plan.bulkHours} שעות.`,
     );
   };
 
@@ -130,7 +132,7 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
             תכנון לפי מזג אוויר
           </h3>
           <p className="text-sm text-stone-600">
-            בודקים תחזית לכל שעות העבודה — האכלה, אוטוליזה ו-Bulk — ומתאימים
+            בודקים תחזית לכל שעות העבודה — האכלה, אוטוליזה והתפחה הראשונית — ומתאימים
             אחוזים ושעות בהתאם
           </p>
         </div>
@@ -150,7 +152,7 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
         disabled={loading}
       >
         <CloudArrowDownIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-        {loading ? "מחשב תכנון לפי תחזית…" : "תכנון מלא לפי מזג אוויר מקומי"}
+        {loading ? wx.loading : wx.planButton}
       </Button>
 
       {rec && tierStyle && (
@@ -185,9 +187,7 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
                   {locationLabel}
                 </span>
                 <span>
-                  {plan.hasTargetBake
-                    ? "תכנון לפי לוח האפייה שלכם"
-                    : "תכנון מהרגע הנוכחי"}
+                  {plan.hasTargetBake ? wx.planFromBake : wx.planFromNow}
                 </span>
               </p>
 
@@ -209,7 +209,7 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
                   <p className="text-xs text-stone-500">1 שעה</p>
                 </div>
                 <div>
-                  <span className="text-stone-500">Bulk</span>
+                  <span className="text-stone-500">התפחה ראשונית</span>
                   <p className="font-semibold text-stone-900">
                     {plan.bulkWindowAvg.toFixed(1)}°C
                   </p>
@@ -223,8 +223,8 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
 
           {rec.tier !== "error" && plan && (
             <Button variant="primary" className="mt-4" onClick={handleApply}>
-              החל/י תכנון — {plan.starterPct}% · {plan.hoursToAutolyse} שעות · Bulk{" "}
-              {plan.bulkHours} ש
+              החלת תכנון — {plan.starterPct}% מחמצת · {plan.hoursToAutolyse} שעות · התפחה{" "}
+              {plan.bulkHours} שעות
             </Button>
           )}
         </div>

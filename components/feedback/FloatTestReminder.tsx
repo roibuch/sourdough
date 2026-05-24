@@ -19,12 +19,12 @@ export function FloatTestReminderContent() {
             <InfoTooltip term="float-test" />
           </h4>
           <span className="rounded-full bg-amber-200 px-3 py-1 text-xs font-bold text-amber-950">
-            חובה מומלץ
+            מומלץ מאוד
           </span>
         </div>
 
         <p className="m-0 text-sm leading-relaxed text-stone-700">
-          לפני «הוספת מחמצת, מלח ו-Bulk» — ודאו שהמחמצת בשיא. כף קטנה במים:
+          לפני הוספת מחמצת ומלח — ודאו שהמחמצת בשיא. כף קטנה במים:
           <strong className="text-amber-950"> צפה = מוכנה</strong>, שוקעת =
           עוד האכלה או חום.
         </p>

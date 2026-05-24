@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { BeakerIcon } from "@heroicons/react/24/outline";
-import { ExpressModePanel } from "@/components/ExpressModePanel";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -39,11 +38,11 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
 
   const handleCalcStarter = () => {
     if (useRecipeStarter && (!results || results.starter <= 0)) {
-      showToast("קודם חשב/י את מתכון הבצק ולחצ/י «חישוב מרכיבים».");
+      showToast("קודם חשבו את מתכון הבצק ולחצו «חישוב מרכיבים».");
       return;
     }
     if (!useRecipeStarter && starterNeedG <= 0) {
-      showToast("הזינו כמות מחמצת נדרשת (גרם).");
+      showToast("הזינו כמות מחמצת נדרשת בגרמים.");
       return;
     }
     const feed = calculateStarterFeed({
@@ -95,8 +94,6 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
             </>
           )}
         </p>
-
-        <ExpressModePanel form={form} />
 
         <div className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4 sm:p-5">
           <p className="mb-4 text-sm text-stone-600">

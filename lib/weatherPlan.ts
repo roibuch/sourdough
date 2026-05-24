@@ -238,8 +238,8 @@ export function planBakingFromForecast(
     `תכנון לפי ${windowLabel}: ` +
     `האכלה ${starterWindowAvg.toFixed(1)}°C (${formatPhaseRange(anchors.tStarterFeed, anchors.tAutolyseStart)}), ` +
     `אוטוליזה ${autolyseWindowAvg.toFixed(1)}°C, ` +
-    `Bulk ${bulkWindowAvg.toFixed(1)}°C (${formatPhaseRange(anchors.tBulkStart, anchors.tBulkEnd)}). ` +
-    `מומלץ: ${starterPct}% מחמצת, ${hoursToAutolyse} שעות עד אוטוליזה, Bulk ~${bulkHours} שעות.`;
+    `התפחה ראשונית ${bulkWindowAvg.toFixed(1)}°C (${formatPhaseRange(anchors.tBulkStart, anchors.tBulkEnd)}). ` +
+    `מומלץ: ${starterPct}% מחמצת, ${hoursToAutolyse} שעות עד אוטוליזה, התפחה בקערה ~${bulkHours} שעות.`;
 
   recommendation.body =
     `${recommendation.body} ${phaseSummary}`;

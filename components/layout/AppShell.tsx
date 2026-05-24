@@ -3,6 +3,7 @@
 import { useLayoutState } from "@/hooks/useLayoutState";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { heContent } from "@/lib/content";
 import { cn } from "@/lib/cn";
 
 interface AppShellProps {
@@ -57,7 +58,7 @@ export function AppShell({ children }: AppShellProps) {
           </div>
 
           <footer className="mx-auto mt-12 max-w-3xl border-t border-stone-200/80 pt-8 text-center text-sm text-stone-500">
-            Sourdough Master — המתכון נשמר ב־localStorage ובקישור לשיתוף.
+            {heContent.app.footer}
           </footer>
         </main>
       </div>

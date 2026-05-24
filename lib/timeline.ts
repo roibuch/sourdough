@@ -1,8 +1,11 @@
 import type { FermentationPace } from "./expressMode";
 import { pctOf, buildFlourMix } from "./flour";
 import { getDoughWorkflow } from "./workflow";
+import { heContent, t as fmt } from "@/lib/content";
 import type { FlourMix, TimelinePlan, TimelineStep } from "./types";
 import { buildWorkflowSchedule } from "./schedule";
+
+const tl = heContent.timeline;
 
 const MS_H = 3_600_000;
 
@@ -165,51 +168,51 @@ export function buildReverseTimeline(input: BuildTimelineInput): TimelinePlan | 
   const steps: TimelineStep[] = [
     {
       icon: "🦠",
-      title: "האכלת מחמצת (לשיא)",
+      title: tl.steps.starterFeed.title,
       start: tStarterFeed,
       duration: formatDurationLabel(starterPeakH),
-      meta: "הוצא/י מהמקרר והאכל/י — חכה/י לכפילות נפח לפני האוטוליזה.",
+      meta: tl.steps.starterFeed.meta,
     },
     {
       icon: "🥣",
-      title: "אוטוליזה",
+      title: tl.steps.autolyse.title,
       start: tAutolyseStart,
       duration: formatDurationLabel(autolyseH),
       meta:
         autolyseH <= 0.5
-          ? "ערבוב קמח ומים — אוטוליזה קצרה (מצב מואץ)."
-          : "ערבוב קמח ומים בלבד (בסינאז׳ — החזיקו/י מים בצד לשלב הבא).",
+          ? tl.steps.autolyse.metaExpress
+          : tl.steps.autolyse.metaStandard,
     },
     {
       icon: "🧂",
-      title: "הוספת מחמצת, מלח ו-Bulk",
+      title: tl.steps.bulk.title,
       start: tAutolyseEnd,
       duration: formatDurationLabel(bulkH),
-      meta: `אחרי האוטוליזה — לש/י והתפחה ראשונית (Bulk), ~${input.starterPct}% מחמצת.`,
+      meta: fmt(tl.steps.bulk.meta, { starterPct: input.starterPct }),
       alarms: schedule
         ? [...schedule.folds, schedule.endBulk]
         : undefined,
     },
     {
       icon: "✋",
-      title: "עיצוב מקדים ומנוחה",
+      title: tl.steps.preshape.title,
       start: tPreshapeStart,
-      duration: "30 דק׳",
-      meta: "עיצוב קל והרפיה לפני הכנסה למקרר.",
+      duration: tl.duration.halfHour,
+      meta: tl.steps.preshape.meta,
     },
     {
       icon: "❄️",
-      title: "התפחה איטית במקרר",
+      title: tl.steps.coldRetard.title,
       start: tRetardStart,
       duration: formatDurationLabel(input.coldRetardHours),
-      meta: "כיסוי הדוק — התפחה איטית בקור.",
+      meta: tl.steps.coldRetard.meta,
     },
     {
       icon: "🔥",
-      title: "חימום ואפייה",
+      title: tl.steps.bake.title,
       start: tBakeStart,
-      duration: "1 שעה",
-      meta: "הוצא/י מהמקרר, חימום תנור והכנסה לאפייה — סיום בזמן היעד.",
+      duration: tl.duration.oneHour,
+      meta: tl.steps.bake.meta,
       isTarget: true,
     },
   ];

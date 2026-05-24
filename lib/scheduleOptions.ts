@@ -1,3 +1,4 @@
+import { heContent, t } from "@/lib/content";
 import { buildTimelineInputWithPace } from "./expressMode";
 import {
   ACTIVE_HOUR_END,
@@ -16,6 +17,7 @@ import type { TimelinePlan } from "./types";
 const MS_H = 3_600_000;
 const MIN_LEAD_H = 5;
 const MIN_LEAD_H_EXPRESS = 3;
+const schCopy = heContent.schedule;
 
 export interface ScheduleHighlight {
   icon: string;
@@ -79,37 +81,41 @@ function buildHighlights(plan: TimelinePlan): ScheduleHighlight[] {
   const autolyse = plan.steps[1];
   const bulk = plan.steps[2];
   const retard = plan.steps[4];
+  const h = schCopy.highlights;
 
   return [
     {
-      icon: "🦠",
-      label: "התחילו — האכלת מחמצת",
+      icon: h.starter.icon,
+      label: h.starter.label,
       detail: formatScheduleTime(plan.summary.starterFeed),
-      kind: "start",
+      kind: h.starter.kind,
     },
     {
-      icon: "🥣",
-      label: "אוטוליזה וערבוב",
+      icon: h.autolyse.icon,
+      label: h.autolyse.label,
       detail: formatScheduleTime(autolyse.start),
-      kind: "active",
+      kind: h.autolyse.kind,
     },
     {
-      icon: "👐",
-      label: "עבודה פעילה (קיפולים)",
-      detail: `מ־${formatScheduleTime(bulk.start)} · ~${plan.summary.bulkHours} שעות`,
-      kind: "active",
+      icon: h.bulk.icon,
+      label: h.bulk.label,
+      detail: t(schCopy.bulkDetail, {
+        start: formatScheduleTime(bulk.start),
+        hours: plan.summary.bulkHours,
+      }),
+      kind: h.bulk.kind,
     },
     {
-      icon: "😴",
-      label: "פנויים — מקרר בלבד",
-      detail: `מ־${formatScheduleTime(retard.start)}`,
-      kind: "free",
+      icon: h.free.icon,
+      label: h.free.label,
+      detail: t(schCopy.freeDetail, { start: formatScheduleTime(retard.start) }),
+      kind: h.free.kind,
     },
     {
-      icon: "🔥",
-      label: "לחם מוכן",
+      icon: h.finish.icon,
+      label: h.finish.label,
       detail: formatScheduleTime(plan.summary.bakeEnd),
-      kind: "finish",
+      kind: h.finish.kind,
     },
   ];
 }
@@ -136,58 +142,60 @@ function addCandidate(
 function buildCandidates(): Candidate[] {
   const list: Candidate[] = [];
 
+  const c = schCopy.candidates;
+
   addCandidate(list, {
     id: "fri-evening",
-    title: "שישי אחה״צ — ארוחת שבת",
+    title: c.friEvening,
     hour: 18,
     coldRetardHours: 12,
   }, 5);
 
   addCandidate(list, {
     id: "sat-morning",
-    title: "שבת בבוקר — כיכר לקפה",
+    title: c.satMorning,
     hour: 10,
     coldRetardHours: 10,
   }, 6);
 
   addCandidate(list, {
     id: "sat-lunch",
-    title: "שבת בצהריים",
+    title: c.satLunch,
     hour: 13,
     coldRetardHours: 10,
   }, 6);
 
   addCandidate(list, {
     id: "sat-afternoon",
-    title: "שבת אחר הצהריים",
+    title: c.satAfternoon,
     hour: 17,
     coldRetardHours: 10,
   }, 6);
 
   addCandidate(list, {
     id: "sun-brunch",
-    title: "ראשון — בוקר/בראנץ׳",
+    title: c.sunBrunch,
     hour: 11,
     coldRetardHours: 12,
   }, 0);
 
   addCandidate(list, {
     id: "sun-lunch",
-    title: "ראשון בצהריים",
+    title: c.sunLunch,
     hour: 13,
     coldRetardHours: 12,
   }, 0);
 
   addCandidate(list, {
     id: "tomorrow-am",
-    title: "מחר בבוקר",
+    title: c.tomorrowAm,
     hour: 10,
     coldRetardHours: 10,
   }, undefined, 1);
 
   addCandidate(list, {
     id: "tomorrow-noon",
-    title: "מחר בצהריים",
+    title: c.tomorrowNoon,
     hour: 13,
     coldRetardHours: 10,
   }, undefined, 1);
@@ -237,7 +245,7 @@ function pushOption(
     if (!fixed) {
       options.push({
         id: isExpress ? `${id}-express` : id,
-        title: isExpress ? `${title} ⚡ מואץ` : title,
+        title: isExpress ? `${title}${schCopy.expressSuffix}` : title,
         bakeLabel: formatBakeLabel(date),
         targetBakeTime,
         coldRetardHours: resolved.coldRetardHours,
@@ -245,7 +253,10 @@ function pushOption(
         highlights: buildHighlights(plan),
         feasible: false,
         isExpress,
-        infeasibleReason: `עבודה פעילה יוצאת משעות ${ACTIVE_HOUR_START}:00–${ACTIVE_HOUR_END}:00 — נסו מועד מאוחר יותר או «מואץ».`,
+        infeasibleReason: t(schCopy.infeasibleNight, {
+          start: ACTIVE_HOUR_START,
+          end: ACTIVE_HOUR_END,
+        }),
       });
       return;
     }
@@ -259,12 +270,12 @@ function pushOption(
 
   const shiftedNote =
     finalDate.getTime() !== date.getTime()
-      ? ` (הותאם ל־${formatBakeLabel(finalDate)} — בלי עבודה בלילה)`
+      ? t(schCopy.shiftedNote, { label: formatBakeLabel(finalDate) })
       : "";
 
   options.push({
     id: isExpress ? `${id}-express` : id,
-    title: (isExpress ? `${title} ⚡ מואץ` : title) + shiftedNote,
+    title: (isExpress ? `${title}${schCopy.expressSuffix}` : title) + shiftedNote,
     bakeLabel: formatBakeLabel(finalDate),
     targetBakeTime: targetBakeTimeFinal,
     coldRetardHours: resolved.coldRetardHours,
@@ -275,8 +286,8 @@ function pushOption(
     infeasibleReason: feasible
       ? undefined
       : isExpress
-        ? `גם במצב מואץ נדרשות לפחות ${minLeadH} שעות מראש`
-        : `נדרשות לפחות ${MIN_LEAD_H} שעות — נסו את גרסת «מואץ»`,
+        ? t(schCopy.infeasibleExpress, { hours: minLeadH })
+        : t(schCopy.infeasibleStandard, { hours: MIN_LEAD_H }),
   });
 }
 

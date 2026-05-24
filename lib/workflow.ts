@@ -32,32 +32,32 @@ export function getDoughWorkflow(
   const lowHydration = currentWaterPct < hydration.low - 2;
 
   let foldCount = "3–4";
-  let foldStyle = "Stretch & Fold רגיל או Coil Fold עדין";
+  let foldStyle = "מתיחה וקיפול או קיפול סליל עדין";
   let foldEvery = "30–45 דקות";
   let doughProfile = "מאוזן ונוח לעבודה";
   let foldNote = "אפשר להפסיק כשהבצק מרגיש חזק, חלק ואלסטי יותר.";
 
   if (fragilePct >= 28 || structureScore < 0.62) {
     foldCount = "2–3";
-    foldStyle = "קיפולים עדינים / Coil Fold";
+    foldStyle = "קיפולים עדינים / קיפול סליל";
     foldEvery = "35–50 דקות";
     doughProfile = "עדין וחלש יחסית";
     foldNote = "לא ללוש באגרסיביות; עדיף לחזק בעדינות.";
   } else if (highHydration && structureScore >= 0.78) {
     foldCount = "4–5";
-    foldStyle = "בעיקר Coil Fold";
+    foldStyle = "בעיקר קיפול סליל";
     foldEvery = "25–35 דקות";
     doughProfile = "רטוב ואלסטי";
     foldNote = "אם הבצק נמרח אחרי 3 קיפולים — קיפול נוסף במקום קמח.";
   } else if (lowHydration) {
     foldCount = "2–3";
-    foldStyle = "Stretch & Fold קצר";
+    foldStyle = "מתיחה וקיפול קצר";
     foldEvery = "40–50 דקות";
     doughProfile = "יציב יחסית";
     foldNote = "אם נוקשה — מנוחה ארוכה יותר.";
   } else if (manitoba >= 25 || strongPct >= 75) {
     foldCount = "3–4";
-    foldStyle = "Stretch & Fold או Coil Fold";
+    foldStyle = "מתיחה וקיפול או קיפול סליל";
     foldEvery = "30–45 דקות";
     doughProfile = "חזק ואלסטי";
     foldNote = "אפשר לעצור מוקדם אם הבצק עומד יפה.";
@@ -66,7 +66,7 @@ export function getDoughWorkflow(
     foldStyle = "קיפולים עדינים";
     foldEvery = "30–40 דקות";
     doughProfile = "מלא וכבד יותר";
-    foldNote = "קמחים מלאים מאיצים תפיחה — עקבו/י אחרי תחושה.";
+    foldNote = "קמח מלא מאיץ תפיחה — עקבו אחרי נפח ותחושה.";
   }
 
   if (pizza >= 45) {

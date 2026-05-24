@@ -3,6 +3,7 @@ import { Frank_Ruhl_Libre, Heebo } from "next/font/google";
 import Script from "next/script";
 import { OpenWeatherRuntimeConfig } from "@/components/OpenWeatherRuntimeConfig";
 import { BRAND, brandAssetPath } from "@/lib/brand";
+import { heContent } from "@/lib/content";
 import { getBasePath } from "@/lib/basePath";
 import "./globals.css";
 
@@ -23,9 +24,8 @@ const basePath = getBasePath();
 const appleTouchIcon = brandAssetPath("icon-512x512.png");
 
 export const metadata: Metadata = {
-  title: "Sourdough Master | מחשבון ומדריך מחמצת",
-  description:
-    "מחשבון בצק מחמצת, תערובות קמח, הידרציה אמיתית ומדריך אפייה — בעברית, מותאם לכולם.",
+  title: heContent.app.metadata.title,
+  description: heContent.app.metadata.description,
   icons: {
     icon: [
       { url: brandAssetPath("logo.png"), sizes: "192x192", type: "image/png" },

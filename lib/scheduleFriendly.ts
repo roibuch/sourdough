@@ -1,3 +1,4 @@
+import { heContent, t } from "@/lib/content";
 import type { TimelinePlan } from "./types";
 
 /** Active work should stay in this window (local time) */
@@ -22,7 +23,12 @@ export function nightWorkDescription(plan: TimelinePlan): string | null {
     const step = plan.steps[i];
     const h = new Date(step.start).getHours();
     if (isNightActiveHour(h)) {
-      return `«${step.title}» ב־${String(h).padStart(2, "0")}:00 — מחוץ לשעות העבודה הנוחות (${ACTIVE_HOUR_START}:00–${ACTIVE_HOUR_END}:00).`;
+      return t(heContent.alerts.schedule.nightWork, {
+        stepTitle: step.title,
+        hour: String(h).padStart(2, "0"),
+        start: ACTIVE_HOUR_START,
+        end: ACTIVE_HOUR_END,
+      });
     }
   }
   return null;

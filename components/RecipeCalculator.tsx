@@ -89,7 +89,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
       return next;
     });
     setPresetNote(
-      `עריכה ידנית: סך הקמחים כרגע ${mix.totalPct}% (יתעדכן). צריך להגיע ל־100%.`,
+      `עריכה ידנית: סך הקמחים כרגע ${mix.totalPct}%. צריך להגיע ל־100%.`,
     );
   };
 
@@ -143,7 +143,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             onClick={handleCopyLink}
           >
             <LinkIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-            העתק/י קישור
+            העתקת קישור
           </Button>
           <Button
             variant="ghost"

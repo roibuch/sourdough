@@ -1,4 +1,7 @@
+import { heContent } from "@/lib/content";
 import type { BassinageAmounts, DoughResult } from "@/lib/types";
+
+const ddtWarnings = heContent.ddt.warnings;
 
 /** Baker's %: ingredient weight as % of flour weight */
 export interface BakersPercentages {
@@ -154,16 +157,14 @@ export function calculateWaterTempDDT(input: DDTInput): DDTResult | null {
 
   if (rounded < WATER_TEMP_MIN) {
     band = "too_cold";
-    warning =
-      "טמפרטורת מים נמוכה מדי — השתמשו במים חמים יותר או הורידו את יעד ה-DDT / חממו קמח.";
+    warning = ddtWarnings.tooCold;
   } else if (rounded > WATER_TEMP_MAX) {
     band = "too_hot";
-    warning =
-      "טמפרטורת מים גבוהה מדי — השתמשו במים קרים יותר, קמח מהמקרר, או הורידו את יעד ה-DDT.";
+    warning = ddtWarnings.tooHot;
   } else if (rounded < 10) {
-    warning = "מים קרים מאוד — ודאו שהמדידה וה-DDT מתאימים לסביבה.";
+    warning = ddtWarnings.veryColdWater;
   } else if (rounded > 35) {
-    warning = "מים חמים — בדקו עם מדחום לפני הלישה.";
+    warning = ddtWarnings.veryHotWater;
   }
 
   return {
@@ -176,7 +177,7 @@ export function calculateWaterTempDDT(input: DDTInput): DDTResult | null {
 
 export const DDT_TARGET_DEFAULT = 25;
 export const DDT_FRICTION_OPTIONS = [
-  { value: 0, label: "ללא (ערבוב עדין)" },
-  { value: 2, label: "קל (+2°C)" },
-  { value: 4, label: "מיקסר (+4°C)" },
+  { value: 0, label: heContent.ddt.friction.none },
+  { value: 2, label: heContent.ddt.friction.light },
+  { value: 4, label: heContent.ddt.friction.mixer },
 ] as const;

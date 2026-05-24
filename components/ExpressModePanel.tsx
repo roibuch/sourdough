@@ -69,11 +69,16 @@ export function ExpressModePanel({ form }: { form: RecipeForm }) {
                 : "brand-choice-idle text-charcoal-muted",
             )}
           >
-            ⚡ מואץ — אין מספיק זמן
+            ⚡ מואץ
           </button>
         </div>
         {summary && (
-          <p className="mt-3 text-xs leading-relaxed text-amber-900">{summary}</p>
+          <p className="mt-2 text-xs leading-relaxed text-charcoal-muted">{summary}</p>
+        )}
+        {fermentationPace === "express" && (
+          <p className="mt-1 text-[11px] text-charcoal-muted">
+            לוח צפוף או פחות זמן — מקצר אוטוליזה, התפחה ומקרר.
+          </p>
         )}
       </div>
 

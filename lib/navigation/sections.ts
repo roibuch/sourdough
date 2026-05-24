@@ -5,6 +5,7 @@ import {
   CalendarDaysIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
+import { heContent } from "@/lib/content";
 
 export type AppSectionId =
   | "ingredients"
@@ -35,29 +36,31 @@ export interface NavGroup {
   defaultCollapsed?: boolean;
 }
 
+const c = heContent.navigation;
+
 export const NAV_GROUPS: NavGroup[] = [
   {
     id: "core",
-    label: "מרכיבי בצק",
+    label: c.groups.core,
     icon: CalculatorIcon,
     items: [
       {
         id: "ingredients",
-        label: "מתכון ואחוזים",
-        description: "משקל, מים, מחמצת ותערובת קמחים",
+        label: c.items.ingredients.label,
+        description: c.items.ingredients.description,
         anchor: "section-ingredients",
       },
     ],
   },
   {
     id: "starter",
-    label: "מחמצת / לאבן",
+    label: c.groups.starter,
     icon: BeakerIcon,
     items: [
       {
         id: "starter",
-        label: "האכלה ומצב מואץ",
-        description: "יחסי האכלה, חימום וכמויות",
+        label: c.items.starter.label,
+        description: c.items.starter.description,
         anchor: "section-starter",
       },
     ],
@@ -65,33 +68,33 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     id: "timing",
-    label: "תזמון ולוח",
+    label: c.groups.timing,
     icon: CalendarDaysIcon,
     items: [
       {
         id: "schedule",
-        label: "מועד אפייה ולוח",
-        description: "בחירת מועד, מזג אוויר והתראות",
+        label: c.items.schedule.label,
+        description: c.items.schedule.description,
         anchor: "section-schedule",
       },
       {
         id: "guide",
-        label: "מדריך שלבים",
-        description: "אוטוליזה, bulk, אפייה",
+        label: c.items.guide.label,
+        description: c.items.guide.description,
         anchor: "section-guide",
       },
     ],
   },
   {
     id: "advanced",
-    label: "מתקדם",
+    label: c.groups.advanced,
     icon: Cog6ToothIcon,
     defaultCollapsed: true,
     items: [
       {
         id: "reference",
-        label: "טבלאות ייחוס",
-        description: "Bulk, מקרר והמלצות",
+        label: c.items.reference.label,
+        description: c.items.reference.description,
         anchor: "section-reference",
       },
     ],
@@ -110,26 +113,11 @@ export function getNavItem(id: AppSectionId): NavItem | undefined {
   return undefined;
 }
 
-/** Placeholder pro-tips per section (expandable in SectionPanel) */
 export const SECTION_PRO_TIPS: Partial<Record<AppSectionId, string[]>> = {
-  ingredients: [
-    "אחוזי הקמחים חייבים להסתכם ל־100% — המערכת תציג שגיאה אם לא.",
-    "הידרציה אמיתית כוללת את המים שבבסינאז׳ — בדקו את טווח ההמלצה לתערובת.",
-  ],
-  starter: [
-    "1:1:1 מתאים כשיש מעט זמן; 1:0.5:0.5 מהיר יותר עם מחמצת חזקה.",
-    "במצב מואץ — שקלו חימום בתנור (נורה בלבד) או מיקרוגל כבוי.",
-    "DDT: מדדו טמפרטורת קמח ומחמצת — מים חמים/קרים לפי המחשבון.",
-  ],
-  schedule: [
-    "עבודה פעילה מתוכננת רק בין 7:00–21:00 — בלי התעוררות בלילה.",
-    "באנדרואיד: «שעון» לשעון מעורר, «יומן» לאירוע עם התראה.",
-  ],
-  guide: [
-    "עצרו bulk לפי נפח (jiggle test) — לא רק לפי השעון.",
-    "בסינאז׳: החזיקו מים בצד ושילבו בשלב הלישה.",
-  ],
+  ingredients: [...c.proTips.ingredients],
+  starter: [...c.proTips.starter],
+  schedule: [...c.proTips.schedule],
+  guide: [...c.proTips.guide],
 };
 
-export const APP_TAGLINE =
-  "חישוב בצק, תזמון חכם ומדריך שלבים — מותאם לבית אפייה.";
+export const APP_TAGLINE = c.tagline;

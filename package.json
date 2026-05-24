@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "dayjs": "^1.11.20",
     "framer-motion": "^12.40.0",
     "next": "^15.1.0",
     "react": "^19.0.0",

@@ -1,3 +1,4 @@
+import { heContent, t } from "@/lib/content";
 import { pctOf } from "@/lib/flour";
 import type { FlourMix } from "@/lib/types";
 import {
@@ -19,6 +20,7 @@ export interface BakerAlert {
 }
 
 const MS_H = 3_600_000;
+const a = heContent.alerts;
 
 const HIGH_HYDRATION_THRESHOLD = 78;
 const VERY_HIGH_HYDRATION = 85;
@@ -50,30 +52,40 @@ export function getHydrationAlerts(
       alerts.push({
         id: "hydration-very-high-weak",
         severity: "danger",
-        title: "הידרציה גבוהה מאוד",
-        message: `ב־${Math.round(effective)}% הידרציה הבצק רטוב מאוד. ודאו שיש לפחות 15–25% מניטובה או 45%+ קמח לחם/חזק — אחרת הבצק עלול להישאר דביק וחלש.`,
+        title: a.hydration.veryHighWeak.title,
+        message: t(a.hydration.veryHighWeak.message, {
+          effective: Math.round(effective),
+        }),
       });
     } else if (manitoba < 10) {
       alerts.push({
         id: "hydration-very-high-manitoba",
         severity: "warning",
-        title: "הידרציה גבוהה — חיזוק מומלץ",
-        message: `ב־${Math.round(effective)}% הידרציה מומלץ לכלול קמח חלבון גבוה (מניטובה). כרגע מניטובה ${manitoba}% — שקלו להעלות ל־15% ומעלה.`,
+        title: a.hydration.veryHighManitoba.title,
+        message: t(a.hydration.veryHighManitoba.message, {
+          effective: Math.round(effective),
+          manitoba,
+        }),
       });
     } else {
       alerts.push({
         id: "hydration-very-high-ok",
         severity: "info",
-        title: "הידרציה גבוהה",
-        message: `ב־${Math.round(effective)}% הידרציה — עבודה עדינה, קיפולים עדינים (Coil/Slap), ודאו שהמחמצת בשיא לפני הלישה.`,
+        title: a.hydration.veryHighOk.title,
+        message: t(a.hydration.veryHighOk.message, {
+          effective: Math.round(effective),
+        }),
       });
     }
   } else if (effective >= HIGH_HYDRATION_THRESHOLD && strong < 40) {
     alerts.push({
       id: "hydration-high-weak",
       severity: "warning",
-      title: "אזהרת הידרציה",
-      message: `ב־${Math.round(effective)}% הידרציה עם תערובת יחסית חלשה (${Math.round(strong)}% קמח חזק). שקלו מניטובה או קמח לחם נוסף — אחרת הבצק עלול להתפזר.`,
+      title: a.hydration.highWeak.title,
+      message: t(a.hydration.highWeak.message, {
+        effective: Math.round(effective),
+        strong: Math.round(strong),
+      }),
     });
   }
 
@@ -81,8 +93,8 @@ export function getHydrationAlerts(
     alerts.push({
       id: "hydration-bakers-high",
       severity: "warning",
-      title: "אחוז מים גבוה",
-      message: `הגדרתם ${waterPercent}% מים (באקרים). ודאו שהתערובת תומכת בבצק רטוב — מניטובה או קמח לחם.`,
+      title: a.hydration.bakersHigh.title,
+      message: t(a.hydration.bakersHigh.message, { waterPct: waterPercent }),
     });
   }
 
@@ -105,12 +117,14 @@ export function getScheduleAlerts(plan: TimelinePlan | null): BakerAlert[] {
     alerts.push({
       id: "schedule-night-active",
       severity: "warning",
-      title: "אזהרת לוח זמנים",
+      title: a.schedule.nightActiveTitle,
       message: nightDesc,
     });
   }
 
-  const bulkStep = plan.steps.find((s) => s.title.includes("מחמצת, מלח"));
+  const bulkStep = plan.steps.find((s) =>
+    s.title.includes("התפחה ראשונית בקערה"),
+  );
   if (bulkStep && plan.summary.bulkHours > 0) {
     const bulkEndMs = bulkStep.start + plan.summary.bulkHours * MS_H;
     const endHour = new Date(bulkEndMs).getHours();
@@ -118,21 +132,30 @@ export function getScheduleAlerts(plan: TimelinePlan | null): BakerAlert[] {
       alerts.push({
         id: "schedule-bulk-end-night",
         severity: "warning",
-        title: "אזהרת לוח — סוף Bulk",
-        message: `לפי ההגדרות הנוכחיות, שלב ה-Bulk מסתיים בערך ב־${hourLabel(bulkEndMs)} (${formatScheduleTime(bulkEndMs)}) — מחוץ לשעות העבודה הנוחות (${ACTIVE_HOUR_START}:00–${ACTIVE_HOUR_END}:00). שקלו מועד אפייה מאוחר יותר או מצב מואץ.`,
+        title: a.schedule.bulkEndNight.title,
+        message: t(a.schedule.bulkEndNight.message, {
+          timeLabel: hourLabel(bulkEndMs),
+          formatted: formatScheduleTime(bulkEndMs),
+          start: ACTIVE_HOUR_START,
+          end: ACTIVE_HOUR_END,
+        }),
       });
     }
   }
 
-  const mixingStep = plan.steps.find((s) => s.title.includes("מחמצת, מלח"));
+  const mixingStep = plan.steps.find((s) =>
+    s.title.includes("התפחה ראשונית בקערה"),
+  );
   if (mixingStep) {
     const mixHour = new Date(mixingStep.start).getHours();
     if (isNightActiveHour(mixHour)) {
       alerts.push({
         id: "schedule-mixing-night",
         severity: "danger",
-        title: "לישה בשעות לילה",
-        message: `שלב הלישה וה-Bulk מתוזמן ל־${hourLabel(mixingStep.start)}. מומלץ לבחור מועד אפייה אחר — עבודה פעילה בלילה מובילה לעייפות וטעויות.`,
+        title: a.schedule.mixingNight.title,
+        message: t(a.schedule.mixingNight.message, {
+          timeLabel: hourLabel(mixingStep.start),
+        }),
       });
     }
   }

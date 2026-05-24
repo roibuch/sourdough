@@ -12,8 +12,8 @@ export function BrandLogo({ size = 48, className, priority = true }: BrandLogoPr
   return (
     <div
       className={cn(
-        "relative flex shrink-0 items-center justify-center rounded-full",
-        "bg-dough ring-2 ring-wheat/35 shadow-sm shadow-crust/10 sm:ring-wheat/40",
+        "relative shrink-0 overflow-hidden rounded-full",
+        "ring-2 ring-wheat/45 shadow-sm shadow-crust/15",
         className,
       )}
       style={{ width: size, height: size }}
@@ -22,10 +22,9 @@ export function BrandLogo({ size = 48, className, priority = true }: BrandLogoPr
       <Image
         src={brandAssetPath("logo.png")}
         alt=""
-        width={size}
-        height={size}
-        className="object-contain"
-        style={{ width: Math.round(size * 0.92), height: Math.round(size * 0.92) }}
+        fill
+        sizes={`${size}px`}
+        className="object-cover object-center"
         priority={priority}
       />
     </div>

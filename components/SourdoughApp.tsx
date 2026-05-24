@@ -63,7 +63,7 @@ export function SourdoughApp() {
       <div className="glass-panel overflow-hidden">
         <div className="border-b border-stone-200/70 px-5 py-4 sm:px-6">
           <h2 className="font-serif text-xl font-semibold text-charcoal">
-            טבלאות ייחוס
+            טבלאות עזר
           </h2>
         </div>
         <div className="p-5 sm:p-6 md:p-8">

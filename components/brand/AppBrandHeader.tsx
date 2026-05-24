@@ -1,4 +1,5 @@
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { heContent } from "@/lib/content";
 import { cn } from "@/lib/cn";
 
 interface AppBrandHeaderProps {
@@ -9,7 +10,7 @@ interface AppBrandHeaderProps {
 }
 
 export function AppBrandHeader({
-  title = "Sourdough Master",
+  title = heContent.app.brandName,
   tagline,
   className,
   logoSize = 48,

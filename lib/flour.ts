@@ -1,3 +1,4 @@
+import { heContent, t } from "@/lib/content";
 import type {
   AdviceType,
   FlourAdvice,
@@ -7,91 +8,45 @@ import type {
   PresetKey,
 } from "./types";
 
+const fl = heContent.flour;
+
 export const FLOUR_FIELDS: FlourField[] = [
-  { key: "bread", label: "קמח לחם", hydration: 70, strength: 1.0 },
-  { key: "whiteWheat", label: "חיטה לבנה רגילה", hydration: 68, strength: 0.82 },
-  { key: "manitoba", label: "מניטובה", hydration: 74, strength: 1.25 },
-  { key: "durum", label: "דורום / סולת", hydration: 62, strength: 1.05 },
-  { key: "pizza", label: "קמח פיצה", hydration: 68, strength: 0.9 },
-  { key: "allPurpose", label: "רב תכליתי", hydration: 66, strength: 0.72 },
-  { key: "wholeWheat", label: "חיטה מלאה", hydration: 78, strength: 0.72 },
-  { key: "wholeRye", label: "שיפון מלא", hydration: 82, strength: 0.25 },
-  { key: "spelt", label: "כוסמין", hydration: 72, strength: 0.55 },
-  { key: "buckwheat", label: "כוסמת מלאה", hydration: 84, strength: 0.0 },
+  { key: "bread", label: fl.fields.bread, hydration: 70, strength: 1.0 },
+  { key: "whiteWheat", label: fl.fields.whiteWheat, hydration: 68, strength: 0.82 },
+  { key: "manitoba", label: fl.fields.manitoba, hydration: 74, strength: 1.25 },
+  { key: "durum", label: fl.fields.durum, hydration: 62, strength: 1.05 },
+  { key: "pizza", label: fl.fields.pizza, hydration: 68, strength: 0.9 },
+  { key: "allPurpose", label: fl.fields.allPurpose, hydration: 66, strength: 0.72 },
+  { key: "wholeWheat", label: fl.fields.wholeWheat, hydration: 78, strength: 0.72 },
+  { key: "wholeRye", label: fl.fields.wholeRye, hydration: 82, strength: 0.25 },
+  { key: "spelt", label: fl.fields.spelt, hydration: 72, strength: 0.55 },
+  { key: "buckwheat", label: fl.fields.buckwheat, hydration: 84, strength: 0.0 },
 ];
 
 export const PRESET_OPTIONS: { value: PresetKey; label: string }[] = [
-  {
-    value: "classic",
-    label: "קלאסי יציב — 70% קמח לחם, 10% חיטה לבנה, 10% רב תכליתי, 10% מלא",
-  },
-  {
-    value: "country",
-    label: "כפרי מאוזן — 55% קמח לחם, 10% חיטה לבנה, 10% מניטובה, 20% מלא, 5% שיפון",
-  },
-  {
-    value: "openCrumb",
-    label: "פתוח וחזק — 50% קמח לחם, 25% מניטובה, 15% מלא, 5% שיפון",
-  },
-  {
-    value: "pizzaSoft",
-    label: "עדין ורך — 45% קמח פיצה, 35% קמח לחם, 10% חיטה לבנה, 5% רב תכליתי, 5% מלא",
-  },
-  {
-    value: "nutty",
-    label: "אגוזי — 50% קמח לחם, 10% מניטובה, 20% כוסמין, 10% מלא, 5% כוסמת",
-  },
-  {
-    value: "whole",
-    label: "יותר מלא — 40% קמח לחם, 15% מניטובה, 30% מלא, 10% שיפון",
-  },
-  {
-    value: "buckwheatAccent",
-    label: "נגיעת כוסמת — 55% קמח לחם, 10% מניטובה, 15% מלא, 5% שיפון, 10% כוסמת",
-  },
-  {
-    value: "softHome",
-    label: "ביתית — 35% קמח לחם, 25% חיטה לבנה, 25% רב תכליתי, 10% מלא, 5% כוסמין",
-  },
-  { value: "custom", label: "מותאם אישית" },
+  { value: "classic", label: fl.presets.classic },
+  { value: "country", label: fl.presets.country },
+  { value: "openCrumb", label: fl.presets.openCrumb },
+  { value: "pizzaSoft", label: fl.presets.pizzaSoft },
+  { value: "nutty", label: fl.presets.nutty },
+  { value: "whole", label: fl.presets.whole },
+  { value: "buckwheatAccent", label: fl.presets.buckwheatAccent },
+  { value: "softHome", label: fl.presets.softHome },
+  { value: "custom", label: fl.presets.custom },
 ];
 
 export const FLOUR_PRESETS: Record<
   Exclude<PresetKey, "custom">,
   { values: number[]; note: string }
 > = {
-  classic: {
-    values: [70, 10, 0, 0, 0, 10, 10, 0, 0, 0],
-    note: "תערובת יציבה וסלחנית, מתאימה ללחם ראשון או לבצק עם הידרציה בינונית.",
-  },
-  country: {
-    values: [55, 10, 10, 0, 0, 0, 20, 5, 0, 0],
-    note: "תערובת כפרית עם טעם עמוק יותר, אבל עדיין נוחה לעבודה ולמתיחה.",
-  },
-  openCrumb: {
-    values: [50, 5, 25, 0, 0, 0, 15, 5, 0, 0],
-    note: "מניטובה מחזקת את הבצק ועוזרת לנפח, במיוחד כשיש קמחים מלאים.",
-  },
-  pizzaSoft: {
-    values: [35, 10, 0, 0, 45, 5, 5, 0, 0, 0],
-    note: "קמח פיצה נותן בצק גמיש ורך. טוב ללחם עדין, פחות מתאים לעומס קמחים מלאים.",
-  },
-  nutty: {
-    values: [50, 5, 10, 0, 0, 0, 10, 0, 20, 5],
-    note: "כוסמין וכוסמת מוסיפים ארומה אגוזית; כדאי להישאר בהידרציה מבוקרת.",
-  },
-  whole: {
-    values: [40, 5, 15, 0, 0, 0, 30, 10, 0, 0],
-    note: "יותר טעם וסיבים, אבל הבצק יהיה כבד ודביק יותר.",
-  },
-  buckwheatAccent: {
-    values: [55, 5, 10, 0, 0, 0, 15, 5, 0, 10],
-    note: "כוסמת מלאה נותנת טעם עמוק — עדיף כתוספת, לא כבסיס.",
-  },
-  softHome: {
-    values: [35, 25, 0, 0, 0, 25, 10, 0, 5, 0],
-    note: "תערובת ביתית וסלחנית עם קמח רב תכליתי.",
-  },
+  classic: { values: [70, 10, 0, 0, 0, 10, 10, 0, 0, 0], note: fl.presetNotes.classic },
+  country: { values: [55, 10, 10, 0, 0, 0, 20, 5, 0, 0], note: fl.presetNotes.country },
+  openCrumb: { values: [50, 5, 25, 0, 0, 0, 15, 5, 0, 0], note: fl.presetNotes.openCrumb },
+  pizzaSoft: { values: [35, 10, 0, 0, 45, 5, 5, 0, 0, 0], note: fl.presetNotes.pizzaSoft },
+  nutty: { values: [50, 5, 10, 0, 0, 0, 10, 0, 20, 5], note: fl.presetNotes.nutty },
+  whole: { values: [40, 5, 15, 0, 0, 0, 30, 10, 0, 0], note: fl.presetNotes.whole },
+  buckwheatAccent: { values: [55, 5, 10, 0, 0, 0, 15, 5, 0, 10], note: fl.presetNotes.buckwheatAccent },
+  softHome: { values: [35, 25, 0, 0, 0, 25, 10, 0, 5, 0], note: fl.presetNotes.softHome },
 };
 
 export function defaultFlourPcts(): number[] {
@@ -147,7 +102,7 @@ export function getFermentationFactorWarning(mix: FlourMix): FlourAdvice | null 
   if (wholeGrains <= 15) return null;
   return {
     type: "warning",
-    text: `זוהתה אחוז גבוה של קמחים מלאים (חיטה מלאה + שיפון: ${wholeGrains}%). ההתפחה תהיה מהירה מהרגיל — עקבו/י אחרי הבצק מקרוב.`,
+    text: t(heContent.alerts.flour.wholeGrainFast, { wholeGrains }),
   };
 }
 
@@ -163,7 +118,7 @@ export function getFlourWarnings(
   if (wholeGrains > 15) {
     warnings.push({
       type: "warning",
-      text: `זוהתה אחוז גבוה של קמחים מלאים (חיטה מלאה + שיפון: ${wholeGrains}%). ההתפחה תהיה מהירה מהרגיל — עקבו/י אחרי הבצק מקרוב.`,
+      text: t(heContent.alerts.flour.wholeGrainFast, { wholeGrains }),
     });
   }
 
@@ -182,20 +137,32 @@ export function getFlourWarnings(
   );
   const hydration = getHydrationRecommendation(mix);
 
+  const af = heContent.alerts.flour;
   warnings.push({
     type: "good",
-    text: `לפי התערובת הזו מומלץ להתחיל סביב ${hydration.low}%–${hydration.high}% הידרציה. אם זו אפייה ראשונה, עדיף לשמור 20–30 גרם מים בצד.`,
+    text: t(af.hydrationRangeGood, {
+      low: hydration.low,
+      high: hydration.high,
+    }),
   });
 
   if (currentWaterPct < hydration.low - 3) {
     warnings.push({
       type: "warning",
-      text: `ההידרציה שבחרת (${currentWaterPct}%) נמוכה מהטווח המומלץ לתערובת.`,
+      text: t(af.hydrationLow, {
+        current: currentWaterPct,
+        low: hydration.low,
+        high: hydration.high,
+      }),
     });
   } else if (currentWaterPct > hydration.high + 3) {
     warnings.push({
       type: "warning",
-      text: `ההידרציה שבחרת (${currentWaterPct}%) גבוהה מהטווח המומלץ לתערובת.`,
+      text: t(af.hydrationHigh, {
+        current: currentWaterPct,
+        low: hydration.low,
+        high: hydration.high,
+      }),
     });
   }
 

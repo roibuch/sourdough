@@ -34,7 +34,14 @@ import {
 } from "@/lib/flour";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import type { PresetKey } from "@/lib/types";
+import { heContent, t } from "@/lib/content";
+import {
+  CUSTOM_FLOUR_NOTE,
+  VALIDATION_BLOCKED_MESSAGE,
+} from "@/lib/validation/recipeValidation";
 import { cn } from "@/lib/cn";
+
+const inp = heContent.inputs;
 
 interface RecipeInputsPanelProps {
   form: RecipeForm;
@@ -98,9 +105,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
       next[index] = clampFlourPctAtIndex(prev, index, value);
       return next;
     });
-    setPresetNote(
-      `עריכה ידנית: סך הקמחים כרגע ${mix.totalPct}% (יתעדכן). צריך להגיע ל־100%.`,
-    );
+    setPresetNote(CUSTOM_FLOUR_NOTE(mix.totalPct));
   };
 
   const onCalculate = () => {
@@ -109,7 +114,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
         validation.fields.totalWeight?.message ??
         validation.fields.flourTotal?.message ??
         validation.fields.waterPct?.message;
-      showToast(first ?? "תקנו את השדות המסומנים לפני החישוב.");
+      showToast(first ?? VALIDATION_BLOCKED_MESSAGE);
       return;
     }
     handleCalculate();
@@ -117,9 +122,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
 
   useEffect(() => {
     if (preset === "custom") {
-      setPresetNote(
-        `עריכה ידנית: סך הקמחים כרגע ${mix.totalPct}%. צריך להגיע ל־100%.`,
-      );
+      setPresetNote(CUSTOM_FLOUR_NOTE(mix.totalPct));
     }
   }, [mix.totalPct, preset, setPresetNote]);
 
@@ -132,21 +135,21 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
       <Accordion type="multiple" defaultValue={defaultOpen}>
         <AccordionItem
           id="dough"
-          title="בצק ואחוזים"
+          title={inp.accordion.dough}
           icon={<ScaleIcon className="h-5 w-5" strokeWidth={1.75} />}
         >
           <div className="space-y-5">
             <SmartNumberInput
               id="totalWeightStepper"
-              label="משקל בצק סופי (גרם)"
+              label={inp.fields.doughWeight}
               value={parseFloat(totalWeight) || 0}
               min={100}
               max={5000}
               step={50}
               allowEmpty
               onChange={(v) => setTotalWeight(v > 0 ? String(v) : "")}
-              minusLabel="הפחת משקל"
-              plusLabel="הוסף משקל"
+              minusLabel={inp.actions.decreaseWeight}
+              plusLabel={inp.actions.increaseWeight}
               compact
               error={validation.fields.totalWeight?.invalid}
               hint={validation.fields.totalWeight?.message}
@@ -154,7 +157,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
 
             <div className="mb-1 flex items-center gap-1.5">
               <span className="text-sm font-semibold text-slate-800">
-                הידרציה (מים %)
+                {inp.fields.hydration}
               </span>
               <InfoTooltip term="hydration" />
             </div>
@@ -176,7 +179,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
                   htmlFor="starterPct"
                   className="text-sm font-semibold text-slate-800"
                 >
-                  מחמצת (%)
+                  {inp.fields.inoculation}
                 </label>
                 <InfoTooltip term="inoculation" />
               </div>
@@ -189,8 +192,8 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
                 max={80}
                 step={1}
                 onChange={setStarterPct}
-                minusLabel="הפחת מחמצת"
-                plusLabel="הוסף מחמצת"
+                minusLabel={inp.actions.decreaseInoculation}
+                plusLabel={inp.actions.increaseInoculation}
                 compact
                 error={validation.fields.starterPct?.invalid}
                 warning={validation.fields.starterPct?.warning}
@@ -199,14 +202,14 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
               <SmartNumberInput
                 id="saltPct"
                 allowEmpty
-                label="מלח (%)"
+                label={inp.fields.salt}
                 value={saltPct}
                 min={0.5}
                 max={5}
                 step={0.1}
                 onChange={setSaltPct}
-                minusLabel="הפחת מלח"
-                plusLabel="הוסף מלח"
+                minusLabel={inp.actions.decreaseSalt}
+                plusLabel={inp.actions.increaseSalt}
                 compact
                 error={validation.fields.saltPct?.invalid}
                 warning={validation.fields.saltPct?.warning}
@@ -221,14 +224,14 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
               disabled={!validation.canCalculate}
             >
               <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-              חישוב מרכיבים
+              {inp.actions.calculate}
             </Button>
           </div>
         </AccordionItem>
 
         <AccordionItem
           id="flour"
-          title="תערובת קמחים"
+          title={inp.accordion.flour}
           icon={<CubeIcon className="h-5 w-5" strokeWidth={1.75} />}
         >
           <div
@@ -241,7 +244,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
               htmlFor="flourPreset"
               className="mb-2 block text-sm font-semibold text-slate-800"
             >
-              תערובת מומלצת
+              {inp.fields.flourPreset}
             </label>
             <select
               id="flourPreset"
@@ -297,7 +300,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
 
         <AccordionItem
           id="starter"
-          title="מחמצת ולאבן"
+          title="מחמצת והאכלה"
           icon={<BeakerIcon className="h-5 w-5" strokeWidth={1.75} />}
         >
           <ExpressModePanel form={form} />
@@ -314,7 +317,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
           <div className="space-y-5">
             <FieldLabelWithTip term="ddt" />
             <p className="mb-3 -mt-1 text-xs text-stone-600">
-              טמפרטורת סביבה משפיעה על התסיסה ועל חישוב המים (DDT).
+              {heContent.ddt.envNote}
             </p>
             <RangeSlider
               id="room-temp"
@@ -371,7 +374,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
 
         <AccordionItem
           id="ddt"
-          title="טמפרטורת מים (DDT)"
+          title={inp.accordion.ddt}
           icon={<FireIcon className="h-5 w-5" strokeWidth={1.75} />}
         >
           <DoughTemperatureCalculator form={form} />
@@ -381,7 +384,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
       <div className="flex flex-col gap-2 pt-2">
         <Button variant="ghost" fullWidth onClick={handleCopyLink}>
           <LinkIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-          העתק/י קישור
+          העתקת קישור
         </Button>
         <Button variant="ghost" fullWidth onClick={handleClearStorage}>
           <TrashIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />

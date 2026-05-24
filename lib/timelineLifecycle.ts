@@ -22,7 +22,7 @@ const PHASE_META: Record<
 > = {
   starter: { label: "מחמצת", colorClass: "bg-amber-400" },
   autolyse: { label: "אוטוליזה", colorClass: "bg-sky-400" },
-  bulk: { label: "Bulk", colorClass: "bg-orange-400" },
+  bulk: { label: "התפחה ראשונית", colorClass: "bg-orange-400" },
   retard: { label: "מקרר", colorClass: "bg-stone-400" },
   bake: { label: "אפייה", colorClass: "bg-crust" },
 };

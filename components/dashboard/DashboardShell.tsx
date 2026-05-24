@@ -7,6 +7,7 @@ import { RecipeInputsPanel } from "@/components/dashboard/RecipeInputsPanel";
 import { Sheet } from "@/components/ui/Sheet";
 import { StickyMetricsBar } from "@/components/dashboard/StickyMetricsBar";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
+import { heContent } from "@/lib/content";
 import { cn } from "@/lib/cn";
 
 interface DashboardShellProps {
@@ -40,7 +41,7 @@ export function DashboardShell({
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:h-16 sm:px-6">
           <AppBrandHeader
             tagline="מחשבון בצק, לוח אפייה ומדריך — מותאם לנייד"
-            logoSize={44}
+            logoSize={48}
           />
         </div>
       </header>
@@ -89,7 +90,7 @@ export function DashboardShell({
           <div className="mt-8 hidden lg:block">{reference}</div>
 
           <footer className="mt-12 border-t border-warm-border/70 pt-6 text-center text-xs text-charcoal-muted">
-            Sourdough Master — נשמר ב־URL וב־localStorage
+            {heContent.app.footerShort}
           </footer>
         </main>
       </div>
