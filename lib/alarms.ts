@@ -102,31 +102,45 @@ export function getAndroidAlarmHref(
 }
 
 /**
- * Open Clock intent from a button click without navigating the PWA frame.
- * Uses target=_blank so standalone PWAs do not reload on failed intents.
+ * Fire SET_ALARM from a click without navigating the PWA (no target=_blank, no location).
+ * Hidden iframe hands off to the Clock app; avoids black-screen tabs and reload loops.
  */
+export function launchAndroidSetAlarmFromClick(
+  timestampMs: number,
+  message: string,
+): void {
+  const uri = getAndroidAlarmHref(timestampMs, message);
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.cssText =
+    "position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none";
+  iframe.src = uri;
+  document.body.appendChild(iframe);
+  window.setTimeout(() => iframe.remove(), 2000);
+}
+
+/** @deprecated Use launchAndroidSetAlarmFromClick */
 export function launchAndroidIntentViaAnchor(uri: string): void {
-  const anchor = document.createElement("a");
-  anchor.href = uri;
-  anchor.target = "_blank";
-  anchor.rel = "noopener noreferrer";
-  anchor.style.display = "none";
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute("aria-hidden", "true");
+  iframe.style.cssText =
+    "position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none";
+  iframe.src = uri;
+  document.body.appendChild(iframe);
+  window.setTimeout(() => iframe.remove(), 2000);
 }
 
-/** @deprecated Prefer visible <a href={getAndroidAlarmHref(...)}> */
+/** @deprecated Use launchAndroidSetAlarmFromClick */
 export function openAndroidClockAlarm(timestampMs: number, message: string): void {
-  launchAndroidIntentViaAnchor(getAndroidAlarmHref(timestampMs, message));
+  launchAndroidSetAlarmFromClick(timestampMs, message);
 }
 
-/** @deprecated Prefer visible <a href={getAndroidAlarmHref(...)}> */
+/** @deprecated Use launchAndroidSetAlarmFromClick */
 export function openAndroidClockAlarmMultiSync(
   timestampMs: number,
   message: string,
 ): void {
-  launchAndroidIntentViaAnchor(getAndroidAlarmHref(timestampMs, message));
+  launchAndroidSetAlarmFromClick(timestampMs, message);
 }
 
 export function supportsScheduledNotifications(): boolean {
@@ -554,7 +568,7 @@ export function triggerClockAlarmImmediate(
 
   if (isAndroid()) {
     try {
-      openAndroidClockAlarmMultiSync(timestampMs, message);
+      launchAndroidSetAlarmFromClick(timestampMs, message);
       return "android";
     } catch {
       return "android-fallback";

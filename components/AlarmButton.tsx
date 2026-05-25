@@ -7,10 +7,9 @@ import {
   alarmTimeTitle,
   downloadIcsAlarm,
   downloadIcsAlarmSync,
-  getAndroidAlarmHref,
   isAndroid,
   isIOS,
-  launchAndroidIntentViaAnchor,
+  launchAndroidSetAlarmFromClick,
   openGoogleCalendarEvent,
   scheduleTimestampTriggerNotification,
   scheduleWebNotification,
@@ -100,8 +99,8 @@ export function AlarmButton({
 
     if (android) {
       try {
-        launchAndroidIntentViaAnchor(getAndroidAlarmHref(timestampMs, message));
-        window.setTimeout(() => notify("android"), 300);
+        launchAndroidSetAlarmFromClick(timestampMs, message);
+        window.setTimeout(() => notify("android"), 400);
       } catch {
         fallbackToIcsSync();
         notify("android-fallback");
