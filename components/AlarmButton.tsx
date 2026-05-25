@@ -5,26 +5,20 @@ import { ClockIcon } from "@heroicons/react/24/outline";
 import {
   alarmResultMessage,
   alarmTimeTitle,
-  buildPrimaryAndroidAlarmUri,
   downloadIcsAlarm,
   downloadIcsAlarmSync,
   isAndroid,
   isIOS,
+  openAndroidClockAlarmMultiSync,
   openGoogleCalendarEvent,
-  scheduleServiceWorkerNotification,
+  scheduleTimestampTriggerNotification,
+  scheduleWebNotification,
   type AlarmResult,
 } from "@/lib/alarms";
 import { heContent } from "@/lib/content";
 import { cn } from "@/lib/cn";
 
 const alarmUi = heContent.alarms.buttons;
-
-/** Synchronous only — must run inside click handler before any await. */
-function launchAndroidAlarmIntent(timestampMs: number, message: string): boolean {
-  const intentUri = buildPrimaryAndroidAlarmUri(timestampMs, message);
-  window.location.assign(intentUri);
-  return true;
-}
 
 interface AlarmButtonProps {
   timestampMs: number;
@@ -71,10 +65,18 @@ export function AlarmButton({
       return;
     }
 
+    const scheduled = await scheduleTimestampTriggerNotification(
+      timestampMs,
+      message,
+    );
+    if (scheduled) {
+      notify("scheduled");
+      return;
+    }
+
     if (typeof window !== "undefined" && "Notification" in window) {
       const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        scheduleServiceWorkerNotification(timestampMs, message);
+      if (permission === "granted" && scheduleWebNotification(timestampMs, message)) {
         notify("notification");
         return;
       }
@@ -96,7 +98,7 @@ export function AlarmButton({
 
     if (isAndroid()) {
       try {
-        launchAndroidAlarmIntent(timestampMs, message);
+        openAndroidClockAlarmMultiSync(timestampMs, message);
         notify("android");
       } catch (err) {
         console.error("Android intent failed", err);

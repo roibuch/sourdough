@@ -8,10 +8,11 @@ const MAX_NOTIFICATION_DELAY_MS = 7 * 24 * 60 * 60 * 1000;
 
 export const ALARM_MESSAGES = {
   pastTime: "השעה שנקבעה כבר עברה.",
-  androidSuccess: "פותח את אפליקציית השעון...",
+  androidSuccess: "פותח/ת את אפליקציית השעון — אשרו את השעה ושמרו.",
   iosCopied: "השעה הועתקה! הוסף התראה בשעון.",
   icsDownloaded: "קובץ יומן ירד. פתח אותו לשמירת ההתראה.",
-  notificationSet: "התראה תוצג בדפדפן (יש להשאיר כרטיסייה פתוחה).",
+  notificationSet:
+    "תזכורת בדפדפן בלבד — השאירו את הלשונית פתוחה. לשעון מערכת: אנדרואיד או קובץ יומן.",
   unsupported: "לא ניתן להגדיר התראה במכשיר זה.",
 } as const;
 
@@ -52,7 +53,7 @@ export function buildPrimaryAndroidAlarmUri(
   const msg = encodeURIComponent(message.slice(0, 120));
 
   return (
-    `intent://set_alarm?hour=${hours}&minute=${minutes}&message=${msg}&skip_ui=true` +
+    `intent://set_alarm?hour=${hours}&minute=${minutes}&message=${msg}` +
     "#Intent;scheme=android-app;action=android.intent.action.SET_ALARM;end;"
   );
 }
@@ -94,7 +95,46 @@ export function buildAndroidAlarmIntents(
 
 /** Synchronous — preserves user activation on Android Chrome. */
 export function openAndroidClockAlarm(timestampMs: number, message: string): void {
-  window.location.assign(buildPrimaryAndroidAlarmUri(timestampMs, message));
+  window.location.href = buildPrimaryAndroidAlarmUri(timestampMs, message);
+}
+
+/**
+ * Try several Clock intents in one click (location + hidden iframes).
+ * Must stay synchronous — no await before navigation.
+ */
+export function openAndroidClockAlarmMultiSync(
+  timestampMs: number,
+  message: string,
+): void {
+  const uris = buildAndroidAlarmIntents(timestampMs, message);
+  try {
+    window.location.href = uris[0];
+  } catch {
+    try {
+      window.location.assign(uris[0]);
+    } catch {
+      /* blocked */
+    }
+  }
+  for (let i = 1; i < uris.length; i++) {
+    try {
+      const iframe = document.createElement("iframe");
+      iframe.setAttribute("aria-hidden", "true");
+      iframe.style.cssText =
+        "position:absolute;width:0;height:0;border:0;visibility:hidden";
+      iframe.src = uris[i];
+      document.body.appendChild(iframe);
+      window.setTimeout(() => iframe.remove(), 2000);
+    } catch {
+      /* alternate package unavailable */
+    }
+  }
+}
+
+export function supportsScheduledNotifications(): boolean {
+  if (typeof window === "undefined") return false;
+  return typeof (window as Window & { TimestampTrigger?: unknown })
+    .TimestampTrigger !== "undefined";
 }
 
 export function generateIcsBlobUrl(
@@ -152,6 +192,52 @@ export function downloadIcsAlarmSync(
   link.click();
   document.body.removeChild(link);
   window.setTimeout(() => URL.revokeObjectURL(icsUrl), 1000);
+}
+
+/** OS notification at a future time (works when app closed on Android Chrome). */
+export async function scheduleTimestampTriggerNotification(
+  timestampMs: number,
+  message: string,
+): Promise<boolean> {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+    return false;
+  }
+  const TimestampTriggerCtor = (
+    window as Window & { TimestampTrigger?: new (ts: number) => unknown }
+  ).TimestampTrigger;
+  if (!TimestampTriggerCtor) return false;
+
+  const delay = timestampMs - Date.now();
+  if (delay <= 0 || delay > MAX_NOTIFICATION_DELAY_MS) return false;
+
+  const granted = await ensureNotificationPermission();
+  if (!granted) return false;
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const base = getBasePath();
+    const icon = `${base}/icon-512x512.png`;
+    const title = alarmCopy.ics.calendarName;
+    const body = `${message} · ${formatScheduleTime(timestampMs)}`;
+    const tag = `sourdough-alarm-${timestampMs}`;
+
+    await reg.showNotification(title, {
+      body,
+      tag,
+      icon,
+      lang: "he",
+      dir: "rtl",
+      showTrigger: new TimestampTriggerCtor(timestampMs),
+    } as NotificationOptions & { showTrigger: unknown });
+
+    const id = `alarm-${timestampMs}`;
+    const pending = loadPending().filter((a) => a.id !== id);
+    pending.push({ id, ts: timestampMs, title, body });
+    savePending(pending);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function scheduleServiceWorkerNotification(
@@ -449,6 +535,7 @@ export type AlarmResult =
   | "android-fallback"
   | "ios-clock"
   | "ios-copied"
+  | "scheduled"
   | "notification"
   | "shared"
   | "opened"
@@ -469,7 +556,7 @@ export function triggerClockAlarmImmediate(
 
   if (isAndroid()) {
     try {
-      openAndroidClockAlarm(timestampMs, message);
+      openAndroidClockAlarmMultiSync(timestampMs, message);
       return "android";
     } catch {
       return "android-fallback";
@@ -492,10 +579,14 @@ export async function triggerClockAlarmAsync(
     return "ios-copied";
   }
 
+  const scheduled = await scheduleTimestampTriggerNotification(
+    timestampMs,
+    message,
+  );
+  if (scheduled) return "scheduled";
+
   const granted = await ensureNotificationPermission();
-  if (granted) {
-    scheduleServiceWorkerNotification(timestampMs, message);
-    scheduleWebNotification(timestampMs, message);
+  if (granted && scheduleWebNotification(timestampMs, message)) {
     return "notification";
   }
 
@@ -546,6 +637,8 @@ export function alarmResultMessage(result: AlarmResult): string {
       return alarmCopy.results.iosClock;
     case "ios-copied":
       return `${ALARM_MESSAGES.iosCopied} ${ALARM_MESSAGES.icsDownloaded}`;
+    case "scheduled":
+      return alarmCopy.results.scheduled;
     case "notification":
       return ALARM_MESSAGES.notificationSet;
     case "shared":

@@ -10,7 +10,7 @@ describe("buildPrimaryAndroidAlarmUri", () => {
     const ts = new Date(2026, 4, 20, 14, 30, 0, 0).getTime();
     const uri = buildPrimaryAndroidAlarmUri(ts, "קיפול 1");
     expect(uri).toContain("intent://set_alarm?hour=14&minute=30");
-    expect(uri).toContain("skip_ui=true");
+    expect(uri).not.toContain("skip_ui");
     expect(uri).toContain("action=android.intent.action.SET_ALARM");
     expect(uri).toContain(encodeURIComponent("קיפול 1"));
   });
