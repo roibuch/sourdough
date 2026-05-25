@@ -39,7 +39,7 @@
   }
 
   body {
-    @apply min-h-screen bg-amber-50 text-stone-900 leading-relaxed;
+    @apply min-h-screen bg-stone-50 text-stone-900 leading-relaxed;
     overflow-x: clip;
     background-image:
       radial-gradient(ellipse 80% 45% at 50% -8%, rgb(212 165 116 / 0.14), transparent),
@@ -90,12 +90,25 @@
   }
 
   .content-safe-bottom {
-    padding-bottom: calc(var(--shell-nav-h) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(
+      var(--shell-nav-h) + var(--shell-sticky-cta-h, 0px) +
+        env(safe-area-inset-bottom, 0px)
+    );
   }
 
   @media (min-width: 1024px) {
     .content-safe-bottom {
       padding-bottom: 2rem;
+    }
+  }
+
+  .dashboard-shell {
+    --shell-sticky-cta-h: 4.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .dashboard-shell {
+      --shell-sticky-cta-h: 0px;
     }
   }
 
@@ -138,7 +151,7 @@
    * Use with sm: text-lg / text-xl modifiers where larger type is desired.
    */
   .calc-field {
-    @apply min-h-11 text-base tabular-nums;
+    @apply min-h-11 text-[16px] tabular-nums text-stone-900 sm:text-base;
     @apply [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none;
     -webkit-appearance: none;
     appearance: none;

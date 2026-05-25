@@ -20,7 +20,7 @@ describe("buildForwardTimelineFromNow", () => {
     expect(plan.summary.bakeEnd).toBeGreaterThan(start);
     expect(plan.summary.totalHours).toBeGreaterThan(10);
 
-    const bulk = plan.steps.find((s) => s.title.includes("התפחה ראשונית"));
+    const bulk = plan.steps.find((s) => s.title.includes("התפחה ראשונה"));
     expect(bulk?.alarms?.length).toBeGreaterThan(0);
   });
 });

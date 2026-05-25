@@ -62,7 +62,7 @@ export function RangeSlider({
           {display}
         </span>
       </div>
-      <div className="relative flex min-h-11 items-center py-0.5">
+      <div className="relative flex min-h-[44px] items-center py-1">
         <div
           className="pointer-events-none absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 overflow-hidden rounded-full bg-stone-200 shadow-inner"
           aria-hidden

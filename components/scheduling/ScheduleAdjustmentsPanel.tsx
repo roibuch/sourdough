@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import { BlackoutPeriodsEditor } from "@/components/scheduling/BlackoutPeriodsEditor";
+import { PanelSkeleton } from "@/components/ui/PanelSkeleton";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
@@ -16,7 +17,7 @@ const WeatherPanel = dynamic(
     import("@/components/WeatherPanel").then((m) => ({
       default: m.WeatherPanel,
     })),
-  { loading: () => null },
+  { loading: () => <PanelSkeleton className="min-h-[8rem]" /> },
 );
 
 interface ScheduleAdjustmentsPanelProps {

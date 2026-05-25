@@ -120,13 +120,12 @@ export function SmartNumberInput({
   };
 
   const jumpPillClass =
-    "touch-target min-h-9 rounded-xl border border-warm-border/90 bg-wheat-muted/50 px-3 text-xs font-semibold text-charcoal transition hover:border-crust hover:bg-wheat-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat focus-visible:ring-offset-2";
+    "touch-target min-h-[44px] rounded-xl border border-stone-300 bg-stone-100/80 px-3 text-xs font-semibold text-stone-800 motion-safe:transition-colors hover:border-amber-500 hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2";
 
   const btnClass = cn(
-    "inline-flex shrink-0 items-center justify-center rounded-full bg-crust text-dough shadow-md shadow-crust/25 transition",
-    "hover:bg-crust-dark active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat focus-visible:ring-offset-2",
-    "h-9 w-9 min-h-9 min-w-9 @min-[17.5rem]/stepper:h-11 @min-[17.5rem]/stepper:min-h-11 @min-[17.5rem]/stepper:w-11 @min-[17.5rem]/stepper:min-w-11",
-    !compact && "@min-[20rem]/stepper:h-12 @min-[20rem]/stepper:w-12",
+    "inline-flex shrink-0 items-center justify-center rounded-full bg-amber-600 text-white shadow-md shadow-amber-900/20 motion-safe:transition-all",
+    "hover:bg-amber-700 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2",
+    "min-h-[44px] min-w-[44px]",
   );
 
   return (
@@ -136,7 +135,7 @@ export function SmartNumberInput({
           htmlFor={id}
           className={cn(
             "text-sm font-semibold",
-            error ? "text-red-800" : warning ? "text-crust" : "text-charcoal",
+            error ? "text-red-800" : warning ? "text-amber-800" : "text-stone-900",
           )}
         >
           {label}

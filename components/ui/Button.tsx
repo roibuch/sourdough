@@ -32,8 +32,8 @@ export function Button({
     <button
       type="button"
       className={cn(
-        "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-2xl px-5 py-3 text-base font-semibold motion-safe:transition-all duration-200 sm:min-h-12 sm:py-3.5",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat focus-visible:ring-offset-2 focus-visible:ring-offset-dough",
+        "inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-base font-semibold motion-safe:transition-all duration-200",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-50",
         "disabled:pointer-events-none disabled:opacity-50",
         variants[variant],
         fullWidth && "w-full",

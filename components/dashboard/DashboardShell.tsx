@@ -61,12 +61,12 @@ export function DashboardShell({
 
       <StickyMetricsBar form={form} />
 
-      <div className="mx-auto w-full min-w-0 max-w-[90rem] flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:py-8">
+      <div className="content-safe-bottom mx-auto w-full min-w-0 max-w-[90rem] flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:py-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8 xl:gap-10">
           <aside
             className={cn(
               "@container/sidebar hidden min-w-0 shrink-0 lg:block",
-              "lg:min-w-[320px] lg:max-w-[400px] lg:w-[22rem] xl:w-[28rem]",
+              "lg:min-w-[320px] lg:w-80 lg:max-w-[24rem] xl:w-96",
               "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.75rem)]",
               "lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-1.5rem)]",
               "lg:overflow-y-auto lg:overscroll-contain",
@@ -140,7 +140,7 @@ export function DashboardShell({
           <Button
             variant="primary"
             fullWidth
-            className="min-h-11 shadow-lg shadow-amber-900/15"
+            className="min-h-[44px] shadow-xl shadow-amber-900/25"
             onClick={() => form.handleCalculate()}
           >
             <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />

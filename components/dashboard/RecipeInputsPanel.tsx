@@ -152,7 +152,10 @@ export function RecipeInputsPanel({
         <StarterFloatTestAlert />
       </div>
 
-      <Accordion type="multiple" defaultValue={["dough", "flour"]}>
+      <Accordion
+        type="multiple"
+        defaultValue={isSidebar ? ["dough", "flour"] : compact ? ["dough"] : ["dough", "flour"]}
+      >
         <AccordionItem
           id="dough"
           title={inp.accordion.dough}
@@ -181,7 +184,7 @@ export function RecipeInputsPanel({
             />
 
             <div className="mb-1 flex items-center gap-1.5">
-              <span className="text-sm font-semibold text-slate-800">
+              <span className="text-sm font-semibold text-stone-900">
                 {inp.fields.hydration}
               </span>
               <InfoTooltip term="hydration" />
@@ -213,7 +216,7 @@ export function RecipeInputsPanel({
                 <div className="mb-2 flex items-center gap-1.5">
                   <label
                     htmlFor="starterPct"
-                    className="text-sm font-semibold text-slate-800"
+                    className="text-sm font-semibold text-stone-900"
                   >
                     {inp.fields.inoculation}
                   </label>

@@ -19,6 +19,13 @@ import { cn } from "@/lib/cn";
 
 const alarmUi = heContent.alarms.buttons;
 
+/** Synchronous only — must run inside click handler before any await. */
+function launchAndroidAlarmIntent(timestampMs: number, message: string): boolean {
+  const intentUri = buildPrimaryAndroidAlarmUri(timestampMs, message);
+  window.location.assign(intentUri);
+  return true;
+}
+
 interface AlarmButtonProps {
   timestampMs: number;
   message: string;
@@ -42,7 +49,7 @@ export function AlarmButton({
     onResult?.(result);
   };
 
-  const fallbackToIcs = () => {
+  const fallbackToIcsSync = () => {
     downloadIcsAlarmSync(timestampMs, message);
     notify("opened");
   };
@@ -59,7 +66,7 @@ export function AlarmButton({
       } catch {
         /* clipboard blocked */
       }
-      fallbackToIcs();
+      fallbackToIcsSync();
       notify("ios-copied");
       return;
     }
@@ -73,12 +80,10 @@ export function AlarmButton({
       }
     }
 
-    fallbackToIcs();
+    fallbackToIcsSync();
   };
 
-  const handleAlarmClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-
+  const handleAlarmClick = () => {
     if (!timestampMs || Number.isNaN(timestampMs)) {
       notify("invalid");
       return;
@@ -89,15 +94,13 @@ export function AlarmButton({
       return;
     }
 
-    // ANDROID: strictly synchronous — no await before intent (user activation)
     if (isAndroid()) {
       try {
-        const intentUri = buildPrimaryAndroidAlarmUri(timestampMs, message);
-        window.location.assign(intentUri);
+        launchAndroidAlarmIntent(timestampMs, message);
         notify("android");
       } catch (err) {
         console.error("Android intent failed", err);
-        fallbackToIcs();
+        fallbackToIcsSync();
         notify("android-fallback");
       }
       return;
@@ -106,26 +109,24 @@ export function AlarmButton({
     setBusy(true);
     void handleIOSAndDesktopFlow()
       .catch(() => {
-        fallbackToIcs();
+        fallbackToIcsSync();
         notify("unsupported");
       })
       .finally(() => setBusy(false));
   };
 
   const btnClass = cn(
-    "inline-flex items-center gap-2 rounded-2xl font-bold text-white",
-    compact
-      ? "min-h-11 px-3 py-2 text-xs"
-      : "min-h-11 px-4 py-2.5 text-sm",
-    "shadow-md transition active:scale-[0.98]",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+    "inline-flex min-h-[44px] min-w-[44px] items-center gap-2 rounded-2xl font-bold text-white",
+    compact ? "px-3 py-2 text-xs" : "px-4 py-2.5 text-sm",
+    "shadow-md motion-safe:transition-all active:scale-[0.98]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2",
     "disabled:opacity-60",
   );
 
   const optionalClass = cn(
-    "inline-flex min-h-11 items-center rounded-xl px-3 py-2 text-xs font-semibold",
+    "inline-flex min-h-[44px] min-w-[44px] items-center rounded-xl px-3 py-2 text-xs font-semibold",
     "border border-stone-300 bg-white text-stone-700",
-    "hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat/40",
+    "hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2",
     "disabled:opacity-60",
   );
 
@@ -136,7 +137,7 @@ export function AlarmButton({
         disabled={busy}
         className={cn(
           btnClass,
-          "min-h-11 min-w-11 bg-amber-600 shadow-amber-900/25 motion-safe:transition-all hover:bg-amber-700 focus-visible:ring-amber-500",
+          "bg-amber-600 shadow-amber-900/25 hover:bg-amber-700",
           compact && "w-full justify-center",
         )}
         title={alarmTimeTitle(timestampMs)}
@@ -153,8 +154,9 @@ export function AlarmButton({
         <>
           <button
             type="button"
-            className="self-start text-xs font-medium text-stone-500 underline-offset-2 hover:text-stone-700 hover:underline"
+            className="min-h-[44px] self-start text-xs font-medium text-stone-600 underline-offset-2 hover:text-stone-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
             onClick={() => setShowOptional((v) => !v)}
+            aria-expanded={showOptional}
           >
             {showOptional ? "הסתר אפשרויות נוספות" : "אפשרויות נוספות (יומן)"}
           </button>
@@ -165,6 +167,7 @@ export function AlarmButton({
                 disabled={busy}
                 className={optionalClass}
                 title={alarmTimeTitle(timestampMs)}
+                aria-label={alarmUi.calendar}
                 onClick={() => {
                   setBusy(true);
                   void downloadIcsAlarm(timestampMs, message)
@@ -179,6 +182,7 @@ export function AlarmButton({
                 disabled={busy}
                 className={optionalClass}
                 title={alarmTimeTitle(timestampMs)}
+                aria-label={alarmUi.googleCalendar}
                 onClick={() => notify(openGoogleCalendarEvent(timestampMs, message))}
               >
                 {alarmUi.googleCalendar}

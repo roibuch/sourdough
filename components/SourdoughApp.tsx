@@ -10,6 +10,7 @@ import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
 import { SmartWarningBanner } from "@/components/feedback/SmartWarningBanner";
 import { useBakerAlerts } from "@/hooks/useBakerAlerts";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { PanelSkeleton } from "@/components/ui/PanelSkeleton";
 import { Toast, type ToastPayload } from "@/components/Toast";
 import { useRecipeForm } from "@/hooks/useRecipeForm";
 import { heContent } from "@/lib/content";
@@ -17,7 +18,7 @@ import { heContent } from "@/lib/content";
 const BakingGuide = dynamic(
   () =>
     import("@/components/BakingGuide").then((m) => ({ default: m.BakingGuide })),
-  { loading: () => null },
+  { loading: () => <PanelSkeleton className="min-h-[20rem]" /> },
 );
 
 const ReferenceTables = dynamic(
@@ -25,7 +26,7 @@ const ReferenceTables = dynamic(
     import("@/components/ReferenceTables").then((m) => ({
       default: m.ReferenceTables,
     })),
-  { loading: () => null },
+  { loading: () => <PanelSkeleton className="min-h-[16rem]" /> },
 );
 
 const OptionalSchedulePanel = dynamic(
@@ -104,8 +105,8 @@ export function SourdoughApp() {
     >
       <div className="glass-panel min-w-0 overflow-x-clip">
         <div className="border-b border-stone-200/70 px-4 py-3 sm:px-6 sm:py-4">
-          <h2 className="font-serif text-xl font-semibold text-charcoal">
-            טבלאות עזר
+          <h2 className="font-serif text-xl font-semibold text-stone-900">
+            {heContent.navigation.items.reference.label}
           </h2>
         </div>
         <div className="p-3 sm:p-6 md:p-8">
