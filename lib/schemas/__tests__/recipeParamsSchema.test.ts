@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FLOUR_PRESETS } from "@/lib/flour";
+import { FLOUR_PRESETS, migrateLegacyFlourPcts } from "@/lib/flour";
 import { RECIPE_DEFAULTS } from "@/lib/constants/recipeDefaults";
 import {
   isFlourBlendValid,
@@ -12,7 +12,7 @@ import {
 
 describe("normalizeFlourPercentages", () => {
   it("scales arbitrary blend to 100%", () => {
-    const normalized = normalizeFlourPercentages([50, 25, 25, 0, 0, 0, 0, 0, 0, 0]);
+    const normalized = normalizeFlourPercentages([50, 25, 25, 0, 0, 0]);
     const total = normalized.reduce((s, p) => s + p, 0);
     expect(total).toBeCloseTo(100, 1);
   });
@@ -23,9 +23,20 @@ describe("normalizeFlourPercentages", () => {
   });
 
   it("returns classic preset when total is zero", () => {
-    expect(normalizeFlourPercentages([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])).toEqual(
+    expect(normalizeFlourPercentages([0, 0, 0, 0, 0, 0])).toEqual(
       [...FLOUR_PRESETS.classic.values],
     );
+  });
+});
+
+describe("migrateLegacyFlourPcts", () => {
+  it("maps 10-value URLs into 6 flour slots", () => {
+    const legacy = [70, 10, 0, 0, 0, 10, 10, 0, 0, 0];
+    const migrated = migrateLegacyFlourPcts(legacy);
+    expect(migrated).toHaveLength(6);
+    expect(migrated[0]).toBe(70);
+    expect(migrated[3]).toBe(10);
+    expect(migrated[5]).toBe(10);
   });
 });
 
@@ -48,8 +59,9 @@ describe("urlRecipeParamsRawSchema", () => {
     expect(urlRecipeParamsRawSchema.safeParse({ wa: "150" }).success).toBe(false);
   });
 
-  it("accepts comma decimal in percents", () => {
-    expect(urlRecipeParamsRawSchema.parse({ sa: "2,5" }).sa).toBe(2.5);
+  it("maps legacy preset keys", () => {
+    expect(urlRecipeParamsRawSchema.parse({ fp: "openCrumb" }).fp).toBe("country");
+    expect(urlRecipeParamsRawSchema.parse({ fp: "pizzaSoft" }).fp).toBe("classic");
   });
 });
 
@@ -102,7 +114,7 @@ describe("parseRecipeParamsFromSearch", () => {
 describe("parseRecipeParamsFromRecord", () => {
   it("normalizes flour CSV that does not sum to 100", () => {
     const { state, flourAdjusted } = parseRecipeParamsFromRecord({
-      fl: "55,30,25,0,0,0,0,0,0,0",
+      fl: "40,30,20,5,0,0",
     });
     expect(flourAdjusted).toBe(true);
     expect(state.flourBlend.totalPercent).toBeCloseTo(100, 1);

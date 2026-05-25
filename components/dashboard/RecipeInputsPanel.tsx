@@ -4,7 +4,6 @@ import { useEffect, useMemo } from "react";
 import {
   BeakerIcon,
   CalculatorIcon,
-  CubeIcon,
   FireIcon,
   LinkIcon,
   ScaleIcon,
@@ -12,9 +11,9 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
+import { FlourBlendEditor } from "@/components/dashboard/FlourBlendEditor";
 import { DoughTemperatureCalculator } from "@/components/DoughTemperatureCalculator";
 import { ExpressModePanel } from "@/components/ExpressModePanel";
-import { FlourPieChart } from "@/components/FlourPieChart";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { StarterPanel } from "@/components/sections/StarterPanel";
 import { WeatherPanel } from "@/components/WeatherPanel";
@@ -23,18 +22,9 @@ import { Button } from "@/components/ui/Button";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { FieldLabelWithTip, InfoTooltip } from "@/components/ui/InfoTooltip";
 import { useRecipeValidation } from "@/hooks/useRecipeValidation";
-import {
-  clampFlourPctAtIndex,
-  maxFlourPctAtIndex,
-} from "@/lib/validation/recipeValidation";
-import {
-  FLOUR_FIELDS,
-  PRESET_OPTIONS,
-  getFermentationFactorWarning,
-} from "@/lib/flour";
+import { getFermentationFactorWarning } from "@/lib/flour";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
-import type { PresetKey } from "@/lib/types";
-import { heContent, t } from "@/lib/content";
+import { heContent } from "@/lib/content";
 import {
   CUSTOM_FLOUR_NOTE,
   VALIDATION_BLOCKED_MESSAGE,
@@ -59,13 +49,9 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
     saltPct,
     setSaltPct,
     preset,
-    setPreset,
-    flourPcts,
+    mix,
     presetNote,
     setPresetNote,
-    mix,
-    applyPreset,
-    schedulePersist,
     handleCalculate,
     handleCopyLink,
     handleClearStorage,
@@ -92,22 +78,6 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
     [mix],
   );
 
-  const handlePresetChange = (key: PresetKey) => {
-    setPreset(key);
-    applyPreset(key);
-    schedulePersist();
-  };
-
-  const handleFlourPctChange = (index: number, value: number) => {
-    setPreset("custom");
-    form.setFlourPcts((prev) => {
-      const next = [...prev];
-      next[index] = clampFlourPctAtIndex(prev, index, value);
-      return next;
-    });
-    setPresetNote(CUSTOM_FLOUR_NOTE(mix.totalPct));
-  };
-
   const onCalculate = () => {
     if (!validation.canCalculate) {
       const first =
@@ -126,9 +96,7 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
     }
   }, [mix.totalPct, preset, setPresetNote]);
 
-  const defaultOpen = compact
-    ? ["dough"]
-    : ["dough", "flour"];
+  const defaultOpen = compact ? ["dough", "flour"] : ["dough", "flour"];
 
   return (
     <div className={cn("space-y-4", compact && "pb-2")}>
@@ -173,32 +141,34 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
               hint={validation.fields.waterPct?.message}
             />
 
-            <div className="grid grid-cols-1 gap-4">
-              <div className="mb-2 flex items-center gap-1.5">
-                <label
-                  htmlFor="starterPct"
-                  className="text-sm font-semibold text-slate-800"
-                >
-                  {inp.fields.inoculation}
-                </label>
-                <InfoTooltip term="inoculation" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="mb-2 flex items-center gap-1.5">
+                  <label
+                    htmlFor="starterPct"
+                    className="text-sm font-semibold text-slate-800"
+                  >
+                    {inp.fields.inoculation}
+                  </label>
+                  <InfoTooltip term="inoculation" />
+                </div>
+                <SmartNumberInput
+                  id="starterPct"
+                  allowEmpty
+                  label=""
+                  value={starterPct}
+                  min={1}
+                  max={80}
+                  step={1}
+                  onChange={setStarterPct}
+                  minusLabel={inp.actions.decreaseInoculation}
+                  plusLabel={inp.actions.increaseInoculation}
+                  compact
+                  error={validation.fields.starterPct?.invalid}
+                  warning={validation.fields.starterPct?.warning}
+                  hint={validation.fields.starterPct?.message}
+                />
               </div>
-              <SmartNumberInput
-                id="starterPct"
-                allowEmpty
-                label=""
-                value={starterPct}
-                min={1}
-                max={80}
-                step={1}
-                onChange={setStarterPct}
-                minusLabel={inp.actions.decreaseInoculation}
-                plusLabel={inp.actions.increaseInoculation}
-                compact
-                error={validation.fields.starterPct?.invalid}
-                warning={validation.fields.starterPct?.warning}
-                hint={validation.fields.starterPct?.message}
-              />
               <SmartNumberInput
                 id="saltPct"
                 allowEmpty
@@ -232,153 +202,88 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
         <AccordionItem
           id="flour"
           title={inp.accordion.flour}
-          icon={<CubeIcon className="h-5 w-5" strokeWidth={1.75} />}
+          icon={<ScaleIcon className="h-5 w-5" strokeWidth={1.75} />}
         >
-          <div
-            className={cn(
-              validation.flourTotalInvalid &&
-                "rounded-xl ring-2 ring-red-300/70 ring-offset-2",
-            )}
+          <FlourBlendEditor
+            form={form}
+            flourTotalInvalid={validation.flourTotalInvalid}
+            flourTotalMessage={validation.fields.flourTotal?.message}
+          />
+          {fermentationAlert && (
+            <div className="mt-3">
+              <AdviceList items={[fermentationAlert]} />
+            </div>
+          )}
+        </AccordionItem>
+
+        {!compact && (
+          <AccordionItem
+            id="starter"
+            title="מחמצת (אופציונלי)"
+            icon={<BeakerIcon className="h-5 w-5" strokeWidth={1.75} />}
           >
-            <label
-              htmlFor="flourPreset"
-              className="mb-2 block text-sm font-semibold text-slate-800"
-            >
-              {inp.fields.flourPreset}
-            </label>
-            <select
-              id="flourPreset"
-              className="glass-input mb-4 w-full"
-              value={preset}
-              onChange={(e) =>
-                handlePresetChange(e.target.value as PresetKey)
-              }
-            >
-              {PRESET_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-
-            <div className="mb-4 space-y-3">
-              {FLOUR_FIELDS.map((field, i) => (
-                <SmartNumberInput
-                  key={field.key}
-                  id={`flour-${field.key}`}
-                  label={`${field.label} (%)`}
-                  value={flourPcts[i] ?? 0}
-                  min={0}
-                  max={maxFlourPctAtIndex(flourPcts, i)}
-                  step={1}
-                  allowEmpty
-                  onChange={(v) => handleFlourPctChange(i, v)}
-                  minusLabel={`הפחת ${field.label}`}
-                  plusLabel={`הוסף ${field.label}`}
-                  compact
-                  error={validation.flourTotalInvalid}
-                  hint={
-                    i === 0 && validation.fields.flourTotal?.message
-                      ? validation.fields.flourTotal.message
-                      : undefined
-                  }
-                />
-              ))}
+            <ExpressModePanel form={form} />
+            <div className="mt-4">
+              <StarterPanel form={form} />
             </div>
+          </AccordionItem>
+        )}
 
-            <FlourPieChart mix={mix} className="mb-3" />
-            <p className="text-xs leading-relaxed text-stone-600">
-              {presetNote}
-            </p>
-            {fermentationAlert && (
-              <div className="mt-3">
-                <AdviceList items={[fermentationAlert]} />
-              </div>
-            )}
-          </div>
-        </AccordionItem>
-
-        <AccordionItem
-          id="starter"
-          title="מחמצת והאכלה"
-          icon={<BeakerIcon className="h-5 w-5" strokeWidth={1.75} />}
-        >
-          <ExpressModePanel form={form} />
-          <div className="mt-4">
-            <StarterPanel form={form} />
-          </div>
-        </AccordionItem>
-
-        <AccordionItem
-          id="timing"
-          title="תזמון וסביבה"
-          icon={<SunIcon className="h-5 w-5" strokeWidth={1.75} />}
-        >
-          <div className="space-y-5">
-            <FieldLabelWithTip term="ddt" />
-            <p className="mb-3 -mt-1 text-xs text-stone-600">
-              {heContent.ddt.envNote}
-            </p>
-            <RangeSlider
-              id="room-temp"
-              label="טמפרטורת חדר (°C)"
-              value={roomTemp}
-              min={16}
-              max={32}
-              step={1}
-              unit="°C"
-              onChange={setRoomTemp}
-            />
-            <div className="mb-2 flex items-center gap-1.5">
-              <label
-                htmlFor="coldRetard"
-                className="text-sm font-semibold text-slate-800"
-              >
-                התפחה במקרר
-              </label>
-              <InfoTooltip term="retard" />
+        {!compact && (
+          <AccordionItem
+            id="timing"
+            title="תזמון בסיסי"
+            icon={<SunIcon className="h-5 w-5" strokeWidth={1.75} />}
+          >
+            <div className="space-y-4">
+              <RangeSlider
+                id="room-temp"
+                label="טמפרטורת חדר (°C)"
+                value={roomTemp}
+                min={16}
+                max={32}
+                step={1}
+                unit="°C"
+                onChange={setRoomTemp}
+              />
+              <SmartNumberInput
+                id="coldRetard"
+                label="התפחה במקרר (שעות)"
+                suffix="שעות"
+                value={coldRetardHours}
+                min={4}
+                max={24}
+                step={1}
+                onChange={setColdRetardHours}
+                minusLabel="הפחת"
+                plusLabel="הוסף"
+                compact
+              />
+              <RangeSlider
+                id="hta-slider"
+                label="שעות עד אוטוליזה"
+                value={hoursToAutolyse}
+                min={2}
+                max={12}
+                step={0.5}
+                unit=" ש׳"
+                formatValue={(v) => `${v} שע׳`}
+                onChange={setHoursToAutolyse}
+              />
+              <WeatherPanel form={form} />
             </div>
-            <SmartNumberInput
-              id="coldRetard"
-              label=""
-              suffix="שעות"
-              value={coldRetardHours}
-              min={4}
-              max={24}
-              step={1}
-              onChange={setColdRetardHours}
-              minusLabel="הפחת"
-              plusLabel="הוסף"
-              compact
-            />
-            <div className="mb-1 flex items-center gap-1.5">
-              <span className="text-sm font-semibold text-slate-800">
-                שעות עד אוטוליזה
-              </span>
-              <InfoTooltip term="autolyse" />
-            </div>
-            <RangeSlider
-              id="hta-slider"
-              label=""
-              value={hoursToAutolyse}
-              min={2}
-              max={16}
-              step={0.5}
-              unit=" ש׳"
-              formatValue={(v) => `${v} שע׳`}
-              onChange={setHoursToAutolyse}
-            />
-            <WeatherPanel form={form} />
-          </div>
-        </AccordionItem>
+          </AccordionItem>
+        )}
 
-        <AccordionItem
-          id="ddt"
-          title={inp.accordion.ddt}
-          icon={<FireIcon className="h-5 w-5" strokeWidth={1.75} />}
-        >
-          <DoughTemperatureCalculator form={form} />
-        </AccordionItem>
+        {!compact && (
+          <AccordionItem
+            id="ddt"
+            title={inp.accordion.ddt}
+            icon={<FireIcon className="h-5 w-5" strokeWidth={1.75} />}
+          >
+            <DoughTemperatureCalculator form={form} />
+          </AccordionItem>
+        )}
       </Accordion>
 
       <div className="flex flex-col gap-2 pt-2">

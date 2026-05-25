@@ -3,7 +3,7 @@ import type { FermentationPace, StarterRatioPreset } from "@/lib/expressMode";
 import type { PresetKey } from "@/lib/types";
 import type { RecipeState } from "@/lib/types/recipe";
 
-export const FLOUR_COUNT = 10;
+export const FLOUR_COUNT = 6;
 
 export const RECIPE_DEFAULTS = {
   waterPercent: 73,

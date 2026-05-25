@@ -159,39 +159,11 @@ function buildCandidates(): Candidate[] {
   }, 6);
 
   addCandidate(list, {
-    id: "sat-lunch",
-    title: c.satLunch,
-    hour: 13,
-    coldRetardHours: 10,
-  }, 6);
-
-  addCandidate(list, {
-    id: "sat-afternoon",
-    title: c.satAfternoon,
-    hour: 17,
-    coldRetardHours: 10,
-  }, 6);
-
-  addCandidate(list, {
     id: "sun-brunch",
     title: c.sunBrunch,
     hour: 11,
     coldRetardHours: 12,
   }, 0);
-
-  addCandidate(list, {
-    id: "sun-lunch",
-    title: c.sunLunch,
-    hour: 13,
-    coldRetardHours: 12,
-  }, 0);
-
-  addCandidate(list, {
-    id: "tomorrow-am",
-    title: c.tomorrowAm,
-    hour: 10,
-    coldRetardHours: 10,
-  }, undefined, 1);
 
   addCandidate(list, {
     id: "tomorrow-noon",
@@ -306,16 +278,6 @@ export function generateScheduleOptions(
       input,
       isExpress: false,
       minLeadH: MIN_LEAD_H,
-    });
-
-    pushOption(options, {
-      id: c.id,
-      title: c.title,
-      date: c.date,
-      coldRetardHours: Math.max(4, (c.coldRetardHours ?? input.coldRetardHours) - 4),
-      input,
-      isExpress: true,
-      minLeadH: MIN_LEAD_H_EXPRESS,
     });
   }
 

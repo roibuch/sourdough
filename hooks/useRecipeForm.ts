@@ -28,6 +28,7 @@ import type { SchedulingEngineInput } from "@/lib/scheduling/types";
 import { MS_MIN } from "@/lib/scheduling/timeUtils";
 import { heContent, t } from "@/lib/content";
 import { normalizeFlourPercentages } from "@/lib/schemas/recipeParamsSchema";
+import { CUSTOM_FLOUR_NOTE } from "@/lib/validation/recipeValidation";
 
 const toasts = heContent.toasts;
 
@@ -239,17 +240,32 @@ export function useRecipeForm() {
     (updater: number[] | ((prev: number[]) => number[])) => {
       const next =
         typeof updater === "function" ? updater(flourPcts) : updater;
-      const normalized = normalizeFlourPercentages(next);
+      const rounded = next.map(
+        (p) => Math.round(Math.min(100, Math.max(0, p)) * 10) / 10,
+      );
+      const total = Math.round(rounded.reduce((s, p) => s + p, 0) * 10) / 10;
       patchState({
         flourBlend: {
           preset: "custom",
-          percentages: normalized,
-          totalPercent: normalized.reduce((s, p) => s + p, 0),
+          percentages: rounded,
+          totalPercent: total,
         },
       });
     },
     [flourPcts, patchState],
   );
+
+  const balanceFlourBlend = useCallback(() => {
+    const normalized = normalizeFlourPercentages(flourPcts);
+    patchState({
+      flourBlend: {
+        preset: "custom",
+        percentages: normalized,
+        totalPercent: 100,
+      },
+    });
+    setPresetNote(CUSTOM_FLOUR_NOTE(100));
+  }, [flourPcts, patchState, setPresetNote]);
 
   const setPreset = useCallback(
     (key: PresetKey) => {
@@ -443,8 +459,15 @@ export function useRecipeForm() {
       return;
     }
     if (Math.abs(mix.totalPct - 100) > 0.1) {
-      showToast(t(toasts.flourNot100, { total: mix.totalPct }));
-      return;
+      const balanced = normalizeFlourPercentages(flourPcts);
+      patchState({
+        flourBlend: {
+          preset: "custom",
+          percentages: balanced,
+          totalPercent: 100,
+        },
+      });
+      showToast(toasts.flourNormalized);
     }
     const dough = calculateDough(
       w,
@@ -633,6 +656,7 @@ export function useRecipeForm() {
     setPreset,
     flourPcts,
     setFlourPcts,
+    balanceFlourBlend,
     presetNote,
     setPresetNote,
     targetBakeTime,

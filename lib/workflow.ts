@@ -13,16 +13,13 @@ export function getDoughWorkflow(
 ): DoughWorkflow {
   const whole = pctOf(mix, "wholeWheat");
   const rye = pctOf(mix, "wholeRye");
-  const buckwheat = pctOf(mix, "buckwheat");
-  const spelt = pctOf(mix, "spelt");
   const allPurpose = pctOf(mix, "allPurpose");
-  const pizza = pctOf(mix, "pizza");
   const manitoba = pctOf(mix, "manitoba");
   const bread = pctOf(mix, "bread");
   const whiteWheat = pctOf(mix, "whiteWheat");
   const hydration = getHydrationRecommendation(mix);
-  const wholePct = whole + rye + buckwheat;
-  const fragilePct = rye + buckwheat + Math.max(0, spelt - 20) * 0.6;
+  const wholePct = whole + rye;
+  const fragilePct = rye + Math.max(0, allPurpose - 25) * 0.35;
   const structureScore = mix.items.reduce(
     (sum, item) => sum + (item.pct * item.strength) / 100,
     0,
@@ -69,9 +66,6 @@ export function getDoughWorkflow(
     foldNote = "קמח מלא מאיץ תפיחה — עקבו אחרי נפח ותחושה.";
   }
 
-  if (pizza >= 45) {
-    foldNote += " קמח פיצה — האריכו מנוחה בין קיפולים אם מתוח מדי.";
-  }
   if (allPurpose >= 40) {
     foldNote += " רב תכליתי בכמות גבוהה — הידרציה בינונית.";
   }
@@ -84,7 +78,7 @@ export function getDoughWorkflow(
       : 1 + (22 - tempC) * 0.12;
   let flourFactor = 1;
   if (wholePct >= 35) flourFactor -= 0.12;
-  if (rye + buckwheat >= 20) flourFactor -= 0.08;
+  if (rye >= 20) flourFactor -= 0.08;
   if (manitoba >= 25) flourFactor += 0.08;
   if (highHydration) flourFactor -= 0.05;
   if (lowHydration) flourFactor += 0.06;

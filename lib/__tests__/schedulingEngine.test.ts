@@ -23,7 +23,7 @@ function baseInput(targetBakeTime: string) {
     waterPct: 73,
     roomTemp: 22,
     hoursToAutolyse: 8,
-    flourPcts: [70, 10, 0, 0, 0, 10, 10, 0, 0, 0],
+    flourPcts: [70, 10, 0, 15, 0, 5],
     blackouts: sleepOnly,
     autolyseHours: 1,
     earliestStartMs: new Date("2026-01-01T00:00:00").getTime(),

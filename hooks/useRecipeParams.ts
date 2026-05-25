@@ -43,13 +43,13 @@ function mergeRecipeState(
   };
 }
 
+const URL_DEBOUNCE_MS = 450;
+
 export interface UseRecipeParamsResult {
-  /** Validated domain state from URL (or defaults / storage on first load) */
   state: RecipeState;
   isReady: boolean;
   flourAdjusted: boolean;
   parseIssues: ParseRecipeParamsResult["issues"];
-  /** Replace entire state in URL + storage (no full page reload) */
   setState: (next: RecipeState) => void;
   patchState: (patch: RecipeParamsPatch) => void;
   updateState: (fn: (prev: RecipeState) => RecipeState) => void;
@@ -75,17 +75,47 @@ export function useRecipeParams(): UseRecipeParamsResult {
     return parseRecipeParamsFromSearch(new URLSearchParams(searchKey));
   }, [searchKey]);
 
-  const state = parsed.state;
+  const [draft, setDraft] = useState(parsed.state);
+  const urlSyncKey = useRef(searchKey);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingStateRef = useRef<RecipeState | null>(null);
 
-  const writeUrl = useCallback(
+  useEffect(() => {
+    if (urlSyncKey.current !== searchKey) {
+      urlSyncKey.current = searchKey;
+      setDraft(parsed.state);
+    }
+  }, [searchKey, parsed.state]);
+
+  const writeUrlNow = useCallback(
     (next: RecipeState) => {
       const qs = recipeStateToSearchParams(next).toString();
       const href = qs ? `${pathname}?${qs}` : pathname;
       router.replace(href, { scroll: false });
       saveRecipeStateToStorage(recipeStateToUrlRecord(next));
+      pendingStateRef.current = null;
     },
     [pathname, router],
   );
+
+  const scheduleUrlWrite = useCallback(
+    (next: RecipeState) => {
+      pendingStateRef.current = next;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        if (pendingStateRef.current) {
+          writeUrlNow(pendingStateRef.current);
+        }
+      }, URL_DEBOUNCE_MS);
+    },
+    [writeUrlNow],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (storageHydrated.current) return;
@@ -94,35 +124,42 @@ export function useRecipeParams(): UseRecipeParamsResult {
     if (!searchKey) {
       const stored = loadRecipeStateFromStorage();
       if (stored) {
-        writeUrl(legacyUrlRecordToRecipeState(stored).state);
+        writeUrlNow(legacyUrlRecordToRecipeState(stored).state);
       }
     }
     setIsReady(true);
-  }, [searchKey, writeUrl]);
+  }, [searchKey, writeUrlNow]);
 
   const setState = useCallback(
     (next: RecipeState) => {
-      writeUrl(next);
+      setDraft(next);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      writeUrlNow(next);
     },
-    [writeUrl],
+    [writeUrlNow],
   );
 
-  const patchState = useCallback(
-    (patch: RecipeParamsPatch) => {
-      writeUrl(mergeRecipeState(parsed.state, patch));
-    },
-    [parsed.state, writeUrl],
-  );
+  const patchState = useCallback((patch: RecipeParamsPatch) => {
+    setDraft((prev) => {
+      const next = mergeRecipeState(prev, patch);
+      scheduleUrlWrite(next);
+      return next;
+    });
+  }, [scheduleUrlWrite]);
 
   const updateState = useCallback(
     (fn: (prev: RecipeState) => RecipeState) => {
-      writeUrl(fn(parsed.state));
+      setDraft((prev) => {
+        const next = fn(prev);
+        scheduleUrlWrite(next);
+        return next;
+      });
     },
-    [parsed.state, writeUrl],
+    [scheduleUrlWrite],
   );
 
   return {
-    state,
+    state: draft,
     isReady,
     flourAdjusted: parsed.flourAdjusted,
     parseIssues: parsed.issues,

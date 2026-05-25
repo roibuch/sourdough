@@ -14,24 +14,15 @@ export const FLOUR_FIELDS: FlourField[] = [
   { key: "bread", label: fl.fields.bread, hydration: 70, strength: 1.0 },
   { key: "whiteWheat", label: fl.fields.whiteWheat, hydration: 68, strength: 0.82 },
   { key: "manitoba", label: fl.fields.manitoba, hydration: 74, strength: 1.25 },
-  { key: "durum", label: fl.fields.durum, hydration: 62, strength: 1.05 },
-  { key: "pizza", label: fl.fields.pizza, hydration: 68, strength: 0.9 },
-  { key: "allPurpose", label: fl.fields.allPurpose, hydration: 66, strength: 0.72 },
   { key: "wholeWheat", label: fl.fields.wholeWheat, hydration: 78, strength: 0.72 },
   { key: "wholeRye", label: fl.fields.wholeRye, hydration: 82, strength: 0.25 },
-  { key: "spelt", label: fl.fields.spelt, hydration: 72, strength: 0.55 },
-  { key: "buckwheat", label: fl.fields.buckwheat, hydration: 84, strength: 0.0 },
+  { key: "allPurpose", label: fl.fields.allPurpose, hydration: 66, strength: 0.72 },
 ];
 
 export const PRESET_OPTIONS: { value: PresetKey; label: string }[] = [
   { value: "classic", label: fl.presets.classic },
   { value: "country", label: fl.presets.country },
-  { value: "openCrumb", label: fl.presets.openCrumb },
-  { value: "pizzaSoft", label: fl.presets.pizzaSoft },
-  { value: "nutty", label: fl.presets.nutty },
   { value: "whole", label: fl.presets.whole },
-  { value: "buckwheatAccent", label: fl.presets.buckwheatAccent },
-  { value: "softHome", label: fl.presets.softHome },
   { value: "custom", label: fl.presets.custom },
 ];
 
@@ -39,15 +30,34 @@ export const FLOUR_PRESETS: Record<
   Exclude<PresetKey, "custom">,
   { values: number[]; note: string }
 > = {
-  classic: { values: [70, 10, 0, 0, 0, 10, 10, 0, 0, 0], note: fl.presetNotes.classic },
-  country: { values: [55, 10, 10, 0, 0, 0, 20, 5, 0, 0], note: fl.presetNotes.country },
-  openCrumb: { values: [50, 5, 25, 0, 0, 0, 15, 5, 0, 0], note: fl.presetNotes.openCrumb },
-  pizzaSoft: { values: [35, 10, 0, 0, 45, 5, 5, 0, 0, 0], note: fl.presetNotes.pizzaSoft },
-  nutty: { values: [50, 5, 10, 0, 0, 0, 10, 0, 20, 5], note: fl.presetNotes.nutty },
-  whole: { values: [40, 5, 15, 0, 0, 0, 30, 10, 0, 0], note: fl.presetNotes.whole },
-  buckwheatAccent: { values: [55, 5, 10, 0, 0, 0, 15, 5, 0, 10], note: fl.presetNotes.buckwheatAccent },
-  softHome: { values: [35, 25, 0, 0, 0, 25, 10, 0, 5, 0], note: fl.presetNotes.softHome },
+  classic: { values: [70, 10, 0, 15, 0, 5], note: fl.presetNotes.classic },
+  country: { values: [55, 10, 10, 20, 5, 0], note: fl.presetNotes.country },
+  whole: { values: [35, 5, 10, 40, 10, 0], note: fl.presetNotes.whole },
 };
+
+/** Map legacy 10-flour CSV (old URLs) into 6-flour model */
+export function migrateLegacyFlourPcts(pcts: number[]): number[] {
+  if (pcts.length === FLOUR_FIELDS.length) {
+    return pcts.map((n) => Math.min(100, Math.max(0, n)));
+  }
+  if (pcts.length !== 10) {
+    return [...FLOUR_PRESETS.classic.values];
+  }
+  const [
+    bread,
+    white,
+    manitoba,
+    durum,
+    pizza,
+    allPurpose,
+    whole,
+    rye,
+    spelt,
+    buckwheat,
+  ] = pcts;
+  const other = durum + pizza + allPurpose + spelt + buckwheat;
+  return [bread, white, manitoba, whole, rye, other];
+}
 
 export function defaultFlourPcts(): number[] {
   return [...FLOUR_PRESETS.classic.values];
@@ -79,11 +89,10 @@ export function getHydrationRecommendation(mix: FlourMix) {
     0,
   );
   const wholePct =
-    pctOf(mix, "wholeWheat") + pctOf(mix, "wholeRye") + pctOf(mix, "buckwheat");
+    pctOf(mix, "wholeWheat") + pctOf(mix, "wholeRye");
   const weakPct =
     pctOf(mix, "wholeRye") +
-    pctOf(mix, "buckwheat") +
-    Math.max(0, pctOf(mix, "spelt") - 25) * 0.5;
+    Math.max(0, pctOf(mix, "allPurpose") - 30) * 0.4;
   let low = Math.round(weighted - 3);
   let high = Math.round(weighted + 3);
   if (wholePct >= 45 || weakPct >= 25) {
@@ -122,15 +131,11 @@ export function getFlourWarnings(
     });
   }
 
-  const buckwheat = pctOf(mix, "buckwheat");
-  const spelt = pctOf(mix, "spelt");
   const allPurpose = pctOf(mix, "allPurpose");
-  const pizza = pctOf(mix, "pizza");
   const manitoba = pctOf(mix, "manitoba");
   const bread = pctOf(mix, "bread");
   const whiteWheat = pctOf(mix, "whiteWheat");
-  const durum = pctOf(mix, "durum");
-  const glutenFreeLike = rye + buckwheat;
+  const glutenFreeLike = rye;
   const structureScore = mix.items.reduce(
     (sum, item) => sum + (item.pct * item.strength) / 100,
     0,
@@ -166,18 +171,6 @@ export function getFlourWarnings(
     });
   }
 
-  if (buckwheat > 25) {
-    warnings.push({
-      type: "danger",
-      text: "כוסמת מלאה מעל 25% — אין גלוטן, עלול לתת לחם מתפורר.",
-    });
-  } else if (buckwheat > 12) {
-    warnings.push({
-      type: "warning",
-      text: "כוסמת מלאה מעל 12% — עבודה עדינה, נפח מוגבל.",
-    });
-  }
-
   if (rye > 30) {
     warnings.push({ type: "danger", text: "שיפון מלא מעל 30% — בצק דביק וכבד מאוד." });
   } else if (rye > 15) {
@@ -187,12 +180,6 @@ export function getFlourWarnings(
     });
   }
 
-  if (spelt > 40) {
-    warnings.push({ type: "danger", text: "כוסמין מעל 40% — נטייה להיקרע ולהשתטח." });
-  } else if (spelt > 25) {
-    warnings.push({ type: "warning", text: "כוסמין מעל 25% — קיפולים עדינים." });
-  }
-
   if (whole > 45) {
     warnings.push({
       type: "warning",
@@ -200,24 +187,17 @@ export function getFlourWarnings(
     });
   }
 
-  if (allPurpose > 60) {
+  if (allPurpose > 40) {
     warnings.push({
       type: "warning",
-      text: "רב תכליתי מעל 60% — חלש יותר מקמח לחם.",
+      text: "רב תכליתי/אחר מעל 40% — חלש יותר מקמח לחם.",
     });
   }
 
   if (whiteWheat > 65) {
     warnings.push({
       type: "warning",
-      text: "חיטה לבנה מעל 65% — פחות חזקה מקמח לחם.",
-    });
-  }
-
-  if (pizza > 60) {
-    warnings.push({
-      type: "warning",
-      text: "קמח פיצה בכמות גבוהה — עלול להשתטח בהתפחה ארוכה.",
+      text: "חיטה לבנה מעל 65% — פחוש מבנה מקמח לחם.",
     });
   }
 
@@ -225,18 +205,6 @@ export function getFlourWarnings(
     warnings.push({
       type: "warning",
       text: "מניטובה מעל 55% — חזקה מאוד, עלולה להיות לעיס.",
-    });
-  }
-
-  if (durum > 30) {
-    warnings.push({
-      type: "warning",
-      text: "דורום/סולת מעל 30% — צבע עשיר, דורש מספיק מים.",
-    });
-  } else if (durum > 15) {
-    warnings.push({
-      type: "good",
-      text: `דורום/סולת ב־${durum}% — מרקם מחוספס נעים.`,
     });
   }
 

@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { FLOUR_PRESETS, FLOUR_FIELDS } from "@/lib/flour";
+import {
+  FLOUR_PRESETS,
+  FLOUR_FIELDS,
+  migrateLegacyFlourPcts,
+} from "@/lib/flour";
 import {
   createDefaultRecipeState,
   FLOUR_COUNT,
@@ -16,17 +20,23 @@ import type {
 const FLOUR_TOTAL_TARGET = 100;
 const FLOUR_TOTAL_TOLERANCE = 0.15;
 
-export const presetKeySchema = z.enum([
-  "classic",
-  "country",
-  "openCrumb",
-  "pizzaSoft",
-  "nutty",
-  "whole",
-  "buckwheatAccent",
-  "softHome",
-  "custom",
-]);
+const LEGACY_PRESET_MAP: Record<string, PresetKey> = {
+  openCrumb: "country",
+  pizzaSoft: "classic",
+  nutty: "country",
+  buckwheatAccent: "whole",
+  softHome: "classic",
+};
+
+export const presetKeySchema = z
+  .string()
+  .optional()
+  .transform((v): PresetKey => {
+    const key = v ?? RECIPE_DEFAULTS.preset;
+    if (key in FLOUR_PRESETS) return key as Exclude<PresetKey, "custom">;
+    if (key === "custom") return "custom";
+    return LEGACY_PRESET_MAP[key] ?? RECIPE_DEFAULTS.preset;
+  });
 
 export const fermentationPaceSchema = z.enum(["standard", "express"]);
 export const starterRatioPresetSchema = z.enum([
@@ -67,7 +77,7 @@ export const urlRecipeParamsRawSchema = z
     wa: percentCoerce(1, 120, RECIPE_DEFAULTS.waterPercent),
     st: percentCoerce(1, 80, RECIPE_DEFAULTS.starterPercent),
     sa: percentCoerce(0.5, 5, RECIPE_DEFAULTS.saltPercent),
-    fp: presetKeySchema.catch(RECIPE_DEFAULTS.preset),
+    fp: presetKeySchema,
     fl: optionalString,
     bake: optionalString,
     retard: percentCoerce(0, 48, RECIPE_DEFAULTS.coldRetardHours),
@@ -88,10 +98,14 @@ export type UrlRecipeParamsParsed = z.output<typeof urlRecipeParamsRawSchema>;
 function parseFlourCsv(fl: string): number[] | null {
   if (!fl.trim()) return null;
   const parts = fl.split(",").map((p) => parseFloat(p.trim()));
-  if (parts.length !== FLOUR_COUNT || parts.some((n) => !Number.isFinite(n))) {
-    return null;
+  if (parts.some((n) => !Number.isFinite(n))) return null;
+  if (parts.length === FLOUR_COUNT) {
+    return parts.map((n) => Math.min(100, Math.max(0, n)));
   }
-  return parts.map((n) => Math.min(100, Math.max(0, n)));
+  if (parts.length === 10) {
+    return migrateLegacyFlourPcts(parts);
+  }
+  return null;
 }
 
 function sumPct(pcts: number[]): number {

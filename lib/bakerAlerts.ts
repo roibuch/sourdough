@@ -29,7 +29,7 @@ function strongFlourPercent(mix: FlourMix): number {
   return (
     pctOf(mix, "manitoba") +
     pctOf(mix, "bread") +
-    pctOf(mix, "durum") * 0.5
+    pctOf(mix, "allPurpose") * 0.25
   );
 }
 

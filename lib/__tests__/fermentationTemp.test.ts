@@ -50,7 +50,7 @@ describe("suggestBlackoutFermentationBypass", () => {
       baseBulkHours: 5,
       baseTempC: 22,
       starterPct: 20,
-      flourPcts: [100, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      flourPcts: [100, 0, 0, 0, 0, 0],
     });
     expect(s).not.toBeNull();
     expect(s!.strategy).toBe("temperature");
@@ -68,7 +68,7 @@ describe("suggestBlackoutFermentationBypass", () => {
       baseBulkHours: 4,
       baseTempC: 22,
       starterPct: 20,
-      flourPcts: [100, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      flourPcts: [100, 0, 0, 0, 0, 0],
     });
     expect(s).not.toBeNull();
     expect(s!.strategy).toBe("starter");
@@ -79,7 +79,7 @@ describe("suggestBlackoutFermentationBypass", () => {
 
 describe("calculateRequiredStarterPct", () => {
   it("suggests lower inoculation for longer bulk", () => {
-    const mix = buildFlourMix([100, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    const mix = buildFlourMix([100, 0, 0, 0, 0, 0]);
     const pct = calculateRequiredStarterPct(8, mix);
     expect(pct).toBeLessThan(15);
   });

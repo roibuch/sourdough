@@ -2,24 +2,11 @@ export type FlourKey =
   | "bread"
   | "whiteWheat"
   | "manitoba"
-  | "durum"
-  | "pizza"
-  | "allPurpose"
   | "wholeWheat"
   | "wholeRye"
-  | "spelt"
-  | "buckwheat";
+  | "allPurpose";
 
-export type PresetKey =
-  | "classic"
-  | "country"
-  | "openCrumb"
-  | "pizzaSoft"
-  | "nutty"
-  | "whole"
-  | "buckwheatAccent"
-  | "softHome"
-  | "custom";
+export type PresetKey = "classic" | "country" | "whole" | "custom";
 
 export type AdviceType = "good" | "warning" | "danger";
 
