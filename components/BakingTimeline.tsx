@@ -124,21 +124,21 @@ export function BakingTimeline({
       )}
       aria-label={copy.title}
     >
-      <header className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-warm-border/60 pb-4">
+      <header className="mb-4 flex flex-wrap items-start justify-between gap-3 border-b border-border-subtle pb-4">
         <div>
-          <h2 className="font-serif text-lg font-semibold text-charcoal sm:text-xl">
+          <h2 className="font-serif text-lg font-normal text-text-primary sm:text-xl">
             {copy.title}
           </h2>
-          <p className="mt-1 text-xs text-stone-500 sm:text-sm">{copy.subtitle}</p>
+          <p className="mt-1 text-xs text-text-muted sm:text-sm">{copy.subtitle}</p>
         </div>
-        <div className="rounded-xl border border-wheat/80 bg-wheat-muted/60 px-3 py-2 text-end">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-500">
+        <div className="border border-accent-gold/30 bg-accent-gold-muted/30 px-3 py-2 text-end">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-text-muted">
             {copy.bakeReady}
           </p>
-          <p className="font-serif text-sm font-bold text-crust tabular-nums">
+          <p className="font-serif text-sm font-normal text-accent-gold tabular-nums">
             {formatScheduleTime(plan.summary.bakeEnd)}
           </p>
-          <p className="mt-0.5 text-xs text-stone-600">
+          <p className="mt-0.5 text-xs text-text-secondary">
             {copy.totalDuration} ~{plan.summary.totalHours} שע׳
           </p>
         </div>
@@ -163,14 +163,14 @@ export function BakingTimeline({
               {showFloat && (
                 <div className="relative pb-4 pr-11 sm:pb-5 sm:pr-14">
                   <span
-                    className="absolute right-0 top-3 flex h-9 w-9 items-center justify-center rounded-full border-2 border-amber-400 bg-amber-100 text-amber-900 shadow-sm sm:h-10 sm:w-10"
+                    className="absolute right-0 top-3 flex h-9 w-9 items-center justify-center rounded-full border-2 border-accent-gold/60 bg-accent-gold-muted text-accent-gold sm:h-10 sm:w-10"
                     aria-hidden
                   >
                     <BeakerIcon className="h-5 w-5" strokeWidth={1.75} />
                   </span>
                   <p
                     role="note"
-                    className="rounded-xl border border-dashed border-amber-300/90 bg-amber-50/80 px-3 py-2.5 text-xs leading-relaxed text-amber-950"
+                    className="rounded-sm border border-dashed border-accent-gold/50 bg-accent-gold-muted/40 px-3 py-2.5 text-xs leading-relaxed text-text-secondary"
                   >
                     <strong className="font-semibold">{copy.floatTestTitle}</strong>
                     {" — "}
@@ -199,26 +199,26 @@ export function BakingTimeline({
 
                 <article
                   className={cn(
-                    "rounded-2xl border-2 p-4 transition sm:p-5",
+                    "rounded-sm border p-4 transition sm:p-5",
                     styles.card,
-                    isActive && "shadow-md ring-1 ring-crust/20",
+                    isActive && "shadow-md ring-1 ring-accent-gold/30",
                     isPast && "opacity-85",
                   )}
                 >
                   <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
-                    <h3 className="m-0 font-serif text-base font-semibold text-charcoal sm:text-lg">
+                    <h3 className="m-0 font-serif text-base font-normal text-text-primary sm:text-lg">
                       {step.icon} {step.title}
                     </h3>
                     {isActive && (
-                      <span className="rounded-full bg-crust px-2.5 py-0.5 text-[10px] font-bold text-dough">
+                      <span className="rounded-sm bg-accent-gold px-2.5 py-0.5 text-[10px] font-medium text-background">
                         {copy.currentStep}
                       </span>
                     )}
                   </div>
 
-                  <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-stone-600 sm:text-sm">
+                  <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-text-secondary sm:text-sm">
                     <ClockIcon
-                      className="h-4 w-4 shrink-0 text-stone-400"
+                      className="h-4 w-4 shrink-0 text-text-muted"
                       aria-hidden
                     />
                     <time dateTime={new Date(step.start).toISOString()}>
@@ -234,13 +234,13 @@ export function BakingTimeline({
                     </span>
                   </div>
 
-                  <p className="m-0 text-xs leading-relaxed text-stone-600 sm:text-sm">
+                  <p className="m-0 text-xs leading-relaxed text-text-muted sm:text-sm">
                     {step.meta}
                   </p>
 
                   {step.alarms && step.alarms.length > 0 && (
-                    <div className="mt-3 space-y-2 border-t border-stone-200/70 pt-3">
-                      <p className="text-xs font-semibold text-stone-600">
+                    <div className="mt-3 space-y-2 border-t border-border-subtle pt-3">
+                      <p className="text-xs font-medium text-text-secondary">
                         {copy.foldLabel}
                       </p>
                       <AlarmButtonGroup
@@ -253,7 +253,7 @@ export function BakingTimeline({
                   )}
 
                   {index === 0 && plan.workflow && (
-                    <p className="mt-3 border-t border-stone-200/60 pt-2 text-[11px] text-stone-500">
+                    <p className="mt-3 border-t border-border-subtle pt-2 text-[11px] text-text-muted">
                       {plan.workflow.foldCount} קיפולים כל{" "}
                       {plan.workflow.foldEvery} · {plan.workflow.foldStyle}
                     </p>

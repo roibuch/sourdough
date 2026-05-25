@@ -52,10 +52,10 @@ export function FlourBlendEditor({
         "min-w-0 max-w-full",
         flourTotalInvalid &&
           !totalOk &&
-          "rounded-xl ring-2 ring-amber-300/70 ring-offset-2",
+          "ring-2 ring-accent-gold/50 ring-offset-2 ring-offset-background",
       )}
     >
-      <p className="mb-2 text-sm font-semibold text-slate-800">
+      <p className="mb-2 text-sm font-medium text-text-primary">
         {heContent.inputs.fields.flourPreset}
       </p>
       <div className="mb-4 flex min-w-0 flex-wrap gap-2">
@@ -65,10 +65,10 @@ export function FlourBlendEditor({
             type="button"
             onClick={() => handlePreset(opt.value)}
             className={cn(
-              "min-h-11 rounded-xl border px-4 py-2.5 text-sm font-semibold transition",
+              "min-h-11 rounded-sm border px-4 py-2.5 text-sm font-medium transition-colors",
               preset === opt.value
-                ? "border-crust bg-crust text-dough shadow-sm"
-                : "border-warm-border bg-white/80 text-charcoal hover:bg-wheat-muted/50",
+                ? "brand-choice-active"
+                : "brand-choice-idle",
             )}
           >
             {opt.label}
@@ -78,19 +78,19 @@ export function FlourBlendEditor({
 
       <div
         className={cn(
-          "mb-4 rounded-xl border px-3 py-2.5",
+          "mb-4 border px-3 py-2.5",
           totalOk
-            ? "border-emerald-200/80 bg-emerald-50/60"
-            : "border-amber-200/80 bg-amber-50/60",
+            ? "border-accent-gold/30 bg-accent-gold-muted/20"
+            : "border-accent-gold/50 bg-accent-gold-muted/30",
         )}
       >
-        <span className="text-sm font-semibold text-charcoal">
+        <span className="text-sm font-medium text-text-primary">
           {fl.totalLabel}:{" "}
           <span className="tabular-nums">{total.toFixed(1)}%</span>
         </span>
         {!totalOk && (
-          <p className="mt-1 text-xs text-amber-900">
-            {flourTotalMessage ?? "בלחיצה על «חישוב» תבחרו איך לעגל ל־100%."}
+          <p className="mt-1 text-xs text-text-secondary">
+            {flourTotalMessage ?? "בלחיצה על «יצירת מתכון» תבחרו איך לעגל ל־100%."}
           </p>
         )}
       </div>
@@ -116,8 +116,8 @@ export function FlourBlendEditor({
         ))}
       </div>
 
-      <FlourPieChart mix={draftMix} className="mt-4 mb-2" />
-      <p className="text-xs leading-relaxed text-stone-600">{presetNote}</p>
+      <FlourPieChart mix={draftMix} className="mt-4 mb-2 border-border-subtle bg-surface" />
+      <p className="text-xs leading-relaxed text-text-muted">{presetNote}</p>
     </div>
   );
 }

@@ -22,18 +22,18 @@ export const STEP_KIND_STYLES: Record<
   { card: string; dot: string; badge: string }
 > = {
   action: {
-    card: "border-orange-200/80 bg-gradient-to-br from-orange-50/50 to-white",
-    dot: "border-orange-400 bg-orange-100 text-orange-800",
-    badge: "bg-orange-100 text-orange-900",
+    card: "border-border-subtle bg-surface-elevated/80",
+    dot: "border-accent-gold/60 bg-accent-gold-muted text-accent-gold",
+    badge: "bg-accent-gold-muted text-accent-gold",
   },
   wait: {
-    card: "border-stone-200 bg-stone-50/60",
-    dot: "border-stone-300 bg-stone-100 text-stone-600",
-    badge: "bg-stone-200/80 text-stone-700",
+    card: "border-border-subtle bg-surface/90",
+    dot: "border-text-muted/40 bg-surface-elevated text-text-secondary",
+    badge: "bg-surface-elevated text-text-secondary",
   },
   milestone: {
-    card: "border-wheat bg-gradient-to-br from-wheat-muted to-white ring-1 ring-wheat/50",
-    dot: "border-crust bg-crust text-dough shadow-md shadow-crust/25",
-    badge: "bg-wheat-muted text-crust",
+    card: "border-accent-gold/40 bg-accent-gold-muted/30 ring-1 ring-accent-gold/20",
+    dot: "border-accent-gold bg-accent-gold text-background shadow-md shadow-accent-gold/20",
+    badge: "bg-accent-gold-muted text-accent-gold",
   },
 };

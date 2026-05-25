@@ -4,15 +4,15 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "alarm" | "weather";
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-amber-600 text-white shadow-md shadow-amber-900/20 motion-safe:transition-all hover:bg-amber-700 active:bg-amber-800",
+    "bg-accent-gold text-background hover:bg-accent-gold-hover uppercase tracking-wide font-medium",
   secondary:
-    "border-2 border-warm-border bg-white text-charcoal hover:border-crust/40 hover:bg-wheat-muted/50",
+    "border border-border-subtle bg-surface-elevated text-text-primary hover:border-accent-gold/40",
   ghost:
-    "border border-warm-border bg-dough/80 text-charcoal-muted hover:bg-white hover:border-wheat",
+    "border border-border-subtle bg-transparent text-text-secondary hover:border-accent-gold/50 hover:text-text-primary",
   alarm:
-    "bg-orange-700 text-white shadow-md shadow-orange-900/25 hover:bg-orange-800 active:bg-orange-900",
+    "bg-error/90 text-text-primary hover:bg-error",
   weather:
-    "border-2 border-wheat/60 bg-gradient-to-br from-white to-wheat-muted/80 text-crust hover:border-wheat hover:shadow-sm",
+    "border border-border-subtle bg-surface text-accent-gold hover:border-accent-gold/50",
 };
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -32,8 +32,8 @@ export function Button({
     <button
       type="button"
       className={cn(
-        "inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 rounded-2xl px-5 py-3 text-base font-semibold motion-safe:transition-all duration-200",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-stone-50",
+        "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-sm px-5 py-3 text-base motion-safe:transition-colors duration-200",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         "disabled:pointer-events-none disabled:opacity-50",
         variants[variant],
         fullWidth && "w-full",

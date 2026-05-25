@@ -120,11 +120,11 @@ export function SmartNumberInput({
   };
 
   const jumpPillClass =
-    "touch-target min-h-[44px] rounded-xl border border-stone-300 bg-stone-100/80 px-3 text-xs font-semibold text-stone-800 motion-safe:transition-colors hover:border-amber-500 hover:bg-amber-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2";
+    "touch-target min-h-[44px] rounded-sm border border-border-subtle bg-surface-elevated px-3 text-xs font-medium text-text-secondary motion-safe:transition-colors hover:border-accent-gold/50 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
   const btnClass = cn(
-    "inline-flex shrink-0 items-center justify-center rounded-full bg-amber-600 text-white shadow-md shadow-amber-900/20 motion-safe:transition-all",
-    "hover:bg-amber-700 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2",
+    "inline-flex shrink-0 items-center justify-center rounded-full bg-accent-gold text-background motion-safe:transition-colors",
+    "hover:bg-accent-gold-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background",
     "min-h-[44px] min-w-[44px]",
   );
 
@@ -135,12 +135,12 @@ export function SmartNumberInput({
           htmlFor={id}
           className={cn(
             "text-sm font-semibold",
-            error ? "text-red-800" : warning ? "text-amber-800" : "text-stone-900",
+            error ? "text-error" : warning ? "text-accent-gold" : "text-text-primary",
           )}
         >
           {label}
           {suffix && (
-            <span className="ms-1 font-normal text-stone-500">{suffix}</span>
+            <span className="ms-1 font-normal text-text-muted">{suffix}</span>
           )}
         </label>
       ) : suffix ? (
@@ -154,9 +154,9 @@ export function SmartNumberInput({
           role={error ? "alert" : undefined}
           className={cn(
             "-mt-1 text-xs leading-relaxed",
-            error && "text-red-700",
-            warning && !error && "text-amber-800",
-            !error && !warning && "text-stone-500",
+            error && "text-error",
+            warning && !error && "text-accent-gold",
+            !error && !warning && "text-text-muted",
           )}
         >
           {hint}
@@ -179,21 +179,10 @@ export function SmartNumberInput({
           aria-invalid={error || undefined}
           aria-describedby={hint ? `${id}-hint` : undefined}
           className={cn(
-            "calc-field min-w-0 flex-1 rounded-2xl border-2 bg-wheat-muted/60 text-center font-semibold text-charcoal transition-colors duration-200",
-            error
-              ? "border-red-400 bg-red-50/80 focus:border-red-500 focus:ring-red-500/30"
-              : warning
-                ? "border-wheat bg-wheat-muted/90 focus:border-crust focus:ring-wheat/40"
-                : "border-warm-border/90 focus:border-crust",
-            "focus:bg-white focus:outline-none focus:ring-2",
-            error
-              ? "focus:ring-red-500/30"
-              : warning
-                ? "focus:ring-wheat/40"
-                : "focus:ring-wheat/35",
-            compact
-              ? "px-3 py-2.5 sm:text-lg"
-              : "px-4 py-3 sm:text-xl sm:py-3.5",
+            "glass-input min-w-0 flex-1 text-center font-light transition-colors duration-200",
+            error && "border-error/70 focus:border-error",
+            warning && !error && "border-accent-gold/50",
+            compact ? "text-lg" : "text-xl",
           )}
           value={text}
           placeholder="—"

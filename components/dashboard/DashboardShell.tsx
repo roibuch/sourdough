@@ -1,153 +1,187 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { CalculatorIcon } from "@heroicons/react/24/outline";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { AppBrandHeader } from "@/components/brand/AppBrandHeader";
-import { Button } from "@/components/ui/Button";
-import {
-  DesktopViewTabs,
-  type DesktopMainTab,
-} from "@/components/dashboard/DesktopViewTabs";
-import { MobileBottomNav, type MobileTab } from "@/components/dashboard/MobileBottomNav";
+import { MobileLuxuryTabs, type LuxuryMobileTab } from "@/components/dashboard/MobileLuxuryTabs";
+import { FlourBalanceDialog } from "@/components/dashboard/FlourBalanceDialog";
 import { RecipeInputsPanel } from "@/components/dashboard/RecipeInputsPanel";
+import { ResultsHero } from "@/components/dashboard/ResultsHero";
+import { WelcomeEmptyState } from "@/components/dashboard/WelcomeEmptyState";
 import { Sheet } from "@/components/ui/Sheet";
-import { StickyMetricsBar } from "@/components/dashboard/StickyMetricsBar";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
+import type { RecipeCalculateFlow } from "@/hooks/useRecipeCalculateFlow";
 import { heContent } from "@/lib/content";
 import { cn } from "@/lib/cn";
 
 interface DashboardShellProps {
   form: RecipeForm;
-  outputs: ReactNode;
+  calculateFlow: RecipeCalculateFlow;
+  timeline: ReactNode;
+  starterPanel: ReactNode;
   guide: ReactNode | null;
-  reference: ReactNode;
+  resultsDetails: ReactNode;
 }
 
 export function DashboardShell({
   form,
-  outputs,
+  calculateFlow,
+  timeline,
+  starterPanel,
   guide,
-  reference,
+  resultsDetails,
 }: DashboardShellProps) {
-  const [mobileTab, setMobileTab] = useState<MobileTab>("outputs");
-  const [desktopTab, setDesktopTab] = useState<DesktopMainTab>("outputs");
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const { showResults } = form;
+  const {
+    requestCalculate,
+    balanceOpen,
+    setBalanceOpen,
+    onBalanceConfirm,
+    balancePcts,
+  } = calculateFlow;
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState<LuxuryMobileTab>("timeline");
 
   useEffect(() => {
-    if (desktopTab === "guide" && !guide) {
-      setDesktopTab("outputs");
+    if (mobileTab === "guide" && !guide) {
+      setMobileTab("timeline");
     }
-  }, [desktopTab, guide]);
+  }, [mobileTab, guide]);
 
-  const handleMobileTab = (tab: MobileTab) => {
-    if (tab === "inputs") {
-      setSheetOpen(true);
+  const onPrimaryCta = () => {
+    if (showResults) {
+      setEditSheetOpen(true);
       return;
     }
-    setMobileTab(tab);
-    setSheetOpen(false);
+    requestCalculate();
   };
 
   return (
-    <div className="dashboard-shell flex min-h-screen min-w-0 max-w-[100vw] flex-col overflow-x-clip">
-      <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6">
+    <div className="dashboard-shell flex min-h-screen min-w-0 max-w-[100vw] flex-col overflow-x-clip bg-background">
+      <header className="sticky top-0 z-40 border-b border-border-subtle bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-14 max-w-[100rem] items-center justify-between gap-3 px-4 sm:h-16 sm:px-8">
           <AppBrandHeader
             tagline={heContent.app.brandSubtitle}
-            logoSize={44}
+            logoSize={40}
+            className="text-text-primary"
           />
+          {showResults && (
+            <button
+              type="button"
+              className="touch-target hidden gap-2 text-sm text-text-secondary hover:text-accent-gold lg:inline-flex"
+              onClick={() => setEditSheetOpen(true)}
+            >
+              <PencilSquareIcon className="h-5 w-5" aria-hidden />
+              {heContent.luxury.editRecipe}
+            </button>
+          )}
         </div>
       </header>
 
-      <StickyMetricsBar form={form} />
+      <div className="content-safe-bottom mx-auto flex w-full min-w-0 max-w-[100rem] flex-1 flex-col lg:flex-row">
+        {/* Editor — RTL first = ימין, 40% desktop */}
+        <aside
+          className={cn(
+            "luxury-panel min-w-0 shrink-0",
+            "hidden lg:block lg:w-[40%] lg:max-w-md lg:border-e",
+            "lg:sticky lg:top-[var(--shell-header-h)] lg:max-h-[calc(100vh-var(--shell-header-h))]",
+            "lg:overflow-y-auto lg:overscroll-contain lg:p-6 xl:p-8",
+            "scrollbar-thin",
+          )}
+          aria-label={heContent.luxury.editorTitle}
+        >
+          <p className="mb-6 font-serif text-lg font-normal tracking-wide text-text-primary">
+            {heContent.luxury.editorTitle}
+          </p>
+          <RecipeInputsPanel
+            form={form}
+            calculateFlow={calculateFlow}
+            surface="sidebar"
+          />
+        </aside>
 
-      <div className="content-safe-bottom mx-auto w-full min-w-0 max-w-[90rem] flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:py-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8 xl:gap-10">
-          <aside
-            className={cn(
-              "@container/sidebar hidden min-w-0 shrink-0 lg:block",
-              "lg:min-w-[320px] lg:w-80 lg:max-w-[24rem] xl:w-96",
-              "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.75rem)]",
-              "lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-1.5rem)]",
-              "lg:overflow-y-auto lg:overscroll-contain",
-              "rounded-2xl border border-warm-border/80 bg-white/80 p-4 shadow-md shadow-crust/5 backdrop-blur-md",
-              "xl:p-5 2xl:p-6",
-              "scrollbar-thin",
-            )}
-            aria-label="פרמטרי מתכון"
-          >
-            <p className="mb-4 font-serif text-base font-semibold text-charcoal xl:mb-5">
-              התאמת מתכון
-            </p>
-            <RecipeInputsPanel form={form} surface="sidebar" />
-          </aside>
-
-          <div className="min-w-0 flex-1 lg:min-w-[min(100%,28rem)]">
-            <div className="lg:hidden">
-              {mobileTab === "outputs" && (
-                <div className="space-y-4 sm:space-y-6">{outputs}</div>
-              )}
-              {mobileTab === "guide" && guide && (
-                <div className="space-y-4 sm:space-y-6">{guide}</div>
-              )}
-              {mobileTab === "reference" && (
-                <div className="space-y-4 sm:space-y-6">{reference}</div>
-              )}
-            </div>
-
-            <div className="hidden lg:block">
-              <DesktopViewTabs
-                active={desktopTab}
-                onSelect={setDesktopTab}
-                guideVisible={!!guide}
-              />
-              <div className="space-y-6">
-                {desktopTab === "outputs" && outputs}
-                {desktopTab === "guide" && guide}
-                {desktopTab === "reference" && reference}
+        {/* Results / hero — 60% desktop */}
+        <main className="flex min-w-0 flex-1 flex-col">
+          <div className="lg:hidden">
+            {!showResults ? (
+              <div className="border-b border-border-subtle px-4 py-6">
+                <RecipeInputsPanel
+                  form={form}
+                  calculateFlow={calculateFlow}
+                  surface="sheet"
+                  compact
+                />
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="min-h-[70vh]">
+                  <ResultsHero form={form} />
+                </div>
+                <MobileLuxuryTabs
+                  active={mobileTab}
+                  onSelect={setMobileTab}
+                  guideVisible={!!guide}
+                />
+                <div className="min-h-[12rem] px-4 py-6">
+                  {mobileTab === "timeline" && timeline}
+                  {mobileTab === "starter" && starterPanel}
+                  {mobileTab === "guide" && guide}
+                </div>
+              </>
+            )}
           </div>
-        </div>
 
-        <footer className="mt-10 border-t border-warm-border/70 pt-6 text-center text-xs text-charcoal-muted">
-          {heContent.app.footerShort}
-        </footer>
+          <div className="hidden min-h-[calc(100vh-var(--shell-header-h))] flex-col lg:flex">
+            {showResults ? (
+              <>
+                <ResultsHero form={form} />
+                <div className="border-t border-border-subtle px-6 py-8 xl:px-10">
+                  {resultsDetails}
+                </div>
+              </>
+            ) : (
+              <WelcomeEmptyState />
+            )}
+          </div>
+        </main>
       </div>
 
-      <Sheet
-        open={sheetOpen}
-        onOpenChange={setSheetOpen}
-        title="התאמת פרמטרים"
-      >
-        <RecipeInputsPanel form={form} surface="sheet" compact />
-      </Sheet>
-
-      <MobileBottomNav
-        active={sheetOpen ? "inputs" : mobileTab}
-        onSelect={handleMobileTab}
-        guideVisible={!!guide}
+      <FlourBalanceDialog
+        open={balanceOpen}
+        pcts={balancePcts}
+        onCancel={() => setBalanceOpen(false)}
+        onConfirm={onBalanceConfirm}
       />
 
-      {!sheetOpen && (
-        <div
-          className={cn(
-            "fixed inset-x-0 z-40 border-t border-stone-200/90 bg-white/95 px-3 py-2.5 backdrop-blur-md",
-            "bottom-[calc(var(--shell-nav-h)+env(safe-area-inset-bottom,0px))]",
-            "lg:hidden",
-          )}
-        >
-          <Button
-            variant="primary"
-            fullWidth
-            className="min-h-[44px] shadow-xl shadow-amber-900/25"
-            onClick={() => form.handleCalculate()}
-          >
-            <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-            {heContent.inputs.actions.calculate}
-          </Button>
-        </div>
-      )}
+      <footer className="border-t border-border-subtle py-6 text-center text-xs text-text-muted">
+        {heContent.app.footerShort}
+      </footer>
+
+      <Sheet
+        open={editSheetOpen}
+        onOpenChange={setEditSheetOpen}
+        title={heContent.luxury.editRecipe}
+      >
+        <RecipeInputsPanel
+          form={form}
+          calculateFlow={calculateFlow}
+          surface="sheet"
+          compact
+        />
+      </Sheet>
+
+      <div
+        className={cn(
+          "fixed inset-x-0 z-50 border-t border-border-subtle bg-background/95 px-4 py-3 backdrop-blur-xl lg:hidden",
+          "bottom-[env(safe-area-inset-bottom,0px)]",
+        )}
+      >
+        <button type="button" className="cta-gold rounded-sm" onClick={onPrimaryCta}>
+          {showResults
+            ? heContent.luxury.editRecipe
+            : heContent.inputs.actions.calculate}
+        </button>
+      </div>
     </div>
   );
 }

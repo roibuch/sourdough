@@ -19,11 +19,11 @@ export function AppBrandHeader({
     <div className={cn("flex min-w-0 flex-1 items-center gap-3", className)}>
       <BrandLogo size={logoSize} />
       <div className="min-w-0 flex-1">
-        <h1 className="truncate font-serif text-base font-semibold text-charcoal sm:text-lg md:text-xl">
+        <h1 className="truncate font-serif text-base font-normal text-text-primary sm:text-lg">
           {title}
         </h1>
         {tagline ? (
-          <p className="truncate text-[11px] text-charcoal-muted sm:text-xs">
+          <p className="truncate text-[11px] text-text-muted sm:text-xs">
             {tagline}
           </p>
         ) : null}

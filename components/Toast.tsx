@@ -37,24 +37,24 @@ export function Toast({ payload }: { payload: ToastPayload }) {
     <div
       role="status"
       aria-live="polite"
-      className={`fixed left-1/2 z-[100] w-[min(calc(100vw-1.5rem),24rem)] -translate-x-1/2 transition-all duration-300 bottom-[calc(var(--shell-nav-h,4.25rem)+env(safe-area-inset-bottom,0px)+0.75rem)] lg:bottom-6 motion-reduce:transition-none ${
+      className={`fixed left-1/2 z-[100] w-[min(calc(100vw-1.5rem),24rem)] -translate-x-1/2 transition-all duration-300 bottom-[calc(var(--shell-nav-h,4.25rem)+var(--shell-sticky-cta-h,3.75rem)+env(safe-area-inset-bottom,0px)+0.75rem)] lg:bottom-6 motion-reduce:transition-none ${
         message ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
       }`}
     >
-      <div className="flex items-start gap-3 rounded-2xl border border-stone-200 bg-white/95 px-4 py-4 shadow-xl shadow-stone-400/20 backdrop-blur-md">
+      <div className="flex items-start gap-3 rounded-sm border border-border-subtle bg-surface-elevated/95 px-4 py-4 shadow-xl backdrop-blur-md">
         <CheckCircleIcon
-          className="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
+          className="mt-0.5 h-5 w-5 shrink-0 text-accent-gold"
           strokeWidth={1.75}
           aria-hidden
         />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p className="text-sm font-medium leading-snug text-stone-800">
+          <p className="text-sm font-medium leading-snug text-text-primary">
             {message}
           </p>
           {data?.actionLabel && data.onAction ? (
             <button
               type="button"
-              className="touch-target self-start rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white motion-safe:transition-colors hover:bg-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+              className="touch-target self-start rounded-sm bg-accent-gold px-4 py-2 text-sm font-medium text-background motion-safe:transition-colors hover:bg-accent-gold-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               onClick={() => {
                 data.onAction?.();
                 setVisible(false);
@@ -66,7 +66,7 @@ export function Toast({ payload }: { payload: ToastPayload }) {
         </div>
         <button
           type="button"
-          className="touch-target rounded-lg p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+          className="touch-target rounded-sm p-1 text-text-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold"
           aria-label="סגור"
           onClick={() => setVisible(false)}
         >

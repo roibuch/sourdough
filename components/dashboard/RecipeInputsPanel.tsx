@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { FlourBalanceDialog } from "@/components/dashboard/FlourBalanceDialog";
+import { useEffect, useMemo } from "react";
 import {
   BeakerIcon,
   CalculatorIcon,
@@ -20,20 +19,18 @@ import { Accordion, AccordionItem } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
-import { useRecipeValidation } from "@/hooks/useRecipeValidation";
+import type { RecipeCalculateFlow } from "@/hooks/useRecipeCalculateFlow";
 import { getFermentationFactorWarning } from "@/lib/flour";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import { heContent } from "@/lib/content";
-import {
-  CUSTOM_FLOUR_NOTE,
-  VALIDATION_BLOCKED_MESSAGE,
-} from "@/lib/validation/recipeValidation";
+import { CUSTOM_FLOUR_NOTE } from "@/lib/validation/recipeValidation";
 import { cn } from "@/lib/cn";
 
 const inp = heContent.inputs;
 
 interface RecipeInputsPanelProps {
   form: RecipeForm;
+  calculateFlow: RecipeCalculateFlow;
   /** Mobile bottom sheet — tighter single-column layout */
   compact?: boolean;
   /** Desktop sticky sidebar vs full-width contexts */
@@ -42,6 +39,7 @@ interface RecipeInputsPanelProps {
 
 export function RecipeInputsPanel({
   form,
+  calculateFlow,
   compact,
   surface = "default",
 }: RecipeInputsPanelProps) {
@@ -61,8 +59,6 @@ export function RecipeInputsPanel({
     setPresetNote,
     flourDraft,
     commitFlourPcts,
-    needsFlourBalance,
-    runCalculate,
     handleCopyLink,
     handleClearStorage,
     openStarterOnlyGuide,
@@ -75,43 +71,15 @@ export function RecipeInputsPanel({
     fermentationPace,
   } = form;
 
-  const validation = useRecipeValidation({
-    totalWeight,
-    waterPct,
-    starterPct,
-    saltPct,
-    mix,
-  });
+  const {
+    validation,
+    requestCalculate,
+  } = calculateFlow;
 
   const fermentationAlert = useMemo(
     () => getFermentationFactorWarning(mix),
     [mix],
   );
-
-  const [balanceOpen, setBalanceOpen] = useState(false);
-
-  const onCalculate = () => {
-    if (!validation.canCalculate) {
-      const first =
-        validation.fields.totalWeight?.message ??
-        validation.fields.waterPct?.message;
-      showToast(first ?? VALIDATION_BLOCKED_MESSAGE);
-      return;
-    }
-    commitTotalWeight();
-    commitFlourPcts(flourDraft);
-    if (needsFlourBalance(flourDraft)) {
-      setBalanceOpen(true);
-      return;
-    }
-    runCalculate();
-  };
-
-  const onBalanceConfirm = (balanced: number[]) => {
-    commitFlourPcts(balanced);
-    setBalanceOpen(false);
-    runCalculate();
-  };
 
   useEffect(() => {
     if (preset === "custom") {
@@ -120,16 +88,15 @@ export function RecipeInputsPanel({
   }, [mix.totalPct, preset, setPresetNote]);
 
   const calculateBtn = (
-    <Button
-      variant="primary"
-      fullWidth
-      className="min-h-11 shadow-md shadow-crust/15"
-      onClick={onCalculate}
+    <button
+      type="button"
+      className="cta-gold flex min-h-14 w-full items-center justify-center gap-2 rounded-sm disabled:opacity-50"
+      onClick={requestCalculate}
       disabled={!validation.canCalculate}
     >
       <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
       {inp.actions.calculate}
-    </Button>
+    </button>
   );
 
   return (
@@ -141,20 +108,21 @@ export function RecipeInputsPanel({
         !isSidebar && !compact && "space-y-4",
       )}
     >
-      <FlourBalanceDialog
-        open={balanceOpen}
-        pcts={flourDraft}
-        onCancel={() => setBalanceOpen(false)}
-        onConfirm={onBalanceConfirm}
-      />
-
-      <div className={cn(isSidebar && "lg:hidden")}>
-        <StarterFloatTestAlert />
-      </div>
+      {!compact && (
+        <div className={cn(isSidebar && "lg:hidden")}>
+          <StarterFloatTestAlert />
+        </div>
+      )}
 
       <Accordion
         type="multiple"
-        defaultValue={isSidebar ? ["dough", "flour"] : compact ? ["dough"] : ["dough", "flour"]}
+        defaultValue={
+          compact
+            ? ["dough"]
+            : isSidebar
+              ? ["dough", "flour"]
+              : ["dough", "flour"]
+        }
       >
         <AccordionItem
           id="dough"
@@ -184,7 +152,7 @@ export function RecipeInputsPanel({
             />
 
             <div className="mb-1 flex items-center gap-1.5">
-              <span className="text-sm font-semibold text-stone-900">
+              <span className="text-sm font-medium text-text-primary">
                 {inp.fields.hydration}
               </span>
               <InfoTooltip term="hydration" />
@@ -204,41 +172,35 @@ export function RecipeInputsPanel({
               }
             />
 
-            <div
-              className={cn(
-                "grid min-w-0 gap-4",
-                compact || isSidebar
-                  ? "grid-cols-1"
-                  : "grid-cols-1 @xl/panel:grid-cols-2",
-              )}
-            >
-              <div className="min-w-0">
-                <div className="mb-2 flex items-center gap-1.5">
-                  <label
-                    htmlFor="starterPct"
-                    className="text-sm font-semibold text-stone-900"
-                  >
-                    {inp.fields.inoculation}
-                  </label>
-                  <InfoTooltip term="inoculation" />
-                </div>
-                <SmartNumberInput
-                  id="starterPct"
-                  allowEmpty
-                  label=""
-                  value={starterPct}
-                  min={1}
-                  max={80}
-                  step={1}
-                  onChange={setStarterPct}
-                  minusLabel={inp.actions.decreaseInoculation}
-                  plusLabel={inp.actions.increaseInoculation}
-                  compact
-                  error={validation.fields.starterPct?.invalid}
-                  warning={validation.fields.starterPct?.warning}
-                  hint={validation.fields.starterPct?.message}
-                />
+            <div className="min-w-0">
+              <div className="mb-2 flex items-center gap-1.5">
+                <label
+                  htmlFor="starterPct"
+                  className="text-sm font-medium text-text-primary"
+                >
+                  {inp.fields.inoculation}
+                </label>
+                <InfoTooltip term="inoculation" />
               </div>
+              <SmartNumberInput
+                id="starterPct"
+                allowEmpty
+                label=""
+                value={starterPct}
+                min={1}
+                max={80}
+                step={1}
+                onChange={setStarterPct}
+                minusLabel={inp.actions.decreaseInoculation}
+                plusLabel={inp.actions.increaseInoculation}
+                compact
+                error={validation.fields.starterPct?.invalid}
+                warning={validation.fields.starterPct?.warning}
+                hint={validation.fields.starterPct?.message}
+              />
+            </div>
+
+            {!compact && (
               <SmartNumberInput
                 id="saltPct"
                 allowEmpty
@@ -255,15 +217,15 @@ export function RecipeInputsPanel({
                 warning={validation.fields.saltPct?.warning}
                 hint={validation.fields.saltPct?.message}
               />
-            </div>
+            )}
 
-            {calculateBtn}
+            {!compact && !isSidebar && calculateBtn}
           </div>
         </AccordionItem>
 
         <AccordionItem
           id="flour"
-          title={inp.accordion.flour}
+          title={compact ? inp.accordion.flourBlend : inp.accordion.flour}
           icon={<ScaleIcon className="h-5 w-5" strokeWidth={1.75} />}
         >
           <FlourBlendEditor
@@ -277,32 +239,54 @@ export function RecipeInputsPanel({
             </div>
           )}
 
-          <div className="mt-4">{calculateBtn}</div>
+          {compact && (
+            <SmartNumberInput
+              id="saltPctMobile"
+              allowEmpty
+              label={inp.fields.salt}
+              value={saltPct}
+              min={0.5}
+              max={5}
+              step={0.1}
+              onChange={setSaltPct}
+              minusLabel={inp.actions.decreaseSalt}
+              plusLabel={inp.actions.increaseSalt}
+              compact
+              error={validation.fields.saltPct?.invalid}
+              warning={validation.fields.saltPct?.warning}
+              hint={validation.fields.saltPct?.message}
+            />
+          )}
+
+          {!compact && <div className="mt-4">{calculateBtn}</div>}
         </AccordionItem>
 
-        <AccordionItem
-          id="starter"
-          title="מחמצת (אופציונלי)"
-          icon={<BeakerIcon className="h-5 w-5" strokeWidth={1.75} />}
-        >
-          <StarterPanel form={form} />
-          <div className="mt-4">
-          <SmartNumberInput
-            id="keepInJar"
-            label="כמות להשאיר בצנצנת (גרם)"
-            value={keepInJarG}
-            min={0}
-            max={500}
-            step={5}
-            onChange={setKeepInJarG}
-            minusLabel="הפחת"
-            plusLabel="הוסף"
-            compact
-          />
-          </div>
-        </AccordionItem>
+        {!compact && (
+          <AccordionItem
+            id="starter"
+            title="מחמצת (אופציונלי)"
+            icon={<BeakerIcon className="h-5 w-5" strokeWidth={1.75} />}
+          >
+            <StarterPanel form={form} />
+            <div className="mt-4">
+              <SmartNumberInput
+                id="keepInJar"
+                label="כמות להשאיר בצנצנת (גרם)"
+                value={keepInJarG}
+                min={0}
+                max={500}
+                step={5}
+                onChange={setKeepInJarG}
+                minusLabel="הפחת"
+                plusLabel="הוסף"
+                compact
+              />
+            </div>
+          </AccordionItem>
+        )}
       </Accordion>
 
+      {!compact && (
       <div className={cn(isSidebar && "lg:hidden")}>
         <BakingTimeline
           dough={{
@@ -318,15 +302,10 @@ export function RecipeInputsPanel({
           onAlarmResult={(type) => showToast(alarmToastMessage(type))}
         />
       </div>
+      )}
 
-      {(isSidebar || compact) && (
-        <div
-          className={cn(
-            "sticky bottom-0 z-20 -mx-3 border-t border-warm-border/80 bg-dough/95 px-3 py-3 backdrop-blur-md",
-            compact && "-mx-0",
-            isSidebar && "lg:-mx-4 lg:px-4",
-          )}
-        >
+      {isSidebar && (
+        <div className="hidden lg:block">
           {calculateBtn}
         </div>
       )}

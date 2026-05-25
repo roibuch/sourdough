@@ -1,15 +1,12 @@
 import { getBasePath } from "@/lib/basePath";
 
-/** Artisan sourdough brand palette */
+/** Luxury Artisan — dark boutique bakery */
 export const BRAND = {
-  themeColor: "#7a4f2e",
-  backgroundColor: "#faf7f2",
-  crust: "#7a4f2e",
-  crustDark: "#5c3a22",
-  wheat: "#d4a574",
-  wheatLight: "#e8cfa0",
-  dough: "#faf7f2",
-  charcoal: "#2e2b28",
+  themeColor: "#11100F",
+  backgroundColor: "#11100F",
+  accentGold: "#D4AF37",
+  surface: "#1C1A19",
+  textPrimary: "#F4F1EB",
 } as const;
 
 export function brandAssetPath(filename: string): string {

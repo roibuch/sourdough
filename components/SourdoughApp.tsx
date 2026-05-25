@@ -5,28 +5,22 @@ import dynamic from "next/dynamic";
 import { alarmToastMessage } from "@/components/AlarmButton";
 import { BakingTimeline } from "@/components/BakingTimeline";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { RecipeResultsPanel } from "@/components/dashboard/RecipeResultsPanel";
+import { RecipeResultsDetails } from "@/components/dashboard/RecipeResultsDetails";
 import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
 import { SmartWarningBanner } from "@/components/feedback/SmartWarningBanner";
 import { useBakerAlerts } from "@/hooks/useBakerAlerts";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { PanelSkeleton } from "@/components/ui/PanelSkeleton";
 import { Toast, type ToastPayload } from "@/components/Toast";
+import { StarterPanel } from "@/components/sections/StarterPanel";
 import { useRecipeForm } from "@/hooks/useRecipeForm";
+import { useRecipeCalculateFlow } from "@/hooks/useRecipeCalculateFlow";
 import { heContent } from "@/lib/content";
 
 const BakingGuide = dynamic(
   () =>
     import("@/components/BakingGuide").then((m) => ({ default: m.BakingGuide })),
   { loading: () => <PanelSkeleton className="min-h-[20rem]" /> },
-);
-
-const ReferenceTables = dynamic(
-  () =>
-    import("@/components/ReferenceTables").then((m) => ({
-      default: m.ReferenceTables,
-    })),
-  { loading: () => <PanelSkeleton className="min-h-[16rem]" /> },
 );
 
 const OptionalSchedulePanel = dynamic(
@@ -39,6 +33,7 @@ const OptionalSchedulePanel = dynamic(
 
 export function SourdoughApp() {
   const form = useRecipeForm();
+  const calculateFlow = useRecipeCalculateFlow(form);
   const [swToast, setSwToast] = useState<ToastPayload>(null);
   const bakerAlerts = useBakerAlerts(form);
 
@@ -49,81 +44,57 @@ export function SourdoughApp() {
       onAction: reload,
     });
   }, []);
+
   const hydrationAlerts = bakerAlerts.filter((a) =>
     a.id.startsWith("hydration"),
   );
 
-  const outputs = (
-    <div className="space-y-4 sm:space-y-6">
+  const timeline = (
+    <div className="space-y-4">
       {hydrationAlerts.length > 0 && (
         <SmartWarningBanner alerts={hydrationAlerts} />
       )}
-      <div className="hidden space-y-4 lg:block">
-        <StarterFloatTestAlert />
-        <BakingTimeline
-          dough={{
-            starterPct: form.starterPct,
-            waterPct: form.waterPct,
-            flourPcts: form.flourDraft,
-            roomTempC: form.roomTemp,
-            hoursToAutolyse: form.hoursToAutolyse,
-            coldRetardHours: form.coldRetardHours,
-            fermentationPace: form.fermentationPace,
-          }}
-          showFloatTestReminder={false}
-          onAlarmResult={(type) => form.showToast(alarmToastMessage(type))}
-        />
-      </div>
-      <RecipeResultsPanel form={form} />
+      <StarterFloatTestAlert />
+      <BakingTimeline
+        dough={{
+          starterPct: form.starterPct,
+          waterPct: form.waterPct,
+          flourPcts: form.flourDraft,
+          roomTempC: form.roomTemp,
+          hoursToAutolyse: form.hoursToAutolyse,
+          coldRetardHours: form.coldRetardHours,
+          fermentationPace: form.fermentationPace,
+        }}
+        showFloatTestReminder={false}
+        onAlarmResult={(type) => form.showToast(alarmToastMessage(type))}
+      />
       <OptionalSchedulePanel form={form} />
     </div>
   );
 
-  const guide =
-    form.showGuide ? (
-      <section
-        id="section-guide"
-        className="scroll-mt-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.5rem)]"
-      >
-        <div className="glass-panel min-w-0 overflow-x-clip">
-          <div className="border-b border-stone-200/70 px-4 py-3 sm:px-6 sm:py-4">
-            <h2 className="font-serif text-xl font-semibold text-charcoal">
-              מדריך אפייה
-            </h2>
-          </div>
-          <div className="p-3 sm:p-6 md:p-8">
-            <BakingGuide form={form} />
-          </div>
-        </div>
-      </section>
-    ) : null;
-
-  const reference = (
-    <section
-      id="section-reference"
-      className="scroll-mt-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.5rem)]"
-    >
-      <div className="glass-panel min-w-0 overflow-x-clip">
-        <div className="border-b border-stone-200/70 px-4 py-3 sm:px-6 sm:py-4">
-          <h2 className="font-serif text-xl font-semibold text-stone-900">
-            {heContent.navigation.items.reference.label}
-          </h2>
-        </div>
-        <div className="p-3 sm:p-6 md:p-8">
-          <ReferenceTables />
-        </div>
+  const guide = form.showGuide ? (
+    <div className="glass-panel min-w-0 overflow-x-clip">
+      <div className="border-b border-border-subtle px-4 py-3">
+        <h2 className="font-serif text-lg font-normal text-text-primary">
+          מדריך אפייה
+        </h2>
       </div>
-    </section>
-  );
+      <div className="p-4 sm:p-6">
+        <BakingGuide form={form} />
+      </div>
+    </div>
+  ) : null;
 
   return (
     <>
       <ServiceWorkerRegister onUpdateAvailable={onSwUpdate} />
       <DashboardShell
         form={form}
-        outputs={outputs}
+        calculateFlow={calculateFlow}
+        timeline={timeline}
+        starterPanel={<StarterPanel form={form} />}
         guide={guide}
-        reference={reference}
+        resultsDetails={<RecipeResultsDetails form={form} />}
       />
       <Toast payload={swToast ?? form.toast} />
     </>

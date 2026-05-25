@@ -9,13 +9,14 @@ import "./globals.css";
 
 const heebo = Heebo({
   subsets: ["hebrew", "latin"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-heebo",
   display: "swap",
 });
 
 const frank = Frank_Ruhl_Libre({
   subsets: ["hebrew", "latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-frank",
   display: "swap",
 });
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "מחמצת",
   },
 };
@@ -57,12 +58,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="he" dir="rtl" className={`${heebo.variable} ${frank.variable}`}>
+    <html
+      lang="he"
+      dir="rtl"
+      className={`${heebo.variable} ${frank.variable} dark`}
+    >
       <head>
         <link rel="apple-touch-icon" href={appleTouchIcon} />
         <meta name="theme-color" content={BRAND.themeColor} />
+        <meta name="color-scheme" content="dark" />
       </head>
-      <body className="font-sans antialiased">
+      <body className="min-h-screen bg-background font-sans font-light text-text-primary antialiased">
         <OpenWeatherRuntimeConfig />
         <Script src={`${basePath}/config.js`} strategy="beforeInteractive" />
         {children}

@@ -3,6 +3,7 @@ export const INPUTS_HE = {
   accordion: {
     dough: "כמה בצק ומה בו?",
     flour: "אילו קמחים?",
+    flourBlend: "עריכת תערובת קמחים",
     starter: "מחמצת (אופציונלי)",
     timing: "מתי לאפות?",
     ddt: "טמפרטורת מים ללישה",
@@ -21,7 +22,7 @@ export const INPUTS_HE = {
     targetBake: "מתי הלחם צריך להיות מוכן?",
   },
   actions: {
-    calculate: "צור מתכון עכשיו",
+    calculate: "יצירת מתכון",
     share: "שיתוף קישור לנוסחה",
     clearStorage: "איפוס שמירה מקומית",
     starterOnly: "מדריך מחמצת בלבד",

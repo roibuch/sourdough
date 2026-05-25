@@ -95,7 +95,7 @@ export function AccordionItem({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border border-warm-border/80 bg-white/70 shadow-sm backdrop-blur-md",
+        "overflow-hidden rounded-sm border border-border-subtle bg-surface/80 backdrop-blur-sm",
         className,
       )}
     >
@@ -105,19 +105,19 @@ export function AccordionItem({
         aria-expanded={isOpen}
         aria-controls={`${panelId}-panel`}
         onClick={() => ctx.toggle(id)}
-        className="flex min-h-[44px] w-full items-center gap-2.5 px-3 py-3 text-start motion-safe:transition-colors hover:bg-amber-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-inset sm:gap-3 sm:px-4"
+        className="flex min-h-[44px] w-full items-center gap-2.5 px-3 py-3 text-start motion-safe:transition-colors hover:bg-surface-elevated/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-inset sm:gap-3 sm:px-4"
       >
         {icon && (
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-wheat-muted text-crust">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-accent-gold/20 bg-accent-gold-muted text-accent-gold">
             {icon}
           </span>
         )}
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold text-charcoal sm:text-base">
+          <span className="block text-sm font-medium text-text-primary sm:text-base">
             {title}
           </span>
           {subtitle ? (
-            <span className="mt-0.5 line-clamp-2 block text-[11px] font-normal leading-snug text-stone-500 sm:text-xs">
+            <span className="mt-0.5 line-clamp-2 block text-[11px] font-normal leading-snug text-text-muted sm:text-xs">
               {subtitle}
             </span>
           ) : null}
@@ -125,7 +125,7 @@ export function AccordionItem({
         {badge}
         <ChevronDownIcon
           className={cn(
-            "h-5 w-5 shrink-0 text-stone-500 transition-transform duration-200",
+            "h-5 w-5 shrink-0 text-text-muted transition-transform duration-200",
             isOpen && "rotate-180",
           )}
           aria-hidden
@@ -145,7 +145,7 @@ export function AccordionItem({
         <div className="overflow-hidden">
           <div
             className={cn(
-              "min-w-0 border-t border-stone-100 px-3 pb-4 pt-3 sm:px-4",
+              "min-w-0 border-t border-border-subtle px-3 pb-4 pt-3 sm:px-4",
               contentClassName,
             )}
           >

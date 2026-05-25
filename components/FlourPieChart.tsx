@@ -82,24 +82,24 @@ export function FlourPieChart({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-stone-200/80 bg-white/80 p-4 sm:p-5",
+        "rounded-sm border border-border-subtle bg-surface p-4 sm:p-5",
         className,
       )}
       aria-label="תרשים תערובת קמחים"
     >
       <div className="mb-4 flex items-center gap-2">
         <ChartPieIcon
-          className="h-5 w-5 text-crust"
+          className="h-5 w-5 text-accent-gold"
           strokeWidth={1.75}
           aria-hidden
         />
-        <h4 className="font-serif text-base font-semibold text-stone-900 sm:text-lg">
+        <h4 className="font-serif text-base font-normal text-text-primary sm:text-lg">
           תרשים תערובת
         </h4>
       </div>
 
       {!hasData ? (
-        <p className="py-6 text-center text-sm text-stone-500">
+        <p className="py-6 text-center text-sm text-text-muted">
           הזינו אחוזים לסוגי הקמח כדי לראות את התרשים.
         </p>
       ) : (
@@ -113,20 +113,20 @@ export function FlourPieChart({
             />
             <div
               className={cn(
-                "absolute flex flex-col items-center justify-center rounded-full bg-white shadow-sm",
+                "absolute flex flex-col items-center justify-center rounded-full bg-background shadow-sm",
                 holeInset,
               )}
             >
               <span
                 className={cn(
                   "font-serif font-semibold leading-none",
-                  isComplete ? "text-crust" : "text-amber-700",
+                  isComplete ? "text-accent-gold" : "text-text-secondary",
                   compact ? "text-xl" : "text-2xl sm:text-3xl",
                 )}
               >
                 {Math.round(mix.totalPct)}%
               </span>
-              <span className="mt-1 text-[10px] font-medium uppercase tracking-wide text-stone-500 sm:text-xs">
+              <span className="mt-1 text-[10px] font-medium uppercase tracking-wide text-text-muted sm:text-xs">
                 {isComplete ? "מלא" : "סה״כ"}
               </span>
             </div>
@@ -136,7 +136,7 @@ export function FlourPieChart({
             {slices.map((slice) => (
               <li
                 key={slice.key}
-                className="flex items-center gap-2.5 text-sm text-stone-700"
+                className="flex items-center gap-2.5 text-sm text-text-secondary"
               >
                 <span
                   className="h-3 w-3 shrink-0 rounded-full ring-1 ring-stone-300/60"
@@ -144,10 +144,10 @@ export function FlourPieChart({
                   aria-hidden
                 />
                 <span className="min-w-0 flex-1 truncate">{slice.label}</span>
-                <span className="shrink-0 font-semibold tabular-nums text-stone-900">
+                <span className="shrink-0 font-medium tabular-nums text-text-primary">
                   {slice.pct}%
                   {slice.grams != null && (
-                    <span className="ms-1 font-normal text-stone-500">
+                    <span className="ms-1 font-normal text-text-muted">
                       · {slice.grams} ג׳
                     </span>
                   )}
@@ -155,7 +155,7 @@ export function FlourPieChart({
               </li>
             ))}
             {remainderPct > 0.05 && (
-              <li className="flex items-center gap-2.5 text-sm text-stone-500">
+              <li className="flex items-center gap-2.5 text-sm text-text-muted">
                 <span
                   className="h-3 w-3 shrink-0 rounded-full bg-stone-200 ring-1 ring-stone-300/60"
                   aria-hidden
@@ -171,7 +171,7 @@ export function FlourPieChart({
       )}
 
       {!isComplete && hasData && (
-        <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-center text-xs text-amber-900 ring-1 ring-amber-200/80">
+        <p className="mt-4 border border-accent-gold/30 bg-accent-gold-muted/30 px-3 py-2 text-center text-xs text-text-secondary">
           האחוזים צריכים להסתכם ל־100% — כרגע {mix.totalPct}%.
         </p>
       )}

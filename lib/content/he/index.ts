@@ -7,6 +7,7 @@ import { FLOUR_HE } from "@/lib/content/he/flour";
 import { GLOSSARY_HE } from "@/lib/content/he/glossary";
 import { GUIDE_HE } from "@/lib/content/he/guide";
 import { INPUTS_HE } from "@/lib/content/he/inputs";
+import { LUXURY_HE } from "@/lib/content/he/luxury";
 import { NAVIGATION_HE } from "@/lib/content/he/navigation";
 import { OPTIONAL_SCHEDULE_HE } from "@/lib/content/he/optionalSchedule";
 import { SCHEDULE_HE } from "@/lib/content/he/schedule";
@@ -37,6 +38,7 @@ export const heContent = {
   express: EXPRESS_HE,
   weather: WEATHER_HE,
   optionalSchedule: OPTIONAL_SCHEDULE_HE,
+  luxury: LUXURY_HE,
 } as const;
 
 export type HeContent = typeof heContent;
