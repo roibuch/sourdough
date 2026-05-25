@@ -69,6 +69,7 @@ export function SmartNumberInput({
   onDeferredBlur,
   suffix,
   jumpStep,
+  narrow,
   error,
   warning,
   hint,
