@@ -58,17 +58,16 @@ export function DashboardShell({
 
   return (
     <div className="dashboard-shell flex min-h-screen min-w-0 max-w-[100vw] flex-col overflow-x-clip bg-background">
-      <header className="sticky top-0 z-40 border-b border-border-subtle bg-surface/95 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-[100rem] items-center justify-between gap-3 px-4 sm:h-16 sm:px-8">
+      <header className="sticky top-0 z-40 border-b border-border-subtle bg-surface/90 shadow-sm backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:max-w-[100rem] lg:px-8">
           <AppBrandHeader
             tagline={heContent.app.brandSubtitle}
             logoSize={40}
-            className="text-text-primary"
           />
           {showResults && (
             <button
               type="button"
-              className="touch-target hidden gap-2 text-sm text-text-secondary hover:text-accent-gold lg:inline-flex"
+              className="touch-target hidden items-center gap-2 rounded-xl border border-border-subtle bg-surface px-3 text-sm font-medium text-text-secondary shadow-sm hover:border-accent/30 hover:text-accent lg:inline-flex"
               onClick={() => setEditSheetOpen(true)}
             >
               <PencilSquareIcon className="h-5 w-5" aria-hidden />
@@ -78,51 +77,49 @@ export function DashboardShell({
         </div>
       </header>
 
-      <div className="content-safe-bottom mx-auto flex w-full min-w-0 max-w-[100rem] flex-1 flex-col lg:flex-row">
-        {/* Editor — RTL first = ימין, 40% desktop */}
+      <div className="content-safe-bottom mx-auto flex w-full min-w-0 max-w-6xl flex-1 flex-col lg:max-w-[100rem] lg:flex-row lg:gap-6 lg:px-6 lg:pt-6">
         <aside
           className={cn(
-            "luxury-panel min-w-0 shrink-0",
-            "hidden lg:block lg:w-[40%] lg:max-w-md lg:border-e",
-            "lg:sticky lg:top-[var(--shell-header-h)] lg:max-h-[calc(100vh-var(--shell-header-h))]",
-            "lg:overflow-y-auto lg:overscroll-contain lg:p-6 xl:p-8",
-            "scrollbar-thin",
+            "hidden min-w-0 shrink-0 lg:block lg:w-[min(22rem,38%)] lg:max-w-md",
+            "lg:sticky lg:top-[calc(var(--shell-header-h)+1.5rem)] lg:max-h-[calc(100vh-var(--shell-header-h)-3rem)]",
+            "lg:overflow-y-auto lg:overscroll-contain scrollbar-thin",
           )}
           aria-label={heContent.luxury.editorTitle}
         >
-          <p className="mb-6 font-serif text-lg font-normal tracking-wide text-text-primary">
-            {heContent.luxury.editorTitle}
-          </p>
-          <RecipeInputsPanel
-            form={form}
-            calculateFlow={calculateFlow}
-            surface="sidebar"
-          />
+          <div className="app-card p-6 xl:p-7">
+            <h2 className="mb-5 font-serif text-xl font-medium text-text-primary">
+              {heContent.luxury.editorTitle}
+            </h2>
+            <RecipeInputsPanel
+              form={form}
+              calculateFlow={calculateFlow}
+              surface="sidebar"
+            />
+          </div>
         </aside>
 
-        {/* Results / hero — 60% desktop */}
         <main className="flex min-w-0 flex-1 flex-col">
           <div className="lg:hidden">
             {!showResults ? (
-              <div className="border-b border-border-subtle px-4 py-6">
-                <RecipeInputsPanel
-                  form={form}
-                  calculateFlow={calculateFlow}
-                  surface="sheet"
-                  compact
-                />
+              <div className="px-4 py-5">
+                <div className="app-card p-4">
+                  <RecipeInputsPanel
+                    form={form}
+                    calculateFlow={calculateFlow}
+                    surface="sheet"
+                    compact
+                  />
+                </div>
               </div>
             ) : (
               <>
-                <div className="min-h-[70vh]">
-                  <ResultsHero form={form} />
-                </div>
+                <ResultsHero form={form} />
                 <MobileLuxuryTabs
                   active={mobileTab}
                   onSelect={setMobileTab}
                   guideVisible={!!guide}
                 />
-                <div className="min-h-[12rem] px-4 py-6">
+                <div className="space-y-4 px-4 py-5">
                   {mobileTab === "timeline" && timeline}
                   {mobileTab === "starter" && starterPanel}
                   {mobileTab === "guide" && guide}
@@ -131,13 +128,11 @@ export function DashboardShell({
             )}
           </div>
 
-          <div className="hidden min-h-[calc(100vh-var(--shell-header-h))] flex-col lg:flex">
+          <div className="hidden flex-col lg:flex">
             {showResults ? (
               <>
                 <ResultsHero form={form} />
-                <div className="border-t border-border-subtle px-6 py-8 xl:px-10">
-                  {resultsDetails}
-                </div>
+                <div className="px-2 pb-10">{resultsDetails}</div>
               </>
             ) : (
               <WelcomeEmptyState />
@@ -153,7 +148,7 @@ export function DashboardShell({
         onConfirm={onBalanceConfirm}
       />
 
-      <footer className="border-t border-border-subtle py-6 text-center text-xs text-text-muted">
+      <footer className="border-t border-border-subtle py-5 text-center text-xs text-text-muted">
         {heContent.app.footerShort}
       </footer>
 
@@ -172,11 +167,11 @@ export function DashboardShell({
 
       <div
         className={cn(
-          "fixed inset-x-0 z-50 border-t border-border-subtle bg-surface/98 px-4 py-3 backdrop-blur-xl lg:hidden",
+          "fixed inset-x-0 z-50 border-t border-border-subtle bg-surface px-4 py-3 shadow-[0_-4px_20px_rgb(28_25_23/0.08)] lg:hidden",
           "bottom-[env(safe-area-inset-bottom,0px)]",
         )}
       >
-        <button type="button" className="cta-gold rounded-sm" onClick={onPrimaryCta}>
+        <button type="button" className="cta-primary" onClick={onPrimaryCta}>
           {showResults
             ? heContent.luxury.editRecipe
             : heContent.inputs.actions.calculate}

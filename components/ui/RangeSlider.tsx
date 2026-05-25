@@ -55,8 +55,8 @@ export function RangeSlider({
         )}
         <span
           className={cn(
-            "font-serif text-lg font-light tabular-nums transition-colors duration-200 motion-reduce:transition-none",
-            error ? "text-error" : "text-accent-gold",
+            "rounded-lg bg-accent-muted px-2.5 py-0.5 font-semibold tabular-nums text-accent",
+            error && "bg-red-50 text-error",
           )}
         >
           {display}
@@ -64,11 +64,11 @@ export function RangeSlider({
       </div>
       <div className="relative flex min-h-[44px] items-center py-1">
         <div
-          className="pointer-events-none absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-border-subtle"
+          className="pointer-events-none absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 overflow-hidden rounded-full bg-stone-200"
           aria-hidden
         >
           <div
-            className="h-full bg-accent-gold/70 transition-[width] duration-200 motion-reduce:transition-none"
+            className="h-full rounded-full bg-accent transition-[width] duration-200 motion-reduce:transition-none"
             style={{ width: `${fillPct}%` }}
           />
         </div>
@@ -82,13 +82,13 @@ export function RangeSlider({
           onChange={(e) => onChange(parseFloat(e.target.value))}
           className={cn(
             "calc-range-track relative z-10",
-            "[&::-webkit-slider-runnable-track]:h-0.5 [&::-webkit-slider-runnable-track]:bg-border-subtle",
-            "[&::-webkit-slider-thumb]:mt-[-0.4375rem] [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4",
+            "[&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-stone-200",
+            "[&::-webkit-slider-thumb]:mt-[-0.375rem] [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5",
             "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full",
-            "[&::-webkit-slider-thumb]:bg-accent-gold [&::-webkit-slider-thumb]:shadow-[0_0_0_2px_rgba(17,16,15,0.8)]",
-            "[&::-moz-range-track]:h-0.5 [&::-moz-range-track]:bg-border-subtle",
-            "[&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full",
-            "[&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-accent-gold",
+            "[&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-sm",
+            "[&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-stone-200",
+            "[&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full",
+            "[&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-accent",
           )}
           aria-valuemin={min}
           aria-valuemax={max}
@@ -96,7 +96,7 @@ export function RangeSlider({
           aria-invalid={error || undefined}
         />
       </div>
-      <div className="flex justify-between text-[10px] font-medium uppercase tracking-wide text-text-muted">
+      <div className="flex justify-between text-xs text-text-muted">
         <span>
           {min}
           {unit}

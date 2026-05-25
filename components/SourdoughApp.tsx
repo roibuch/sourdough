@@ -73,15 +73,11 @@ export function SourdoughApp() {
   );
 
   const guide = form.showGuide ? (
-    <div className="glass-panel min-w-0 overflow-x-clip">
-      <div className="border-b border-border-subtle px-4 py-3">
-        <h2 className="font-serif text-lg font-normal text-text-primary">
-          מדריך אפייה
-        </h2>
-      </div>
-      <div className="p-4 sm:p-6">
-        <BakingGuide form={form} />
-      </div>
+    <div className="app-card min-w-0 overflow-x-clip p-4 sm:p-6">
+      <h2 className="mb-4 font-serif text-lg font-medium text-text-primary">
+        מדריך אפייה
+      </h2>
+      <BakingGuide form={form} />
     </div>
   ) : null;
 

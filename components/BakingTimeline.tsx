@@ -131,11 +131,11 @@ export function BakingTimeline({
           </h2>
           <p className="mt-1 text-xs text-text-muted sm:text-sm">{copy.subtitle}</p>
         </div>
-        <div className="border border-accent-gold/30 bg-accent-gold-muted/30 px-3 py-2 text-end">
-          <p className="text-[10px] font-medium uppercase tracking-wide text-text-muted">
+        <div className="rounded-xl border border-border-subtle bg-accent-muted px-3 py-2 text-end">
+          <p className="text-xs font-medium text-text-muted">
             {copy.bakeReady}
           </p>
-          <p className="font-serif text-sm font-normal text-accent-gold tabular-nums">
+          <p className="font-serif text-sm font-semibold text-accent tabular-nums">
             {formatScheduleTime(plan.summary.bakeEnd)}
           </p>
           <p className="mt-0.5 text-xs text-text-secondary">
@@ -163,14 +163,14 @@ export function BakingTimeline({
               {showFloat && (
                 <div className="relative pb-4 pr-11 sm:pb-5 sm:pr-14">
                   <span
-                    className="absolute right-0 top-3 flex h-9 w-9 items-center justify-center rounded-full border-2 border-accent-gold/60 bg-accent-gold-muted text-accent-gold sm:h-10 sm:w-10"
+                    className="absolute right-0 top-3 flex h-9 w-9 items-center justify-center rounded-full border-2 border-accent/30 bg-accent-muted text-accent sm:h-10 sm:w-10"
                     aria-hidden
                   >
                     <BeakerIcon className="h-5 w-5" strokeWidth={1.75} />
                   </span>
                   <p
                     role="note"
-                    className="rounded-sm border border-dashed border-accent-gold/50 bg-accent-gold-muted/40 px-3 py-2.5 text-xs leading-relaxed text-text-secondary"
+                    className="rounded-xl border border-dashed border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-950"
                   >
                     <strong className="font-semibold">{copy.floatTestTitle}</strong>
                     {" — "}
@@ -189,7 +189,7 @@ export function BakingTimeline({
                   className={cn(
                     "absolute right-0 top-2 flex h-9 w-9 items-center justify-center rounded-full border-2 shadow-sm transition sm:h-10 sm:w-10",
                     styles.dot,
-                    isActive && "ring-2 ring-crust/40 ring-offset-2",
+                    isActive && "ring-2 ring-accent/30 ring-offset-2 ring-offset-background",
                     isPast && "opacity-70",
                   )}
                   aria-hidden
@@ -199,9 +199,9 @@ export function BakingTimeline({
 
                 <article
                   className={cn(
-                    "rounded-sm border p-4 transition sm:p-5",
+                    "rounded-xl border p-4 shadow-sm transition sm:p-5",
                     styles.card,
-                    isActive && "shadow-md ring-1 ring-accent-gold/30",
+                    isActive && "ring-2 ring-accent/20",
                     isPast && "opacity-85",
                   )}
                 >
@@ -210,7 +210,7 @@ export function BakingTimeline({
                       {step.icon} {step.title}
                     </h3>
                     {isActive && (
-                      <span className="rounded-sm bg-accent-gold px-2.5 py-0.5 text-[10px] font-medium text-background">
+                      <span className="rounded-lg bg-accent px-2.5 py-0.5 text-xs font-semibold text-white">
                         {copy.currentStep}
                       </span>
                     )}

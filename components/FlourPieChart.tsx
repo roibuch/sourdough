@@ -89,7 +89,7 @@ export function FlourPieChart({
     >
       <div className="mb-4 flex items-center gap-2">
         <ChartPieIcon
-          className="h-5 w-5 text-accent-gold"
+          className="h-5 w-5 text-accent"
           strokeWidth={1.75}
           aria-hidden
         />
@@ -120,7 +120,7 @@ export function FlourPieChart({
               <span
                 className={cn(
                   "font-serif font-semibold leading-none",
-                  isComplete ? "text-accent-gold" : "text-text-secondary",
+                  isComplete ? "text-accent" : "text-text-secondary",
                   compact ? "text-xl" : "text-2xl sm:text-3xl",
                 )}
               >
@@ -171,7 +171,7 @@ export function FlourPieChart({
       )}
 
       {!isComplete && hasData && (
-        <p className="mt-4 border border-accent-gold/30 bg-accent-gold-muted/30 px-3 py-2 text-center text-xs text-text-secondary">
+        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs text-amber-900">
           האחוזים צריכים להסתכם ל־100% — כרגע {mix.totalPct}%.
         </p>
       )}

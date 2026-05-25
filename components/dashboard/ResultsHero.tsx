@@ -31,26 +31,27 @@ export function ResultsHero({ form }: { form: RecipeForm }) {
       id="recipe-results"
       aria-live="polite"
       className={cn(
-        "results-hero-enter min-h-[min(70vh,32rem)] w-full lg:min-h-[min(72vh,40rem)]",
+        "results-hero-enter w-full px-4 py-6 sm:px-6 sm:py-8 lg:min-h-[min(68vh,36rem)] lg:px-10 lg:py-10",
       )}
     >
-      <div className="grid grid-cols-2 gap-6 p-4 sm:gap-8 sm:p-6 md:gap-10 lg:gap-12 lg:p-8">
+      <p className="mb-4 text-sm font-medium text-text-secondary lg:mb-6">
+        המתכון שלכם
+      </p>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:gap-5">
         {STATS.map((item) => (
           <div
             key={item.key}
-            className="flex flex-col justify-end border-b border-border-subtle pb-4 sm:pb-6"
+            className="app-card flex flex-col justify-center px-4 py-5 sm:px-6 sm:py-7"
           >
-            <span className="text-xs font-medium uppercase tracking-[0.2em] text-text-muted">
+            <span className="text-sm font-medium text-text-muted">
               {item.label}
             </span>
-            <div className="mt-2 flex items-baseline gap-2">
+            <div className="mt-2 flex items-baseline gap-1.5">
               <CountUpValue
                 value={values[item.key]}
-                className="font-serif text-5xl font-light text-text-primary sm:text-6xl md:text-7xl lg:text-8xl xl:text-[9rem] xl:leading-none"
+                className="font-serif text-4xl font-medium text-accent sm:text-5xl lg:text-6xl xl:text-7xl"
               />
-              <span className="text-lg font-light text-text-secondary sm:text-xl">
-                ג
-              </span>
+              <span className="text-base text-text-muted">ג</span>
             </div>
           </div>
         ))}

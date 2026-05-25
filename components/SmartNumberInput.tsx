@@ -15,16 +15,11 @@ export interface SmartNumberInputProps {
   minusLabel: string;
   plusLabel: string;
   compact?: boolean;
-  /** Allow clearing the field while typing; on blur empty → 0 or min */
   allowEmpty?: boolean;
-  /** Only notify parent on blur / ± — keeps typed text while editing */
   deferCommit?: boolean;
-  /** On blur: keep the parsed number as typed (no extra rounding) */
   exactCommit?: boolean;
-  /** Called after blur commit (e.g. sync draft to URL) */
   onDeferredBlur?: () => void;
   suffix?: string;
-  /** Large quick jump (e.g. ±100g dough, ±5% flour) — separate from step */
   jumpStep?: number;
   error?: boolean;
   warning?: boolean;
@@ -119,23 +114,20 @@ export function SmartNumberInput({
     applyDelta(dir === "plus" ? step : -step);
   };
 
-  const jumpPillClass =
-    "touch-target min-h-[44px] rounded-sm border border-border-subtle bg-surface-elevated px-3 text-xs font-medium text-text-secondary motion-safe:transition-colors hover:border-accent-gold/50 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background";
+  const stepBtn =
+    "touch-target inline-flex shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-surface text-text-primary shadow-sm hover:border-accent/40 hover:bg-accent-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
-  const btnClass = cn(
-    "inline-flex shrink-0 items-center justify-center rounded-full bg-accent-gold text-background motion-safe:transition-colors",
-    "hover:bg-accent-gold-hover active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-    "min-h-[44px] min-w-[44px]",
-  );
+  const jumpPillClass =
+    "touch-target min-h-[44px] rounded-xl border border-border-subtle bg-surface-elevated px-3 text-xs font-semibold text-text-secondary hover:border-accent/40 hover:bg-accent-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-2">
       {label ? (
         <label
           htmlFor={id}
           className={cn(
-            "text-sm font-semibold",
-            error ? "text-error" : warning ? "text-accent-gold" : "text-text-primary",
+            "text-sm font-medium",
+            error ? "text-error" : warning ? "text-accent" : "text-text-primary",
           )}
         >
           {label}
@@ -153,23 +145,18 @@ export function SmartNumberInput({
           id={`${id}-hint`}
           role={error ? "alert" : undefined}
           className={cn(
-            "-mt-1 text-xs leading-relaxed",
+            "text-xs leading-relaxed",
             error && "text-error",
-            warning && !error && "text-accent-gold",
+            warning && !error && "text-accent",
             !error && !warning && "text-text-muted",
           )}
         >
           {hint}
         </p>
       )}
-      <div className="@container/stepper flex w-full min-w-0 items-center gap-1.5 @min-[17.5rem]/stepper:gap-2 @min-[20rem]/stepper:gap-3">
-        <button
-          type="button"
-          className={btnClass}
-          onClick={() => adjust("minus")}
-          aria-label={minusLabel}
-        >
-          <MinusIcon className={compact ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2.5} />
+      <div className="@container/stepper flex w-full min-w-0 items-center gap-2">
+        <button type="button" className={stepBtn} onClick={() => adjust("minus")} aria-label={minusLabel}>
+          <MinusIcon className={compact ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2} />
         </button>
         <input
           id={id}
@@ -179,9 +166,9 @@ export function SmartNumberInput({
           aria-invalid={error || undefined}
           aria-describedby={hint ? `${id}-hint` : undefined}
           className={cn(
-            "glass-input min-w-0 flex-1 text-center font-light transition-colors duration-200",
-            error && "border-error/70 focus:border-error",
-            warning && !error && "border-accent-gold/50",
+            "glass-input min-w-0 flex-1",
+            error && "border-error focus:border-error focus:ring-red-200",
+            warning && !error && "border-amber-300 focus:border-accent",
             compact ? "text-lg" : "text-xl",
           )}
           value={text}
@@ -215,13 +202,8 @@ export function SmartNumberInput({
             }
           }}
         />
-        <button
-          type="button"
-          className={btnClass}
-          onClick={() => adjust("plus")}
-          aria-label={plusLabel}
-        >
-          <PlusIcon className={compact ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2.5} />
+        <button type="button" className={stepBtn} onClick={() => adjust("plus")} aria-label={plusLabel}>
+          <PlusIcon className={compact ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2} />
         </button>
       </div>
       {jumpStep != null && jumpStep > 0 && (
@@ -250,6 +232,5 @@ export function SmartNumberInput({
   );
 }
 
-/** @deprecated Use SmartNumberInput — kept for imports */
 export const PercentStepper = SmartNumberInput;
 export type PercentStepperProps = SmartNumberInputProps;

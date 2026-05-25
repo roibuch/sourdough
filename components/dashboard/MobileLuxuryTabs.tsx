@@ -24,7 +24,7 @@ export function MobileLuxuryTabs({
 }) {
   return (
     <nav
-      className="flex border-t border-border-subtle bg-surface backdrop-blur-md"
+      className="mx-4 flex gap-1 rounded-xl border border-border-subtle bg-surface p-1 shadow-sm"
       aria-label="תוספות למתכון"
     >
       {ITEMS.filter((t) => t.id !== "guide" || guideVisible).map((item) => (
@@ -33,10 +33,10 @@ export function MobileLuxuryTabs({
           type="button"
           onClick={() => onSelect(item.id)}
           className={cn(
-            "min-h-[44px] flex-1 px-2 text-center text-xs font-medium tracking-wide transition-colors sm:text-sm",
+            "min-h-[44px] flex-1 rounded-lg px-2 text-center text-sm font-medium transition-colors",
             active === item.id
-              ? "border-b-2 border-accent-gold text-text-primary"
-              : "text-text-muted hover:text-text-secondary",
+              ? "bg-accent text-white shadow-sm"
+              : "text-text-secondary hover:bg-stone-50 hover:text-text-primary",
           )}
           aria-current={active === item.id ? "page" : undefined}
         >

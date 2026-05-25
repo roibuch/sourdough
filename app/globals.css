@@ -1,66 +1,67 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Luxury Artisan — warm atelier (lighter than espresso) */
-  --color-background: #4a4541;
-  --color-surface: #57524e;
-  --color-surface-elevated: #68635e;
+  /* Warm light — clean, general-purpose recipe UI */
+  --color-background: #f5f2eb;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #faf9f6;
 
-  --color-text-primary: #faf7f2;
-  --color-text-secondary: #c9c4bc;
-  --color-text-muted: #9c958d;
+  --color-text-primary: #1c1917;
+  --color-text-secondary: #57534e;
+  --color-text-muted: #78716c;
 
-  --color-accent-gold: #d4af37;
-  --color-accent-gold-hover: #e0bc45;
-  --color-accent-gold-muted: rgb(212 175 55 / 0.22);
+  --color-accent: #b45309;
+  --color-accent-hover: #92400e;
+  --color-accent-muted: #fffbeb;
+  --color-accent-gold: var(--color-accent);
+  --color-accent-gold-hover: var(--color-accent-hover);
+  --color-accent-gold-muted: rgb(180 83 9 / 0.1);
 
-  --color-border-subtle: rgb(250 247 242 / 0.14);
-  --color-error: #ef4444;
+  --color-border-subtle: #e7e5e4;
+  --color-border: #d6d3d1;
+  --color-error: #dc2626;
 
-  /* Legacy aliases → luxury tokens (gradual component migration) */
-  --color-crust: var(--color-accent-gold);
-  --color-crust-dark: var(--color-accent-gold-hover);
-  --color-crust-light: #e8d5a3;
-  --color-wheat: var(--color-accent-gold);
-  --color-wheat-light: #e8d5a3;
-  --color-wheat-muted: var(--color-accent-gold-muted);
+  /* Legacy aliases */
+  --color-crust: var(--color-accent);
+  --color-crust-dark: var(--color-accent-hover);
+  --color-crust-light: #fcd34d;
+  --color-wheat: var(--color-accent);
+  --color-wheat-light: #fde68a;
+  --color-wheat-muted: var(--color-accent-muted);
   --color-dough: var(--color-background);
   --color-charcoal: var(--color-text-primary);
   --color-charcoal-muted: var(--color-text-secondary);
   --color-warm-border: var(--color-border-subtle);
   --color-cream: var(--color-background);
   --color-parchment: var(--color-surface-elevated);
-  --color-wheat-50: var(--color-surface);
-  --color-wheat-100: var(--color-surface-elevated);
+  --color-wheat-50: var(--color-surface-elevated);
+  --color-wheat-100: var(--color-surface);
   --color-wheat-200: var(--color-border-subtle);
-  --color-surface: var(--color-surface);
-  --color-forest: var(--color-accent-gold);
-  --color-forest-light: var(--color-accent-gold-hover);
-  --color-terracotta: var(--color-accent-gold);
+  --color-forest: var(--color-accent);
+  --color-forest-light: var(--color-accent-hover);
+  --color-terracotta: var(--color-accent);
   --color-ink: var(--color-text-primary);
   --color-ink-muted: var(--color-text-secondary);
-  --color-border: var(--color-border-subtle);
 
   --font-serif: var(--font-frank), "David Libre", Georgia, serif;
   --font-sans: var(--font-heebo), "Segoe UI", Tahoma, sans-serif;
+
+  --shadow-card: 0 1px 3px rgb(28 25 23 / 0.06), 0 4px 12px rgb(28 25 23 / 0.04);
+  --shadow-elevated: 0 4px 20px rgb(28 25 23 / 0.08);
 }
 
 @layer base {
   html {
     font-family: var(--font-sans);
-    font-weight: 300;
+    font-weight: 400;
     -webkit-tap-highlight-color: transparent;
     overflow-x: clip;
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
     @apply min-h-screen bg-background text-text-primary leading-relaxed antialiased;
     overflow-x: clip;
-    background-image:
-      radial-gradient(ellipse 90% 55% at 50% 0%, rgb(212 175 55 / 0.14), transparent 58%),
-      radial-gradient(ellipse 45% 35% at 100% 100%, rgb(212 175 55 / 0.06), transparent),
-      linear-gradient(180deg, #524c47 0%, #4a4541 45%, #45403c 100%);
   }
 
   h1,
@@ -68,12 +69,12 @@
   h3,
   h4 {
     font-family: var(--font-serif);
-    @apply font-normal tracking-tight text-text-primary;
+    @apply font-medium tracking-tight text-text-primary;
   }
 
   ::selection {
-    background: rgb(212 175 55 / 0.4);
-    color: #3d3834;
+    background: rgb(180 83 9 / 0.2);
+    color: #1c1917;
   }
 }
 
@@ -91,13 +92,13 @@
   }
 
   .timeline-rail {
-    @apply absolute top-3 bottom-0 w-px bg-accent-gold/40;
-    right: 0.625rem;
+    @apply absolute top-3 bottom-0 w-0.5 bg-accent/25;
+    right: 1.25rem;
   }
 
   @media (min-width: 640px) {
     .timeline-rail {
-      right: 1.25rem;
+      right: 1.5rem;
     }
   }
 
@@ -134,25 +135,31 @@
     }
   }
 
-  .luxury-panel {
-    @apply border border-border-subtle bg-surface/95 backdrop-blur-sm;
+  .app-card {
+    @apply rounded-2xl border border-border-subtle bg-surface;
+    box-shadow: var(--shadow-card);
   }
 
-  .glass-panel {
-    @apply border border-border-subtle bg-surface shadow-sm backdrop-blur-md;
+  .luxury-panel,
+  .glass-panel,
+  .app-card {
+    @apply rounded-2xl border border-border-subtle bg-surface;
+    box-shadow: var(--shadow-card);
   }
 
   .glass-card {
-    @apply border border-border-subtle bg-surface-elevated/90 shadow-sm backdrop-blur-md;
+    @apply rounded-2xl border border-border-subtle bg-surface p-5 sm:p-6;
+    box-shadow: var(--shadow-card);
   }
 
   .step-card {
-    @apply border border-border-subtle bg-surface p-5 sm:p-6;
+    @apply rounded-2xl border border-border-subtle bg-surface p-5 sm:p-6;
+    box-shadow: var(--shadow-card);
   }
 
-  .line-input {
-    @apply w-full min-h-11 border-0 border-b border-border-subtle bg-transparent px-0 py-2 text-xl font-light text-text-primary;
-    @apply focus:border-accent-gold focus:outline-none focus:ring-0;
+  .field-input {
+    @apply w-full min-h-11 rounded-xl border border-border bg-surface px-4 py-2.5 text-lg font-normal text-text-primary;
+    @apply transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
   }
 
   .calc-field {
@@ -162,27 +169,27 @@
     appearance: none;
   }
 
-  .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(212 175 55 / 0.35) transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 5px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    border-radius: 0;
-    background: rgb(212 175 55 / 0.35);
-  }
-
   .glass-input {
-    @apply w-full min-h-11 border-0 border-b border-border-subtle bg-transparent px-0 py-2 text-xl font-light text-text-primary;
+    @apply w-full min-h-11 rounded-xl border border-border bg-surface px-4 py-2.5 text-center text-lg font-medium text-text-primary;
+    @apply transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20;
     @apply min-h-11 text-[16px] tabular-nums;
-    @apply focus:border-accent-gold focus:outline-none focus:ring-0;
     @apply [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none;
     -webkit-appearance: none;
     appearance: none;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #d6d3d1 transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #d6d3d1;
   }
 
   .touch-target {
@@ -194,17 +201,23 @@
   }
 
   .brand-choice-active {
-    @apply border-accent-gold bg-accent-gold-muted text-text-primary;
+    @apply border-accent bg-accent-muted text-accent shadow-sm;
   }
 
   .brand-choice-idle {
-    @apply border-border-subtle bg-transparent text-text-secondary hover:border-accent-gold/50 hover:text-text-primary;
+    @apply border-border-subtle bg-surface text-text-secondary hover:border-accent/40 hover:bg-accent-muted/50 hover:text-text-primary;
+  }
+
+  .cta-primary {
+    @apply min-h-12 w-full rounded-xl bg-accent text-base font-semibold text-white;
+    @apply shadow-sm transition-colors hover:bg-accent-hover active:scale-[0.99];
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
   .cta-gold {
-    @apply min-h-14 w-full bg-accent-gold font-medium uppercase tracking-wide text-background;
-    @apply transition-colors hover:bg-accent-gold-hover;
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply min-h-12 w-full rounded-xl bg-accent text-base font-semibold text-white;
+    @apply shadow-sm transition-colors hover:bg-accent-hover active:scale-[0.99];
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
   .sr-only {
@@ -213,17 +226,17 @@
   }
 
   .animate-section-in {
-    animation: section-in 0.45s ease-out;
+    animation: section-in 0.4s ease-out;
   }
 
   .results-hero-enter {
-    animation: results-hero-enter 0.8s ease-out forwards;
+    animation: results-hero-enter 0.6s ease-out forwards;
   }
 
   @keyframes section-in {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(6px);
     }
     to {
       opacity: 1;
@@ -234,7 +247,7 @@
   @keyframes results-hero-enter {
     from {
       opacity: 0;
-      transform: translateY(1rem);
+      transform: translateY(0.5rem);
     }
     to {
       opacity: 1;

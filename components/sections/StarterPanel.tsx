@@ -76,7 +76,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
     <article className="glass-card p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-sm border border-accent-gold/30 bg-accent-gold-muted text-accent-gold">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-muted text-accent">
             <BeakerIcon className="h-5 w-5" strokeWidth={1.75} />
           </span>
           <h3 className="font-serif text-xl font-normal text-text-primary">
@@ -91,7 +91,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
         {showResults ? (
           <>
             הוציאו מהמקרר והאכלו. לבצק תצטרכו{" "}
-            <strong className="font-medium text-accent-gold tabular-nums">
+            <strong className="font-semibold text-accent tabular-nums">
               {results?.starter} גרם
             </strong>{" "}
             מחמצת בשיא. חכו לכפילות נפח לפי יחס ההאכלה (בדרך כלל 4–12 שעות @
@@ -106,7 +106,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
         <label className="flex min-h-11 cursor-pointer items-center gap-3">
           <input
             type="checkbox"
-            className="h-5 w-5 rounded-sm border-border-subtle bg-transparent text-accent-gold focus:ring-accent-gold focus:ring-offset-background"
+            className="h-5 w-5 rounded-sm border-border-subtle bg-transparent text-accent focus:ring-accent focus:ring-offset-background"
             checked={useRecipeStarter}
             onChange={(e) => setUseRecipeStarter(e.target.checked)}
           />
@@ -176,7 +176,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
             />
             <p className="mt-2 border border-border-subtle bg-surface px-3 py-2 text-xs leading-relaxed text-text-secondary">
               יחס אוטומטי מומלץ:{" "}
-              <strong className="text-accent-gold">
+              <strong className="text-accent">
                 1 : {ratioPreview.flourMult} : {ratioPreview.waterMult}
               </strong>
               {" · "}
@@ -195,7 +195,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
               <h4 className="mb-2 font-serif text-lg font-normal text-text-primary">
                 יחס מומלץ (מחמצת : קמח : מים)
               </h4>
-              <p className="inline-block border border-accent-gold/30 bg-accent-gold-muted px-4 py-2 font-serif text-2xl font-light text-accent-gold">
+              <p className="inline-block border border-accent/30 bg-accent-muted px-4 py-2 font-serif text-2xl font-light text-accent">
                 {starterResult.ratioLabel}
               </p>
               <p className="mt-2 text-sm font-medium text-text-secondary">

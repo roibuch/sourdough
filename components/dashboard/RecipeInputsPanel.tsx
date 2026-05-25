@@ -90,7 +90,7 @@ export function RecipeInputsPanel({
   const calculateBtn = (
     <button
       type="button"
-      className="cta-gold flex min-h-14 w-full items-center justify-center gap-2 rounded-sm disabled:opacity-50"
+      className="cta-primary flex items-center justify-center gap-2 disabled:opacity-50"
       onClick={requestCalculate}
       disabled={!validation.canCalculate}
     >

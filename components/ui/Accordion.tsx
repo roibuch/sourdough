@@ -60,7 +60,7 @@ export function Accordion({
 
   return (
     <AccordionContext.Provider value={{ type, open, toggle }}>
-      <div className={cn("space-y-2", className)}>{children}</div>
+      <div className={cn("space-y-3", className)}>{children}</div>
     </AccordionContext.Provider>
   );
 }
@@ -93,31 +93,26 @@ export function AccordionItem({
   }
 
   return (
-    <div
-      className={cn(
-        "overflow-hidden rounded-sm border border-border-subtle bg-surface shadow-sm",
-        className,
-      )}
-    >
+    <div className={cn("app-card overflow-hidden", className)}>
       <button
         type="button"
         id={`${panelId}-trigger`}
         aria-expanded={isOpen}
         aria-controls={`${panelId}-panel`}
         onClick={() => ctx.toggle(id)}
-        className="flex min-h-[44px] w-full items-center gap-2.5 px-3 py-3 text-start motion-safe:transition-colors hover:bg-surface-elevated/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-inset sm:gap-3 sm:px-4"
+        className="flex min-h-[48px] w-full items-center gap-3 px-4 py-3.5 text-start hover:bg-stone-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
       >
         {icon && (
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-accent-gold/20 bg-accent-gold-muted text-accent-gold">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-muted text-accent">
             {icon}
           </span>
         )}
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium text-text-primary sm:text-base">
+        <span className="min-w-0 flex-1 text-start">
+          <span className="block text-base font-semibold text-text-primary">
             {title}
           </span>
           {subtitle ? (
-            <span className="mt-0.5 line-clamp-2 block text-[11px] font-normal leading-snug text-text-muted sm:text-xs">
+            <span className="mt-0.5 line-clamp-2 block text-xs text-text-muted">
               {subtitle}
             </span>
           ) : null}
@@ -145,7 +140,7 @@ export function AccordionItem({
         <div className="overflow-hidden">
           <div
             className={cn(
-              "min-w-0 border-t border-border-subtle px-3 pb-4 pt-3 sm:px-4",
+              "min-w-0 border-t border-border-subtle px-4 pb-5 pt-4",
               contentClassName,
             )}
           >

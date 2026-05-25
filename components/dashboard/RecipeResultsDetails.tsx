@@ -39,7 +39,7 @@ export function RecipeResultsDetails({ form }: { form: RecipeForm }) {
         </MasterBakerTip>
       )}
 
-      <div className="glass-card p-4 sm:p-5">
+      <div className="app-card p-4 sm:p-5">
         <h4 className="mb-3 font-serif text-lg font-normal text-text-primary">
           {res.flourSplit}
         </h4>

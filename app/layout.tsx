@@ -61,14 +61,14 @@ export default function RootLayout({
     <html
       lang="he"
       dir="rtl"
-      className={`${heebo.variable} ${frank.variable} dark`}
+      className={`${heebo.variable} ${frank.variable}`}
     >
       <head>
         <link rel="apple-touch-icon" href={appleTouchIcon} />
         <meta name="theme-color" content={BRAND.themeColor} />
-        <meta name="color-scheme" content="dark" />
+        <meta name="color-scheme" content="light" />
       </head>
-      <body className="min-h-screen bg-background font-sans font-light text-text-primary antialiased">
+      <body className="min-h-screen bg-background font-sans text-text-primary antialiased">
         <OpenWeatherRuntimeConfig />
         <Script src={`${basePath}/config.js`} strategy="beforeInteractive" />
         {children}

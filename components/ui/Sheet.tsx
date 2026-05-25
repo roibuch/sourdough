@@ -43,7 +43,7 @@ export function Sheet({
     <div className="fixed inset-0 z-[60] lg:hidden" role="presentation">
       <button
         type="button"
-        className="absolute inset-0 bg-background/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-stone-900/40 backdrop-blur-[2px]"
         aria-label="סגור"
         onClick={() => onOpenChange(false)}
       />
@@ -52,31 +52,30 @@ export function Sheet({
         aria-modal="true"
         aria-labelledby="sheet-title"
         className={cn(
-          "absolute inset-x-0 bottom-0 flex max-h-[min(88dvh,720px)] flex-col",
-          "rounded-t-sm border border-border-subtle bg-surface shadow-2xl",
+          "absolute inset-x-0 bottom-0 flex max-h-[min(88dvh,720px)] flex-col rounded-t-2xl bg-surface shadow-[var(--shadow-elevated)]",
           "pb-[env(safe-area-inset-bottom)]",
           "motion-safe:animate-[sheet-up_0.35s_cubic-bezier(0.32,0.72,0,1)] motion-reduce:animate-none",
           className,
         )}
       >
-        <div className="mx-auto mt-2 h-0.5 w-10 shrink-0 bg-accent-gold/50" />
-        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border-subtle px-4 py-3">
+        <div className="mx-auto mt-3 h-1 w-12 shrink-0 rounded-full bg-stone-300" />
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border-subtle px-5 py-4">
           <h2
             id="sheet-title"
-            className="font-serif text-lg font-normal text-text-primary"
+            className="font-serif text-lg font-medium text-text-primary"
           >
             {title}
           </h2>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="touch-target rounded-sm text-text-secondary hover:text-accent-gold"
+            className="touch-target rounded-xl text-text-muted hover:bg-stone-100 hover:text-text-primary"
             aria-label="סגור פאנל"
           >
             <XMarkIcon className="h-5 w-5" />
           </button>
         </header>
-        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-4 py-4 pb-8">
+        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-5 py-5">
           {children}
         </div>
       </div>

@@ -41,9 +41,9 @@ export function Toast({ payload }: { payload: ToastPayload }) {
         message ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
       }`}
     >
-      <div className="flex items-start gap-3 rounded-sm border border-border-subtle bg-surface-elevated/95 px-4 py-4 shadow-xl backdrop-blur-md">
+      <div className="flex items-start gap-3 rounded-2xl border border-border-subtle bg-surface px-4 py-4 shadow-[var(--shadow-elevated)]">
         <CheckCircleIcon
-          className="mt-0.5 h-5 w-5 shrink-0 text-accent-gold"
+          className="mt-0.5 h-5 w-5 shrink-0 text-accent"
           strokeWidth={1.75}
           aria-hidden
         />
@@ -54,7 +54,7 @@ export function Toast({ payload }: { payload: ToastPayload }) {
           {data?.actionLabel && data.onAction ? (
             <button
               type="button"
-              className="touch-target self-start rounded-sm bg-accent-gold px-4 py-2 text-sm font-medium text-background motion-safe:transition-colors hover:bg-accent-gold-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="touch-target self-start rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               onClick={() => {
                 data.onAction?.();
                 setVisible(false);
@@ -66,7 +66,7 @@ export function Toast({ payload }: { payload: ToastPayload }) {
         </div>
         <button
           type="button"
-          className="touch-target rounded-sm p-1 text-text-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold"
+          className="touch-target rounded-lg p-1 text-text-muted hover:bg-stone-100"
           aria-label="סגור"
           onClick={() => setVisible(false)}
         >
