@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 import { getBasePath } from "@/lib/basePath";
 
-const SW_URL_SUFFIX = "sw.js?v=7";
-const RELOAD_KEY = "sourdough-sw-reload-v7";
+const SW_URL_SUFFIX = "sw.js?v=8";
+const RELOAD_KEY = "sourdough-sw-reload-v8";
 
 export function ServiceWorkerRegister() {
   const reloaded = useRef(false);
@@ -24,7 +24,7 @@ export function ServiceWorkerRegister() {
     };
 
     const onMessage = (event: MessageEvent) => {
-      if (event.data?.type === "SW_ACTIVATED_V7") {
+      if (event.data?.type === "SW_ACTIVATED_V8") {
         maybeReload();
       }
     };

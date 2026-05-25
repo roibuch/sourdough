@@ -1,7 +1,7 @@
 /** App shell, metadata helpers, accessibility. */
 export const APP_HE = {
   skipToContent: "דלג לתוכן",
-  brandSubtitle: "מחשבון בצק, לוח אפייה ומדריך מחמצת",
+  brandSubtitle: "מחשבון בצק, תערובת קמחים וכמויות",
   headerRecipe: "התאמת נוסחה",
   headerParams: "התאמת פרמטרים",
   brandName: "מאסטר מחמצת",
@@ -9,20 +9,20 @@ export const APP_HE = {
     "מאסטר מחמצת — הנוסחה נשמרת בכתובת ובדפדפן. שתפו קישור לשחזור.",
   footerShort: "מאסטר מחמצת — הנוסחה נשמרת בדפדפן ובכתובת",
   mobileNav: {
-    schedule: "לוח ותוצאות",
+    results: "תוצאות",
     params: "פרמטרים",
     guide: "מדריך",
-    tables: "טבלאות",
+    tables: "עזר",
   },
   sections: {
-    scheduleTitle: "תזמון ולוח אפייה",
+    resultsTitle: "תוצאות וחישוב",
     guideTitle: "מדריך אפייה",
     referenceTitle: "טבלאות עזר",
   },
   metadata: {
-    title: "מאסטר מחמצת | מחשבון ומדריך אפייה",
+    title: "מאסטר מחמצת | מחשבון בצק מחמצת",
     description:
-      "מחשבון בצק מחמצת, תזמון חכם עם חלונות חסומים, חישוב טמפרטורת מי לישה ומדריך אפייה ארטיזנלי.",
+      "מחשבון בצק מחמצת: משקלים, הידרציה, תערובת קמחים וחישוב מרכיבים. תזמון אופציונלי.",
     shortName: "מחמצת",
   },
 } as const;

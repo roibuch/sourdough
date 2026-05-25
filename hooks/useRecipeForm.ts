@@ -18,7 +18,7 @@ import {
   findScheduleOptionByTarget,
   generateScheduleOptions,
 } from "@/lib/scheduleOptions";
-import { buildReverseTimeline, defaultTargetBakeLocal } from "@/lib/timeline";
+import { buildReverseTimeline } from "@/lib/timeline";
 import {
   SchedulingEngine,
   type AdaptiveScheduleResult,
@@ -398,10 +398,6 @@ export function useRecipeForm() {
       setPresetNote(FLOUR_PRESETS[fp as Exclude<PresetKey, "custom">].note);
     }
 
-    if (!state.schedule.targetBakeTime) {
-      patchState({ schedule: { targetBakeTime: defaultTargetBakeLocal() } });
-    }
-
     if (state.calculated && state.totalWeightG) {
       const w = state.totalWeightG;
       if (w > 0 && Math.abs(state.flourBlend.totalPercent - 100) < 0.2) {
@@ -412,45 +408,30 @@ export function useRecipeForm() {
       }
     }
 
-    if (state.schedule.targetBakeTime) {
-      try {
-        const result = SchedulingEngine.buildAdaptivePlan({
-          targetBakeTime: state.schedule.targetBakeTime,
-          coldRetardHours: state.schedule.coldRetardHours,
-          starterPct: state.starterPercent,
-          waterPct: state.waterPercent,
-          roomTemp: state.schedule.roomTempC,
-          hoursToAutolyse: state.schedule.hoursToAutolyse,
-          flourPcts: state.flourBlend.percentages,
-          fermentationPace: state.schedule.fermentationPace,
-          blackouts,
-          earliestStartMs: Date.now(),
-        });
-        if (result) applyAdaptiveResult(result);
-      } catch (err) {
-        console.error("buildAdaptivePlan failed on init", err);
-      }
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady]);
 
-  useEffect(() => {
-    if (!isReady) return;
-    schedulePersist();
-  }, [state, isReady, schedulePersist]);
-
-  useEffect(() => {
-    if (!showTimeline || !targetBakeTime) return;
-    try {
-      const result = SchedulingEngine.buildAdaptivePlan(schedulingEngineInput);
-      if (result) {
-        setAdaptiveSchedule(result);
-        setTimelinePlan(result.plan);
-      }
-    } catch (err) {
-      console.error("buildAdaptivePlan failed", err);
+  const buildSimpleTimeline = useCallback(() => {
+    if (!targetBakeTime.trim()) {
+      showToast(toasts.selectBakeTime);
+      return null;
     }
-  }, [schedulingEngineInput, showTimeline, targetBakeTime, blackouts.length]);
+    try {
+      const plan = buildReverseTimeline(timelineInput);
+      if (!plan) {
+        showToast(toasts.invalidDateTime);
+        return null;
+      }
+      setTimelinePlan(plan);
+      setAdaptiveSchedule(null);
+      setShowTimeline(true);
+      return plan;
+    } catch (err) {
+      console.error("buildReverseTimeline failed", err);
+      showToast(toasts.invalidDateTime);
+      return null;
+    }
+  }, [targetBakeTime, timelineInput, showToast]);
 
   const handleCalculate = useCallback(() => {
     const w = state.totalWeightG;
@@ -480,22 +461,10 @@ export function useRecipeForm() {
     setShowGuide(true);
     setStarterOnlyMode(false);
     setState({ ...state, calculated: true });
-
-    if (targetBakeTime) {
-      const plan = rebuildTimeline(true);
-      if (plan) {
-        requestAnimationFrame(() => {
-          document.getElementById("section-schedule")?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        });
-        return;
-      }
-    }
+    persistState(true);
 
     requestAnimationFrame(() => {
-      document.getElementById("section-guide")?.scrollIntoView({
+      document.getElementById("recipe-results")?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
@@ -503,10 +472,11 @@ export function useRecipeForm() {
   }, [
     state,
     mix.totalPct,
-    targetBakeTime,
+    flourPcts,
+    patchState,
     showToast,
     setState,
-    rebuildTimeline,
+    persistState,
   ]);
 
   const handleBuildTimeline = useCallback(() => {
@@ -580,7 +550,7 @@ export function useRecipeForm() {
       setBulkHoursOverride(plan.bulkHours);
       setState({ ...state, calculated: showResults });
 
-      if (targetBakeTime) {
+      if (targetBakeTime && showTimeline) {
         const nextInput = {
           ...timelineInput,
           starterPct: plan.starterPct,
@@ -589,19 +559,8 @@ export function useRecipeForm() {
           bulkHours: plan.bulkHours,
           starterPeakHours: plan.hoursToAutolyse,
         };
-        const options = generateScheduleOptions(nextInput);
-        const match = findScheduleOptionByTarget(options, targetBakeTime);
-        const engineResult = SchedulingEngine.buildAdaptivePlan({
-          ...nextInput,
-          blackouts,
-          earliestStartMs: Date.now(),
-        });
-        const rebuilt =
-          engineResult?.plan ??
-          match?.plan ??
-          buildReverseTimeline(nextInput);
-        if (engineResult) applyAdaptiveResult(engineResult);
-        else if (rebuilt) {
+        const rebuilt = buildReverseTimeline(nextInput);
+        if (rebuilt) {
           setTimelinePlan(rebuilt);
           setShowTimeline(true);
         }
@@ -616,8 +575,7 @@ export function useRecipeForm() {
       showResults,
       targetBakeTime,
       timelineInput,
-      blackouts,
-      applyAdaptiveResult,
+      showTimeline,
     ],
   );
 
@@ -703,6 +661,7 @@ export function useRecipeForm() {
     handleCopyLink,
     handleClearStorage,
     rebuildTimeline,
+    buildSimpleTimeline,
     recipeParams: state,
     isParamsReady: isReady,
   };

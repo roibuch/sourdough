@@ -32,7 +32,6 @@ export function FlourBlendEditor({
     setPreset,
     setFlourPcts,
     balanceFlourBlend,
-    schedulePersist,
   } = form;
 
   const total = mix.totalPct;
@@ -41,7 +40,6 @@ export function FlourBlendEditor({
   const handlePreset = (key: PresetKey) => {
     setPreset(key);
     applyPreset(key);
-    schedulePersist();
   };
 
   const handlePct = (index: number, value: number) => {

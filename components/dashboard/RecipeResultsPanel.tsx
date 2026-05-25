@@ -3,7 +3,6 @@
 import { ScaleIcon } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
 import { FlourPieChart } from "@/components/FlourPieChart";
-import { AnimatedStat } from "@/components/ui/AnimatedStat";
 import { Card } from "@/components/ui/Card";
 import { MasterBakerTip } from "@/components/ui/MasterBakerTip";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -60,16 +59,23 @@ export function RecipeResultsPanel({ form }: { form: RecipeForm }) {
 
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: "קמח", value: `${results.flour} גרם` },
-            { label: "מים", value: `${results.water} גרם` },
-            { label: "מחמצת", value: `${results.starter} גרם` },
-            { label: "מלח", value: `${results.salt} גרם` },
+            { label: "קמח", value: results.flour },
+            { label: "מים", value: results.water },
+            { label: "מחמצת", value: results.starter },
+            { label: "מלח", value: results.salt },
           ].map((item) => (
-            <AnimatedStat
+            <div
               key={item.label}
-              label={item.label}
-              value={item.value}
-            />
+              className="rounded-2xl border border-wheat/50 bg-wheat-muted/40 px-3 py-3 text-center sm:px-4 sm:py-4"
+            >
+              <p className="text-xs font-medium text-stone-600">{item.label}</p>
+              <p className="mt-1 font-serif text-2xl font-semibold tabular-nums text-charcoal sm:text-3xl">
+                {item.value}
+                <span className="ms-1 text-sm font-sans font-normal text-stone-500">
+                  ג
+                </span>
+              </p>
+            </div>
           ))}
         </div>
 
@@ -94,12 +100,16 @@ export function RecipeResultsPanel({ form }: { form: RecipeForm }) {
             {mix.items
               .filter((item) => item.pct > 0)
               .map((item) => (
-                <AnimatedStat
+                <div
                   key={item.key}
-                  label={`${item.label}`}
-                  value={`${Math.round((results.flour * item.pct) / 100)} ג`}
-                  sublabel={`${item.pct}%`}
-                />
+                  className="rounded-xl border border-stone-200/80 bg-white/80 px-2 py-2 text-center"
+                >
+                  <p className="text-[11px] text-stone-600">{item.label}</p>
+                  <p className="font-semibold tabular-nums text-charcoal">
+                    {Math.round((results.flour * item.pct) / 100)} ג
+                  </p>
+                  <p className="text-xs text-stone-500">{item.pct}%</p>
+                </div>
               ))}
           </div>
           <p className="mt-4 text-sm text-stone-600">

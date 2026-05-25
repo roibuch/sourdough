@@ -8,6 +8,7 @@ import { GLOSSARY_HE } from "@/lib/content/he/glossary";
 import { GUIDE_HE } from "@/lib/content/he/guide";
 import { INPUTS_HE } from "@/lib/content/he/inputs";
 import { NAVIGATION_HE } from "@/lib/content/he/navigation";
+import { OPTIONAL_SCHEDULE_HE } from "@/lib/content/he/optionalSchedule";
 import { SCHEDULE_HE } from "@/lib/content/he/schedule";
 import { SCHEDULING_HE } from "@/lib/content/he/scheduling";
 import { TIMELINE_HE } from "@/lib/content/he/timeline";
@@ -33,6 +34,7 @@ export const heContent = {
   schedule: SCHEDULE_HE,
   express: EXPRESS_HE,
   weather: WEATHER_HE,
+  optionalSchedule: OPTIONAL_SCHEDULE_HE,
 } as const;
 
 export type HeContent = typeof heContent;

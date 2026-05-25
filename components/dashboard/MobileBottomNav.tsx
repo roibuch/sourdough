@@ -15,7 +15,7 @@ const TABS: {
   label: string;
   icon: typeof ChartBarIcon;
 }[] = [
-  { id: "outputs", label: "לוח ותוצאות", icon: ChartBarIcon },
+  { id: "outputs", label: "תוצאות", icon: ChartBarIcon },
   { id: "inputs", label: "פרמטרים", icon: AdjustmentsHorizontalIcon },
   { id: "guide", label: "מדריך", icon: BookOpenIcon },
   { id: "reference", label: "טבלאות", icon: TableCellsIcon },

@@ -51,7 +51,7 @@ export function DashboardShell({
       <header className="sticky top-0 z-30 border-b border-warm-border/70 bg-dough/90 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6">
           <AppBrandHeader
-            tagline="מחשבון בצק, לוח אפייה ומדריך"
+            tagline={heContent.app.brandSubtitle}
             logoSize={44}
           />
         </div>

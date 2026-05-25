@@ -43,7 +43,7 @@ function mergeRecipeState(
   };
 }
 
-const URL_DEBOUNCE_MS = 450;
+const URL_DEBOUNCE_MS = 900;
 
 export interface UseRecipeParamsResult {
   state: RecipeState;

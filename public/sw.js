@@ -1,4 +1,4 @@
-const CACHE_NAME = "sourdough-master-next-v7";
+const CACHE_NAME = "sourdough-master-next-v8";
 
 function getBasePath() {
   const scope = self.registration?.scope || self.location.href;
@@ -45,7 +45,7 @@ self.addEventListener("activate", (event) => {
       )
       .then((clients) => {
         for (const client of clients) {
-          client.postMessage({ type: "SW_ACTIVATED_V7" });
+          client.postMessage({ type: "SW_ACTIVATED_V8" });
         }
       }),
   );

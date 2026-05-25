@@ -1,16 +1,23 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { BakingGuide } from "@/components/BakingGuide";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { RecipeResultsPanel } from "@/components/dashboard/RecipeResultsPanel";
-import { SectionErrorBoundary } from "@/components/feedback/SectionErrorBoundary";
 import { SmartWarningBanner } from "@/components/feedback/SmartWarningBanner";
 import { useBakerAlerts } from "@/hooks/useBakerAlerts";
 import { ReferenceTables } from "@/components/ReferenceTables";
-import { ReverseTimeline } from "@/components/ReverseTimeline";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { Toast } from "@/components/Toast";
 import { useRecipeForm } from "@/hooks/useRecipeForm";
+
+const OptionalSchedulePanel = dynamic(
+  () =>
+    import("@/components/scheduling/OptionalSchedulePanel").then((m) => ({
+      default: m.OptionalSchedulePanel,
+    })),
+  { ssr: false, loading: () => null },
+);
 
 export function SourdoughApp() {
   const form = useRecipeForm();
@@ -20,32 +27,13 @@ export function SourdoughApp() {
   );
 
   const outputs = (
-    <>
+    <div className="space-y-4 sm:space-y-6">
       {hydrationAlerts.length > 0 && (
         <SmartWarningBanner alerts={hydrationAlerts} />
       )}
       <RecipeResultsPanel form={form} />
-      <section
-        id="section-schedule"
-        className="scroll-mt-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.5rem)]"
-      >
-        <div className="glass-panel min-w-0 overflow-x-clip">
-          <div className="border-b border-stone-200/70 px-4 py-3 sm:px-6 sm:py-4">
-            <h2 className="font-serif text-lg font-semibold text-charcoal sm:text-xl md:text-2xl">
-              תזמון ולוח אפייה
-            </h2>
-            <p className="mt-1 text-xs text-stone-600 sm:text-sm">
-              מועד מוכן, מזג אוויר והתראות — עדכון מיידי לפי הפרמטרים.
-            </p>
-          </div>
-          <div className="p-3 sm:p-6 md:p-8">
-            <SectionErrorBoundary title="שגיאה באזור התזמון">
-              <ReverseTimeline form={form} />
-            </SectionErrorBoundary>
-          </div>
-        </div>
-      </section>
-    </>
+      <OptionalSchedulePanel form={form} />
+    </div>
   );
 
   const guide =
