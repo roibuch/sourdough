@@ -1,21 +1,24 @@
 /**
- * Dough fermentation rate vs temperature (~15% speed change per °C).
- *
- *   adjustedTime = baseTime × 1.15^(baseTemp − targetTemp)
- *   targetTemp   = baseTemp − log(targetTime / baseTime) / log(1.15)
+ * Scheduling temperature adjustments — uses professional Q10 model
+ * from {@link @/lib/sourdoughFermentation} (Q10 = 2.1).
  */
 
 import { heContent, t } from "@/lib/content";
 import { buildFlourMix } from "@/lib/flour";
 import { starterPctForBulkHours } from "@/lib/fermentationTiming";
+import {
+  adjustFermentationTimeQ10,
+  Q10_SOURDOUGH,
+} from "@/lib/sourdoughFermentation";
 import { getTimelineBulkHours } from "@/lib/timeline";
 import type { FlourMix } from "@/lib/types";
 
-export const FERMENTATION_RATE_PER_C = 1.15;
+/** Q10 coefficient — same as sourdoughFermentation (2.1). */
+export const FERMENTATION_RATE_PER_C = Q10_SOURDOUGH;
 export const MIN_DOUGH_TEMP_C = 4;
 export const MAX_DOUGH_TEMP_C = 30;
 
-const LN_RATE = Math.log(FERMENTATION_RATE_PER_C);
+const LN_Q10 = Math.log(Q10_SOURDOUGH);
 const sch = heContent.scheduling.adaptations;
 
 export interface FermentationTempBounds {
@@ -50,9 +53,12 @@ export function calculateAdjustedTime(
   if (!Number.isFinite(baseTempC) || !Number.isFinite(targetTempC)) {
     throw new RangeError("temperatures must be finite numbers");
   }
-  const adjusted =
-    baseTimeHours *
-    Math.pow(FERMENTATION_RATE_PER_C, baseTempC - targetTempC);
+  const adjusted = adjustFermentationTimeQ10(
+    baseTimeHours,
+    baseTempC,
+    targetTempC,
+    Q10_SOURDOUGH,
+  );
   return Math.round(adjusted * 100) / 100;
 }
 
@@ -77,7 +83,8 @@ export function calculateRequiredTemp(
     return Math.round(baseTempC * 10) / 10;
   }
   const targetTempC =
-    baseTempC - Math.log(targetTimeHours / baseTimeHours) / LN_RATE;
+    baseTempC -
+    (10 * Math.log(targetTimeHours / baseTimeHours)) / LN_Q10;
   return Math.round(targetTempC * 10) / 10;
 }
 

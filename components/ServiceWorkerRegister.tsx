@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 import { restorePendingNotifications } from "@/lib/alarms";
 import { getBasePath } from "@/lib/basePath";
 
-const SW_URL_SUFFIX = "sw.js?v=8";
-const RELOAD_KEY = "sourdough-sw-reload-v8";
+const SW_URL_SUFFIX = "sw.js?v=9";
+const RELOAD_KEY = "sourdough-sw-reload-v9";
 
 export function ServiceWorkerRegister() {
   const reloaded = useRef(false);
@@ -27,7 +27,7 @@ export function ServiceWorkerRegister() {
     };
 
     const onMessage = (event: MessageEvent) => {
-      if (event.data?.type === "SW_ACTIVATED_V8") {
+      if (event.data?.type === "SW_ACTIVATED_V9") {
         maybeReload();
       }
     };

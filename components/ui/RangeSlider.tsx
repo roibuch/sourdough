@@ -32,6 +32,9 @@ export function RangeSlider({
   hint,
 }: RangeSliderProps) {
   const display = formatValue ? formatValue(value) : `${value}${unit}`;
+  const span = max - min;
+  const fillPct =
+    span > 0 ? Math.min(100, Math.max(0, ((value - min) / span) * 100)) : 0;
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -52,7 +55,7 @@ export function RangeSlider({
         )}
         <span
           className={cn(
-            "font-serif text-lg font-semibold tabular-nums transition-colors duration-200",
+            "font-serif text-lg font-semibold tabular-nums transition-colors duration-200 motion-reduce:transition-none",
             error ? "text-red-700" : "text-crust",
           )}
         >
@@ -61,9 +64,14 @@ export function RangeSlider({
       </div>
       <div className="relative flex min-h-11 items-center py-0.5">
         <div
-          className="pointer-events-none absolute inset-x-0 top-1/2 h-3 -translate-y-1/2 rounded-full bg-warm-border shadow-inner"
+          className="pointer-events-none absolute inset-x-0 top-1/2 h-3 -translate-y-1/2 overflow-hidden rounded-full bg-warm-border shadow-inner"
           aria-hidden
-        />
+        >
+          <div
+            className="h-full rounded-full bg-gradient-to-l from-crust via-wheat to-wheat-light transition-[width] duration-200 motion-reduce:transition-none"
+            style={{ width: `${fillPct}%` }}
+          />
+        </div>
         <input
           id={id}
           type="range"

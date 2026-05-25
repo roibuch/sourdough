@@ -10,12 +10,12 @@ import { calculateStarterFeed, pickRatio } from "@/lib/starter";
 import { getTimelineBulkHours } from "@/lib/timeline";
 
 describe("starterPeakHours", () => {
-  it("1:1:1 peaks ~5h at 22°C", () => {
-    expect(starterPeakHours(1, 22)).toBe(5);
+  it("1:1:1 peaks 4h at 22°C", () => {
+    expect(starterPeakHours(1, 22)).toBe(4);
   });
 
-  it("1:5:5 peaks ~12h at 22°C", () => {
-    expect(starterPeakHours(5, 22)).toBe(12);
+  it("1:5:5 peaks 11h at 22°C", () => {
+    expect(starterPeakHours(5, 22)).toBe(11);
   });
 
   it("warmer kitchen shortens peak time", () => {
@@ -29,31 +29,27 @@ describe("pickStarterFeedRatio", () => {
     expect(p.flourMult).toBe(1);
   });
 
-  it("picks 1:2:2 for ~8h at 22°C", () => {
+  it("picks 1:3:3 for ~8h at 22°C (max dilution within window)", () => {
     const p = pickStarterFeedRatio(8, 22);
-    expect(p.flourMult).toBe(2);
-  });
-
-  it("picks 1:2:2 for ~9h at 22°C (buffer before autolyse)", () => {
-    const p = pickStarterFeedRatio(9, 22);
-    expect(p.flourMult).toBe(2);
-  });
-
-  it("picks 1:3:3 for ~10h at 22°C", () => {
-    const p = pickStarterFeedRatio(10, 22);
     expect(p.flourMult).toBe(3);
+    expect(p.peakHours).toBe(7.5);
   });
 
-  it("picks 1:4:4 for long overnight windows", () => {
-    const p = pickStarterFeedRatio(12, 22);
+  it("picks 1:4:4 for ~10h at 22°C", () => {
+    const p = pickStarterFeedRatio(10, 22);
     expect(p.flourMult).toBe(4);
+  });
+
+  it("picks 1:5:5 for long overnight windows", () => {
+    const p = pickStarterFeedRatio(12, 22);
+    expect(p.flourMult).toBe(5);
   });
 });
 
 describe("estimateBulkFermentationHours", () => {
-  it("20% starter @ 22°C is ~7.5h", () => {
+  it("20% starter @ 22°C is 5h", () => {
     const mix = buildFlourMix([100, 0, 0, 0, 0, 0]);
-    expect(estimateBulkFermentationHours(20, 22, mix)).toBe(7.5);
+    expect(estimateBulkFermentationHours(20, 22, mix)).toBe(5);
   });
 
   it("warmer dough ferments faster", () => {
@@ -74,7 +70,7 @@ describe("estimateBulkFermentationHours", () => {
 describe("getTimelineBulkHours", () => {
   it("matches fermentation timing model", () => {
     const mix = buildFlourMix([100, 0, 0, 0, 0, 0]);
-    expect(getTimelineBulkHours(20, mix, 22)).toBe(7.5);
+    expect(getTimelineBulkHours(20, mix, 22)).toBe(5);
   });
 });
 
@@ -95,8 +91,8 @@ describe("calculateStarterFeed", () => {
 
   it("pickRatio aligns with auto feed", () => {
     const r = pickRatio(8, 22);
-    expect(r.flourMult).toBe(2);
-    expect(r.peakHours).toBe(7);
+    expect(r.flourMult).toBe(3);
+    expect(r.peakHours).toBe(7.5);
   });
 });
 

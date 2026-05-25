@@ -145,14 +145,26 @@ export function useSourdoughMath(options: UseSourdoughMathOptions = {}) {
 
   const calculate = useCallback((): DoughResult | null => {
     const w = commitTargetWeight() ?? inputs.targetWeightG;
-    if (!w || w <= 0) return null;
+    if (w == null || !Number.isFinite(w) || w <= 0) return null;
+
+    const { waterPercent, starterPercent, saltPercent } = inputs;
+    if (
+      !Number.isFinite(waterPercent) ||
+      !Number.isFinite(starterPercent) ||
+      !Number.isFinite(saltPercent) ||
+      waterPercent < 0 ||
+      starterPercent < 0 ||
+      saltPercent < 0
+    ) {
+      return null;
+    }
 
     const dough = calculateDoughMasses({
       targetDoughWeightG: w,
       percentages: {
-        water: inputs.waterPercent,
-        starter: inputs.starterPercent,
-        salt: inputs.saltPercent,
+        water: waterPercent,
+        starter: starterPercent,
+        salt: saltPercent,
       },
       starterHydrationPct: inputs.starterHydrationPercent,
     });

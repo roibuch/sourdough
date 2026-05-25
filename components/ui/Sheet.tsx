@@ -55,7 +55,7 @@ export function Sheet({
           "absolute inset-x-0 bottom-0 flex max-h-[min(88dvh,720px)] flex-col",
           "rounded-t-3xl border border-stone-200/80 bg-stone-50/95 shadow-2xl backdrop-blur-xl",
           "pb-[env(safe-area-inset-bottom)]",
-          "animate-[sheet-up_0.3s_ease-out]",
+          "animate-[sheet-up_0.3s_ease-out] motion-reduce:animate-none",
           className,
         )}
       >

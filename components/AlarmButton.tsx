@@ -5,13 +5,13 @@ import { ClockIcon } from "@heroicons/react/24/outline";
 import {
   alarmResultMessage,
   alarmTimeTitle,
+  buildPrimaryAndroidAlarmUri,
   downloadIcsAlarm,
-  isAndroidDevice,
-  isIOSDevice,
+  downloadIcsAlarmSync,
+  isAndroid,
+  isIOS,
   openGoogleCalendarEvent,
-  triggerClockAlarm,
-  triggerClockAlarmAsync,
-  triggerClockAlarmImmediate,
+  scheduleServiceWorkerNotification,
   type AlarmResult,
 } from "@/lib/alarms";
 import { heContent } from "@/lib/content";
@@ -36,30 +36,80 @@ export function AlarmButton({
 }: AlarmButtonProps) {
   const [busy, setBusy] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
-  const mobile = isAndroidDevice() || isIOSDevice();
+  const mobile = isAndroid() || isIOS();
 
-  const run = async (fn: () => Promise<AlarmResult> | AlarmResult) => {
-    setBusy(true);
-    try {
-      const result = await fn();
-      onResult?.(result);
-    } finally {
-      setBusy(false);
-    }
+  const notify = (result: AlarmResult) => {
+    onResult?.(result);
   };
 
-  const onClockClick = () => {
-    const immediate = triggerClockAlarmImmediate(timestampMs, message);
-    if (immediate !== "pending") {
-      onResult?.(immediate);
-      if (immediate === "android") {
-        void triggerClockAlarm(timestampMs, message).then((r) => {
-          if (r === "notification") onResult?.(r);
+  const fallbackToIcs = () => {
+    downloadIcsAlarmSync(timestampMs, message);
+    notify("opened");
+  };
+
+  const handleIOSAndDesktopFlow = async () => {
+    if (isIOS()) {
+      try {
+        const timeString = new Date(timestampMs).toLocaleTimeString("he-IL", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
         });
+        await navigator.clipboard.writeText(`${timeString} — ${message}`);
+      } catch {
+        /* clipboard blocked */
+      }
+      fallbackToIcs();
+      notify("ios-copied");
+      return;
+    }
+
+    if (typeof window !== "undefined" && "Notification" in window) {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        scheduleServiceWorkerNotification(timestampMs, message);
+        notify("notification");
+        return;
+      }
+    }
+
+    fallbackToIcs();
+  };
+
+  const handleAlarmClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (!timestampMs || Number.isNaN(timestampMs)) {
+      notify("invalid");
+      return;
+    }
+
+    if (timestampMs <= Date.now()) {
+      notify("past");
+      return;
+    }
+
+    // ANDROID: strictly synchronous — no await before intent (user activation)
+    if (isAndroid()) {
+      try {
+        const intentUri = buildPrimaryAndroidAlarmUri(timestampMs, message);
+        window.location.assign(intentUri);
+        notify("android");
+      } catch (err) {
+        console.error("Android intent failed", err);
+        fallbackToIcs();
+        notify("android-fallback");
       }
       return;
     }
-    void run(() => triggerClockAlarmAsync(timestampMs, message));
+
+    setBusy(true);
+    void handleIOSAndDesktopFlow()
+      .catch(() => {
+        fallbackToIcs();
+        notify("unsupported");
+      })
+      .finally(() => setBusy(false));
   };
 
   const btnClass = cn(
@@ -73,7 +123,7 @@ export function AlarmButton({
   );
 
   const optionalClass = cn(
-    "inline-flex min-h-[2.25rem] items-center rounded-xl px-3 py-2 text-xs font-semibold",
+    "inline-flex min-h-11 items-center rounded-xl px-3 py-2 text-xs font-semibold",
     "border border-stone-300 bg-white text-stone-700",
     "hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat/40",
     "disabled:opacity-60",
@@ -90,7 +140,8 @@ export function AlarmButton({
           compact && "w-full justify-center",
         )}
         title={alarmTimeTitle(timestampMs)}
-        onClick={onClockClick}
+        onClick={handleAlarmClick}
+        aria-label={`${alarmUi.clock} · ${shortLabel}`}
       >
         <ClockIcon className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
         <span>
@@ -114,11 +165,12 @@ export function AlarmButton({
                 disabled={busy}
                 className={optionalClass}
                 title={alarmTimeTitle(timestampMs)}
-                onClick={() =>
-                  run(async (): Promise<AlarmResult> =>
-                    downloadIcsAlarm(timestampMs, message),
-                  )
-                }
+                onClick={() => {
+                  setBusy(true);
+                  void downloadIcsAlarm(timestampMs, message)
+                    .then((r) => notify(r === "shared" ? "shared" : "opened"))
+                    .finally(() => setBusy(false));
+                }}
               >
                 {alarmUi.calendar}
               </button>
@@ -127,9 +179,7 @@ export function AlarmButton({
                 disabled={busy}
                 className={optionalClass}
                 title={alarmTimeTitle(timestampMs)}
-                onClick={() =>
-                  run(() => openGoogleCalendarEvent(timestampMs, message))
-                }
+                onClick={() => notify(openGoogleCalendarEvent(timestampMs, message))}
               >
                 {alarmUi.googleCalendar}
               </button>

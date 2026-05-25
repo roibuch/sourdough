@@ -1,4 +1,4 @@
-const CACHE_NAME = "sourdough-master-next-v8";
+const CACHE_NAME = "sourdough-master-next-v9";
 
 function getBasePath() {
   const scope = self.registration?.scope || self.location.href;
@@ -14,7 +14,55 @@ function getBasePath() {
 const BASE = getBasePath();
 
 function isNextAsset(pathname) {
-  return pathname.includes("/_next/") || pathname.endsWith(".js");
+  return (
+    pathname.includes("/_next/") ||
+    pathname.endsWith(".js") ||
+    pathname.endsWith(".css")
+  );
+}
+
+function isHtmlLike(request, pathname) {
+  return (
+    request.mode === "navigate" ||
+    pathname.endsWith(".html") ||
+    pathname === BASE ||
+    pathname === `${BASE}/`
+  );
+}
+
+async function networkFirst(request, fallbackUrl) {
+  try {
+    const response = await fetch(request);
+    if (response?.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    if (fallbackUrl) {
+      const fallback = await caches.match(fallbackUrl);
+      if (fallback) return fallback;
+    }
+    throw new Error("offline");
+  }
+}
+
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+  const networkPromise = fetch(request)
+    .then((response) => {
+      if (response?.ok && response.type === "basic") {
+        cache.put(request, response.clone());
+      }
+      return response;
+    })
+    .catch(() => null);
+
+  const fresh = await networkPromise;
+  return fresh || cached || fetch(request);
 }
 
 self.addEventListener("install", (event) => {
@@ -37,15 +85,18 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
-      .then(() => caches.open(CACHE_NAME))
+      .then((keys) =>
+        Promise.all(
+          keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)),
+        ),
+      )
       .then(() => self.clients.claim())
       .then(() =>
         self.clients.matchAll({ type: "window", includeUncontrolled: true }),
       )
       .then((clients) => {
         for (const client of clients) {
-          client.postMessage({ type: "SW_ACTIVATED_V8" });
+          client.postMessage({ type: "SW_ACTIVATED_V9" });
         }
       }),
   );
@@ -63,35 +114,17 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(`${BASE}/index.html`)),
-    );
+  const fallbackIndex = `${BASE}/index.html`;
+
+  if (isHtmlLike(event.request, url.pathname)) {
+    event.respondWith(networkFirst(event.request, fallbackIndex));
     return;
   }
 
   if (isNextAsset(url.pathname)) {
-    event.respondWith(fetch(event.request));
+    event.respondWith(staleWhileRevalidate(event.request));
     return;
   }
 
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response?.status === 200 && response.type === "basic") {
-          const type = response.headers.get("content-type") || "";
-          if (
-            type.includes("image") ||
-            (type.includes("css") && !url.pathname.includes("/_next/"))
-          ) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, clone);
-            });
-          }
-        }
-        return response;
-      })
-      .catch(() => caches.match(event.request)),
-  );
+  event.respondWith(staleWhileRevalidate(event.request));
 });

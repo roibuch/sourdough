@@ -24,6 +24,8 @@ export interface SmartNumberInputProps {
   /** Called after blur commit (e.g. sync draft to URL) */
   onDeferredBlur?: () => void;
   suffix?: string;
+  /** Large quick jump (e.g. ±100g dough, ±5% flour) — separate from step */
+  jumpStep?: number;
   error?: boolean;
   warning?: boolean;
   hint?: string;
@@ -69,6 +71,7 @@ export function SmartNumberInput({
   exactCommit = false,
   onDeferredBlur,
   suffix,
+  jumpStep,
   error,
   warning,
   hint,
@@ -102,16 +105,22 @@ export function SmartNumberInput({
     setText(exact ? displayFromRaw(trimmed, true) : toDisplay(next, step, false));
   };
 
-  const adjust = (dir: "minus" | "plus") => {
+  const applyDelta = (delta: number) => {
     const base = text === "" ? value : parseFloat(text.replace(",", "."));
     const current = Number.isNaN(base) ? value : base;
-    const delta = dir === "plus" ? step : -step;
     const next = exact
       ? clamp(current + delta, min, max)
       : clamp(formatStored(current + delta, step), min, max);
     onChange(next);
     setText(toDisplay(next, step, exact));
   };
+
+  const adjust = (dir: "minus" | "plus") => {
+    applyDelta(dir === "plus" ? step : -step);
+  };
+
+  const jumpPillClass =
+    "touch-target min-h-9 rounded-xl border border-warm-border/90 bg-wheat-muted/50 px-3 text-xs font-semibold text-charcoal transition hover:border-crust hover:bg-wheat-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat focus-visible:ring-offset-2";
 
   const btnClass = cn(
     "inline-flex shrink-0 items-center justify-center rounded-full bg-crust text-dough shadow-md shadow-crust/25 transition",
@@ -227,6 +236,28 @@ export function SmartNumberInput({
           <PlusIcon className={compact ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2.5} />
         </button>
       </div>
+      {jumpStep != null && jumpStep > 0 && (
+        <div className="flex justify-center gap-2">
+          <button
+            type="button"
+            className={jumpPillClass}
+            onClick={() => applyDelta(-jumpStep)}
+            aria-label={`הפחת ${jumpStep}${suffix ? ` ${suffix}` : ""}`}
+          >
+            −{jumpStep}
+            {suffix ? ` ${suffix}` : ""}
+          </button>
+          <button
+            type="button"
+            className={jumpPillClass}
+            onClick={() => applyDelta(jumpStep)}
+            aria-label={`הוסף ${jumpStep}${suffix ? ` ${suffix}` : ""}`}
+          >
+            +{jumpStep}
+            {suffix ? ` ${suffix}` : ""}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

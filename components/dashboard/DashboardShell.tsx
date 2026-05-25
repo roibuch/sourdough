@@ -64,7 +64,7 @@ export function DashboardShell({
           <aside
             className={cn(
               "@container/sidebar hidden min-w-0 shrink-0 lg:block",
-              "lg:w-[22rem] xl:w-[28rem] 2xl:w-[30rem]",
+              "lg:min-w-[320px] lg:w-[22rem] xl:w-[28rem] 2xl:w-[30rem]",
               "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.75rem)]",
               "lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-1.5rem)]",
               "lg:overflow-y-auto lg:overscroll-contain",

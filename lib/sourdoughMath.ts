@@ -6,6 +6,27 @@ import {
 } from "@/lib/bakingMath";
 import type { BassinageAmounts, DoughResult } from "@/lib/types";
 
+/** Fermentation biology (time-to-peak, Q10, bulk, autolyse, feeding ratios). */
+export type {
+  AutolyseStartInput,
+  FeedingRatio,
+  RecommendedFeedingRatio,
+  TemperatureAdjustmentResult,
+} from "@/lib/sourdoughFermentation";
+export {
+  adjustFermentationTimeQ10,
+  calculateAutolyseStartTime,
+  expectedPeakTimeFromFeed,
+  getBaseBulkFermentationHours,
+  getBaseTimeToPeakHours,
+  getBulkFermentationHours,
+  getTimeToPeakHours,
+  pickFeedingRatioForWindow,
+  recommendFeedingRatio,
+  Q10_SOURDOUGH,
+  REFERENCE_TEMP_C as FERMENTATION_REFERENCE_TEMP_C,
+} from "@/lib/sourdoughFermentation";
+
 /** Baker's-math inputs (percentages relative to flour weight). */
 export interface SourdoughMathInputs {
   targetWeightG: number | null;

@@ -119,11 +119,26 @@ export function RecipeInputsPanel({
     }
   }, [mix.totalPct, preset, setPresetNote]);
 
+  const calculateBtn = (
+    <Button
+      variant="primary"
+      fullWidth
+      className="min-h-11 shadow-md shadow-crust/15"
+      onClick={onCalculate}
+      disabled={!validation.canCalculate}
+    >
+      <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+      {inp.actions.calculate}
+    </Button>
+  );
+
   return (
     <div
       className={cn(
-        "@container/panel min-w-0 max-w-full space-y-4 overflow-x-clip",
+        "@container/panel flex min-w-0 max-w-full flex-col overflow-x-clip",
         compact && "pb-2",
+        (isSidebar || compact) && "space-y-4",
+        !isSidebar && !compact && "space-y-4",
       )}
     >
       <FlourBalanceDialog
@@ -158,6 +173,8 @@ export function RecipeInputsPanel({
               onDeferredBlur={commitTotalWeight}
               minusLabel={inp.actions.decreaseWeight}
               plusLabel={inp.actions.increaseWeight}
+              jumpStep={100}
+              suffix="גרם"
               compact
               error={validation.fields.totalWeight?.invalid}
               hint={validation.fields.totalWeight?.message}
@@ -234,15 +251,7 @@ export function RecipeInputsPanel({
               />
             </div>
 
-            <Button
-              variant="primary"
-              fullWidth
-              onClick={onCalculate}
-              disabled={!validation.canCalculate}
-            >
-              <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-              {inp.actions.calculate}
-            </Button>
+            {calculateBtn}
           </div>
         </AccordionItem>
 
@@ -262,16 +271,7 @@ export function RecipeInputsPanel({
             </div>
           )}
 
-          <Button
-            variant="primary"
-            fullWidth
-            className="mt-4"
-            onClick={onCalculate}
-            disabled={!validation.canCalculate}
-          >
-            <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-            {inp.actions.calculate}
-          </Button>
+          <div className="mt-4">{calculateBtn}</div>
         </AccordionItem>
 
         <AccordionItem
@@ -312,6 +312,18 @@ export function RecipeInputsPanel({
           onAlarmResult={(type) => showToast(alarmToastMessage(type))}
         />
       </div>
+
+      {(isSidebar || compact) && (
+        <div
+          className={cn(
+            "sticky bottom-0 z-20 -mx-3 border-t border-warm-border/80 bg-dough/95 px-3 py-3 backdrop-blur-md",
+            compact && "-mx-0",
+            isSidebar && "lg:-mx-4 lg:px-4",
+          )}
+        >
+          {calculateBtn}
+        </div>
+      )}
 
       <div className="flex flex-col gap-2 pt-2">
         <Button variant="ghost" fullWidth onClick={handleCopyLink}>

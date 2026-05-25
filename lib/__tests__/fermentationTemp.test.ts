@@ -14,14 +14,14 @@ describe("calculateAdjustedTime", () => {
     expect(calculateAdjustedTime(6, 22, 22)).toBe(6);
   });
 
-  it("lengthens bulk when target temp is cooler", () => {
+  it("lengthens bulk when target temp is cooler (Q10 = 2.1)", () => {
     const t = calculateAdjustedTime(6, 22, 20);
-    expect(t).toBeCloseTo(6 * Math.pow(FERMENTATION_RATE_PER_C, 2), 2);
+    expect(t).toBeCloseTo(6 * Math.pow(FERMENTATION_RATE_PER_C, (22 - 20) / 10), 2);
   });
 
-  it("shortens bulk when target temp is warmer", () => {
+  it("shortens bulk when target temp is warmer (Q10 = 2.1)", () => {
     const t = calculateAdjustedTime(6, 22, 24);
-    expect(t).toBeCloseTo(6 * Math.pow(FERMENTATION_RATE_PER_C, -2), 2);
+    expect(t).toBeCloseTo(6 * Math.pow(FERMENTATION_RATE_PER_C, (22 - 24) / 10), 2);
   });
 });
 

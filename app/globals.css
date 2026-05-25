@@ -232,7 +232,8 @@
     aside,
     main,
     .animate-stat-pulse,
-    .recipe-results-enter {
+    .recipe-results-enter,
+    [class*="sheet-up"] {
       transition: none !important;
       animation: none !important;
     }

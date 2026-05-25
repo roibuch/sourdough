@@ -20,18 +20,25 @@ export function RecipeResultsPanel({ form }: { form: RecipeForm }) {
 
   if (!showResults || !results) {
     return (
-      <div className="glass-panel flex min-h-[min(20rem,45vh)] flex-col items-center justify-center px-6 py-16 text-center lg:min-h-[min(24rem,50vh)]">
-        <ScaleIcon
-          className="mb-4 h-12 w-12 text-stone-400"
-          strokeWidth={1.25}
-        />
-        <p className="font-serif text-lg font-semibold text-charcoal">
-          עדיין לא חושב מתכון
+      <div className="glass-panel animate-section-in flex min-h-[min(20rem,45vh)] flex-col items-center justify-center px-6 py-16 text-center lg:min-h-[min(28rem,55vh)]">
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-wheat-muted/80 ring-2 ring-wheat/40">
+          <ScaleIcon
+            className="h-9 w-9 text-crust/70"
+            strokeWidth={1.25}
+          />
+        </div>
+        <p className="font-serif text-xl font-semibold text-charcoal">
+          ברוכים הבאים — כאן יופיעו המרכיבים
         </p>
-        <p className="mt-2 max-w-sm text-sm text-stone-600">
-          התאימו פרמטרים בצד (או בתחתית המסך) ולחצו «חישוב מרכיבים» — התוצאות
-          יופיעו כאן מיד.
+        <p className="mt-2 max-w-md text-sm leading-relaxed text-stone-600">
+          בחרו משקל בצק, הידרציה ותערובת קמחים, ולחצו «חישוב מרכיבים». לאחר
+          החישוב תראו כאן קמח, מים, מחמצת ומלח — ולוח זמנים בלשונית התזמון.
         </p>
+        <ol className="mt-6 max-w-sm list-inside list-decimal space-y-1.5 text-start text-sm text-charcoal-muted">
+          <li>התאימו פרמטרים בפאנל הימני (או בכפתור «התאמה» במובייל)</li>
+          <li>לחצו «חישוב מרכיבים» — הכפתור נשאר גלוי גם בתחתית הפאנל</li>
+          <li>עברו לתזמון ולמעוררים לפי צורך</li>
+        </ol>
       </div>
     );
   }
