@@ -100,7 +100,7 @@ export function RecipeInputsPanel({
   return (
     <div
       className={cn(
-        "@container/panel flex min-w-0 max-w-full flex-col overflow-x-clip",
+        "@container/panel flex min-w-0 max-w-full flex-col overflow-x-hidden",
         compact && "pb-2",
         (isSidebar || compact) && "space-y-4",
         !isSidebar && !compact && "space-y-4",
@@ -230,6 +230,7 @@ export function RecipeInputsPanel({
             form={form}
             flourTotalInvalid={validation.flourTotalInvalid}
             flourTotalMessage={validation.fields.flourTotal?.message}
+            inSidebar={isSidebar}
           />
           {fermentationAlert && (
             <div className="mt-3">

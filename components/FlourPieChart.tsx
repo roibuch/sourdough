@@ -8,10 +8,10 @@ import type { FlourMix } from "@/lib/types";
 
 interface FlourPieChartProps {
   mix: FlourMix;
-  /** Total flour grams — shows gram amounts in legend when set */
   flourGrams?: number;
   className?: string;
-  compact?: boolean;
+  /** Narrow sidebar: stack chart + legend vertically, no horizontal row */
+  stacked?: boolean;
 }
 
 interface Slice {
@@ -47,7 +47,7 @@ export function FlourPieChart({
   mix,
   flourGrams,
   className,
-  compact,
+  stacked = false,
 }: FlourPieChartProps) {
   const { slices, remainderPct, isComplete } = useMemo(() => {
     const active: Slice[] = mix.items
@@ -76,94 +76,78 @@ export function FlourPieChart({
   const gradient = buildConicGradient(slices, remainderPct);
   const hasData = slices.length > 0;
 
-  const chartSize = compact ? "h-36 w-36 sm:h-40 sm:w-40" : "h-44 w-44 sm:h-52 sm:w-52";
-  const holeInset = compact ? "inset-[20%]" : "inset-[18%]";
+  const chartSize = stacked
+    ? "h-28 w-28 mx-auto"
+    : "h-40 w-40 sm:h-44 sm:w-44";
 
   return (
     <div
       className={cn(
-        "rounded-sm border border-border-subtle bg-surface p-4 sm:p-5",
+        "min-w-0 max-w-full overflow-hidden rounded-xl border border-border-subtle bg-surface-elevated p-3",
         className,
       )}
       aria-label="תרשים תערובת קמחים"
     >
-      <div className="mb-4 flex items-center gap-2">
-        <ChartPieIcon
-          className="h-5 w-5 text-accent"
-          strokeWidth={1.75}
-          aria-hidden
-        />
-        <h4 className="font-serif text-base font-normal text-text-primary sm:text-lg">
-          תרשים תערובת
-        </h4>
+      <div className="mb-3 flex items-center gap-2">
+        <ChartPieIcon className="h-4 w-4 text-accent" strokeWidth={1.75} aria-hidden />
+        <h4 className="text-sm font-medium text-text-primary">תרשים תערובת</h4>
       </div>
 
       {!hasData ? (
-        <p className="py-6 text-center text-sm text-text-muted">
-          הזינו אחוזים לסוגי הקמח כדי לראות את התרשים.
+        <p className="py-4 text-center text-xs text-text-muted">
+          הזינו אחוזים לסוגי הקמח.
         </p>
       ) : (
-        <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:gap-8">
-          <div className="relative shrink-0">
+        <div
+          className={cn(
+            "flex min-w-0 flex-col items-center gap-4",
+            !stacked && "sm:flex-row sm:items-start sm:gap-6",
+          )}
+        >
+          <div className={cn("relative shrink-0", chartSize)}>
             <div
-              className={cn("rounded-full shadow-inner", chartSize)}
+              className="h-full w-full rounded-full shadow-inner"
               style={{ background: gradient }}
               role="img"
               aria-hidden
             />
-            <div
-              className={cn(
-                "absolute flex flex-col items-center justify-center rounded-full bg-background shadow-sm",
-                holeInset,
-              )}
-            >
+            <div className="absolute inset-[22%] flex flex-col items-center justify-center rounded-full bg-background shadow-sm">
               <span
                 className={cn(
-                  "font-serif font-semibold leading-none",
+                  "font-serif text-xl font-semibold leading-none tabular-nums",
                   isComplete ? "text-accent" : "text-text-secondary",
-                  compact ? "text-xl" : "text-2xl sm:text-3xl",
                 )}
               >
                 {Math.round(mix.totalPct)}%
               </span>
-              <span className="mt-1 text-[10px] font-medium uppercase tracking-wide text-text-muted sm:text-xs">
+              <span className="mt-0.5 text-[10px] text-text-muted">
                 {isComplete ? "מלא" : "סה״כ"}
               </span>
             </div>
           </div>
 
-          <ul className="m-0 w-full min-w-0 flex-1 list-none space-y-2 p-0">
+          <ul className="m-0 w-full min-w-0 list-none space-y-1.5 p-0">
             {slices.map((slice) => (
               <li
                 key={slice.key}
-                className="flex items-center gap-2.5 text-sm text-text-secondary"
+                className="flex min-w-0 items-center gap-2 text-xs text-text-secondary"
               >
                 <span
-                  className="h-3 w-3 shrink-0 rounded-full ring-1 ring-stone-300/60"
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{ backgroundColor: slice.color }}
                   aria-hidden
                 />
                 <span className="min-w-0 flex-1 truncate">{slice.label}</span>
-                <span className="shrink-0 font-medium tabular-nums text-text-primary">
+                <span className="shrink-0 tabular-nums font-medium text-text-primary">
                   {slice.pct}%
-                  {slice.grams != null && (
-                    <span className="ms-1 font-normal text-text-muted">
-                      · {slice.grams} ג׳
-                    </span>
-                  )}
                 </span>
               </li>
             ))}
             {remainderPct > 0.05 && (
-              <li className="flex items-center gap-2.5 text-sm text-text-muted">
-                <span
-                  className="h-3 w-3 shrink-0 rounded-full bg-stone-200 ring-1 ring-stone-300/60"
-                  aria-hidden
-                />
+              <li className="flex items-center gap-2 text-xs text-text-muted">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-stone-200" aria-hidden />
                 <span className="flex-1">לא משובץ</span>
-                <span className="shrink-0 tabular-nums">
-                  {Math.round(remainderPct)}%
-                </span>
+                <span className="tabular-nums">{Math.round(remainderPct)}%</span>
               </li>
             )}
           </ul>
@@ -171,8 +155,8 @@ export function FlourPieChart({
       )}
 
       {!isComplete && hasData && (
-        <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center text-xs text-amber-900">
-          האחוזים צריכים להסתכם ל־100% — כרגע {mix.totalPct}%.
+        <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 text-center text-[11px] text-amber-900">
+          סה״כ {mix.totalPct}% — צריך 100%
         </p>
       )}
     </div>

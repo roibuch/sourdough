@@ -17,12 +17,15 @@ interface FlourBlendEditorProps {
   form: RecipeForm;
   flourTotalInvalid: boolean;
   flourTotalMessage?: string;
+  /** Sidebar column — single column, compact chart */
+  inSidebar?: boolean;
 }
 
 export function FlourBlendEditor({
   form,
   flourTotalInvalid,
   flourTotalMessage,
+  inSidebar = false,
 }: FlourBlendEditorProps) {
   const {
     preset,
@@ -52,7 +55,7 @@ export function FlourBlendEditor({
         "min-w-0 max-w-full",
         flourTotalInvalid &&
           !totalOk &&
-          "ring-2 ring-accent-gold/50 ring-offset-2 ring-offset-background",
+          "rounded-lg border-2 border-amber-400/80",
       )}
     >
       <p className="mb-2 text-sm font-medium text-text-primary">
@@ -95,7 +98,12 @@ export function FlourBlendEditor({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-3 @2xl/panel:grid-cols-2">
+      <div
+        className={cn(
+          "grid grid-cols-1 gap-3",
+          !inSidebar && "@2xl/panel:grid-cols-2",
+        )}
+      >
         {FLOUR_FIELDS.map((field, i) => (
           <SmartNumberInput
             key={field.key}
@@ -116,7 +124,11 @@ export function FlourBlendEditor({
         ))}
       </div>
 
-      <FlourPieChart mix={draftMix} className="mt-4 mb-2 border-border-subtle bg-surface" />
+      <FlourPieChart
+        mix={draftMix}
+        stacked={inSidebar}
+        className="mt-3 mb-1"
+      />
       <p className="text-xs leading-relaxed text-text-muted">{presetNote}</p>
     </div>
   );

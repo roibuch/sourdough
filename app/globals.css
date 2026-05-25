@@ -105,8 +105,8 @@
   .dashboard-shell {
     --shell-header-h: 3.5rem;
     --shell-metrics-h: 2.75rem;
-    --shell-nav-h: 3.75rem;
-    --shell-sticky-cta-h: 3.5rem;
+    --shell-nav-h: 0px;
+    --shell-sticky-cta-h: 5.5rem;
   }
 
   @media (min-width: 640px) {
@@ -117,7 +117,6 @@
 
   @media (min-width: 1024px) {
     .dashboard-shell {
-      --shell-nav-h: 0px;
       --shell-sticky-cta-h: 0px;
     }
   }

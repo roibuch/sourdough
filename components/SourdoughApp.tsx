@@ -59,65 +59,47 @@ export function SourdoughApp() {
     a.id.startsWith("hydration"),
   );
 
-  const { showResults } = form;
+  const warnings =
+    hydrationAlerts.length > 0 ? (
+      <SmartWarningBanner alerts={hydrationAlerts} />
+    ) : null;
 
-  const outputs = (
-    <div className="space-y-4 sm:space-y-6">
-      {hydrationAlerts.length > 0 && (
-        <SmartWarningBanner alerts={hydrationAlerts} />
-      )}
-
-      {showResults ? (
-        <>
-          <ResultsHero form={form} />
-          <RecipeResultsDetails form={form} />
-          <StarterFloatTestAlert />
-          <BakingTimeline
-            dough={{
-              starterPct: form.starterPct,
-              waterPct: form.waterPct,
-              flourPcts: form.flourDraft,
-              roomTempC: form.roomTemp,
-              hoursToAutolyse: form.hoursToAutolyse,
-              coldRetardHours: form.coldRetardHours,
-              fermentationPace: form.fermentationPace,
-            }}
-            showFloatTestReminder
-            onAlarmResult={(type) => form.showToast(alarmToastMessage(type))}
-          />
-          <OptionalSchedulePanel form={form} />
-          <StarterPanel form={form} />
-        </>
-      ) : (
-        <WelcomeEmptyState />
-      )}
-    </div>
-  );
-
-  const guide = form.showGuide ? (
-    <section id="section-guide" className="scroll-mt-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.5rem)]">
-      <div className="app-card min-w-0 overflow-x-clip p-4 sm:p-6">
-        <h2 className="mb-4 font-serif text-xl font-medium text-text-primary">
-          מדריך אפייה
-        </h2>
+  const sections = {
+    empty: <WelcomeEmptyState />,
+    hero: <ResultsHero form={form} />,
+    recipe: <RecipeResultsDetails form={form} />,
+    timeline: (
+      <div className="space-y-4">
+        <StarterFloatTestAlert />
+        <BakingTimeline
+          dough={{
+            starterPct: form.starterPct,
+            waterPct: form.waterPct,
+            flourPcts: form.flourDraft,
+            roomTempC: form.roomTemp,
+            hoursToAutolyse: form.hoursToAutolyse,
+            coldRetardHours: form.coldRetardHours,
+            fermentationPace: form.fermentationPace,
+          }}
+          showFloatTestReminder
+          onAlarmResult={(type) => form.showToast(alarmToastMessage(type))}
+        />
+        <OptionalSchedulePanel form={form} />
+      </div>
+    ),
+    starter: <StarterPanel form={form} />,
+    guide: form.showGuide ? (
+      <div className="app-card p-4 sm:p-6">
         <BakingGuide form={form} />
       </div>
-    </section>
-  ) : null;
-
-  const reference = (
-    <section
-      id="section-reference"
-      className="scroll-mt-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.5rem)]"
-    >
-      <div className="app-card min-w-0 overflow-x-clip p-4 sm:p-6">
-        <h2 className="mb-4 font-serif text-xl font-medium text-text-primary">
-          {heContent.navigation.items.reference.label}
-        </h2>
+    ) : null,
+    reference: (
+      <div className="app-card overflow-x-auto p-4 sm:p-6">
         <ReferenceTables />
       </div>
-    </section>
-  );
+    ),
+    warnings,
+  };
 
   return (
     <>
@@ -125,9 +107,7 @@ export function SourdoughApp() {
       <DashboardShell
         form={form}
         calculateFlow={calculateFlow}
-        outputs={outputs}
-        guide={guide}
-        reference={reference}
+        sections={sections}
       />
       <Toast payload={swToast ?? form.toast} />
     </>
