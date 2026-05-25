@@ -104,7 +104,7 @@ export function FlourBlendEditor({
             value={flourDraft[i] ?? 0}
             min={0}
             max={100}
-            step={1}
+            step={5}
             deferCommit
             onChange={(v) => handlePct(i, v)}
             minusLabel={`הפחת ${field.label}`}

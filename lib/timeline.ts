@@ -4,7 +4,7 @@ import {
 } from "./expressMode";
 import {
   estimateBulkFermentationHours,
-  hoursUntilStarterPeak,
+  pickStarterFeedRatio,
   roundTimingHours,
 } from "./fermentationTiming";
 import { buildFlourMix } from "./flour";
@@ -63,15 +63,13 @@ export function getTimelineBulkHours(
   return estimateBulkFermentationHours(starterPct, roomTempC, mix);
 }
 
+/** Peak duration after feed for the chosen ratio (not the full window until autolyse). */
 export function getTimelineStarterHours(
   hoursToAutolyse: number,
   roomTempC = 22,
 ): number {
   if (Number.isNaN(hoursToAutolyse)) return 5;
-  const peak = hoursUntilStarterPeak(hoursToAutolyse, roomTempC);
-  return roundTimingHours(
-    Math.max(2, Math.min(16, Math.min(hoursToAutolyse, peak))),
-  );
+  return pickStarterFeedRatio(hoursToAutolyse, roomTempC).peakHours;
 }
 
 export interface BuildTimelineInput {
@@ -127,7 +125,8 @@ export function getTimelineAnchors(
   const tBulkStart = tBulkEnd - bulkH * MS_H;
   const tAutolyseEnd = tBulkStart;
   const tAutolyseStart = tAutolyseEnd - autolyseH * MS_H;
-  const tStarterFeed = tAutolyseStart - starterPeakH * MS_H;
+  const hoursUntilAutolyse = input.hoursToAutolyse;
+  const tStarterFeed = tAutolyseStart - hoursUntilAutolyse * MS_H;
 
   return {
     tStarterFeed,
@@ -155,13 +154,14 @@ export function buildForwardTimelineFromNow(
   const bulkH =
     paced.bulkHours ??
     getTimelineBulkHours(paced.starterPct, mix, paced.roomTemp);
+  const hoursUntilAutolyse = paced.hoursToAutolyse;
   const starterPeakH =
     paced.starterPeakHours ??
-    getTimelineStarterHours(paced.hoursToAutolyse, paced.roomTemp);
+    getTimelineStarterHours(hoursUntilAutolyse, paced.roomTemp);
   const autolyseH = paced.autolyseHours ?? 1;
 
   const tStarterFeed = startMs;
-  const tAutolyseStart = tStarterFeed + starterPeakH * MS_H;
+  const tAutolyseStart = tStarterFeed + hoursUntilAutolyse * MS_H;
   const tAutolyseEnd = tAutolyseStart + autolyseH * MS_H;
   const tBulkStart = tAutolyseEnd;
   const tBulkEnd = tBulkStart + bulkH * MS_H;

@@ -1,5 +1,9 @@
 import { buildFlourMix } from "./flour";
-import { adjustHoursForTemperature, roundTimingHours } from "./fermentationTiming";
+import {
+  adjustHoursForTemperature,
+  pickStarterFeedRatio,
+  roundTimingHours,
+} from "./fermentationTiming";
 import {
   getTimelineAnchors,
   getTimelineBulkHours,
@@ -68,17 +72,20 @@ function buildTimelineInput(
     hoursToAutolyse: overrides?.hoursToAutolyse ?? input.hoursToAutolyse,
     flourPcts: input.flourPcts,
     bulkHours: overrides?.bulkHours,
-    starterPeakHours: overrides?.hoursToAutolyse,
   };
 }
 
 function anchorsFromNow(input: BakingWeatherPlanInput): TimelineAnchors {
   const mix = buildFlourMix(input.flourPcts);
-  const starterPeakH = input.hoursToAutolyse;
+  const hoursUntilAutolyse = input.hoursToAutolyse;
+  const starterPeakH = pickStarterFeedRatio(
+    hoursUntilAutolyse,
+    input.roomTemp,
+  ).peakHours;
   const bulkH = getTimelineBulkHours(input.starterPct, mix, input.roomTemp);
   const now = Date.now();
   const tStarterFeed = now;
-  const tAutolyseStart = tStarterFeed + starterPeakH * MS_H;
+  const tAutolyseStart = tStarterFeed + hoursUntilAutolyse * MS_H;
   const tAutolyseEnd = tAutolyseStart + MS_H;
   const tBulkStart = tAutolyseEnd;
   const tBulkEnd = tBulkStart + bulkH * MS_H;

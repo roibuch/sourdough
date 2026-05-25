@@ -10,6 +10,7 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
+import { alarmToastMessage } from "@/components/AlarmButton";
 import { BakingTimeline } from "@/components/BakingTimeline";
 import { FlourBlendEditor } from "@/components/dashboard/FlourBlendEditor";
 import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
@@ -149,7 +150,7 @@ export function RecipeInputsPanel({
               value={parseFloat(totalWeight) || 0}
               min={1}
               max={10000}
-              step={1}
+              step={100}
               allowEmpty
               deferCommit
               exactCommit
@@ -260,6 +261,17 @@ export function RecipeInputsPanel({
               <AdviceList items={[fermentationAlert]} />
             </div>
           )}
+
+          <Button
+            variant="primary"
+            fullWidth
+            className="mt-4"
+            onClick={onCalculate}
+            disabled={!validation.canCalculate}
+          >
+            <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+            {inp.actions.calculate}
+          </Button>
         </AccordionItem>
 
         <AccordionItem
@@ -297,6 +309,7 @@ export function RecipeInputsPanel({
             fermentationPace,
           }}
           showFloatTestReminder={false}
+          onAlarmResult={(type) => showToast(alarmToastMessage(type))}
         />
       </div>
 

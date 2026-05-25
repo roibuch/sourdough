@@ -178,7 +178,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
               )}
               placeholder="1000"
               min={1}
-              step={1}
+              step={100}
               inputMode="numeric"
               value={totalWeight}
               onChange={(e) => setWeightDraftValue(e.target.value)}
@@ -292,7 +292,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
                 value={flourDraft[i] ?? 0}
                 min={0}
                 max={100}
-                step={1}
+                step={5}
                 deferCommit
                 exactCommit
                 onChange={(v) => handleFlourPctChange(i, v)}

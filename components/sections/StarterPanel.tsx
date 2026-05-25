@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { BeakerIcon } from "@heroicons/react/24/outline";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { Button } from "@/components/ui/Button";
+import { RangeSlider } from "@/components/ui/RangeSlider";
+import { pickRatio } from "@/lib/starter";
 import { Card } from "@/components/ui/Card";
 import { calculateStarterFeed } from "@/lib/starter";
 import type { StarterFeedResult } from "@/lib/starter";
@@ -35,6 +37,11 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
   const starterNeedG = useRecipeStarter
     ? results?.starter ?? 0
     : parseFloat(manualStarterG) || 0;
+
+  const ratioPreview = useMemo(
+    () => pickRatio(hoursToAutolyse, roomTemp),
+    [hoursToAutolyse, roomTemp],
+  );
 
   const handleCalcStarter = () => {
     if (useRecipeStarter && (!results || results.starter <= 0)) {
@@ -159,28 +166,26 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
               plusLabel="הוסף טמפרטורה"
               compact
             />
-            <div className="col-span-full rounded-2xl border border-stone-200 bg-white p-4">
-              <label
-                htmlFor="hoursToAutolyseGuide"
-                className="mb-2 block text-sm font-semibold text-stone-800"
-              >
-                שעות עד אוטוליזה:{" "}
-                <span className="font-serif text-lg text-crust">
-                  {hoursToAutolyse}
-                </span>
-              </label>
-              <input
+            <div className="col-span-full">
+              <RangeSlider
                 id="hoursToAutolyseGuide"
-                type="range"
-                min={2}
+                label="שעות מההאכלה עד תחילת אוטוליזה"
+                value={hoursToAutolyse}
+                min={4}
                 max={16}
                 step={0.5}
-                value={hoursToAutolyse}
-                className="h-2.5 w-full cursor-pointer accent-crust"
-                onChange={(e) =>
-                  setHoursToAutolyse(parseFloat(e.target.value))
-                }
+                unit=" שע׳"
+                formatValue={(v) => `${v} שע׳`}
+                onChange={setHoursToAutolyse}
               />
+              <p className="mt-2 rounded-xl border border-wheat/60 bg-wheat-muted/40 px-3 py-2 text-xs leading-relaxed text-stone-700">
+                יחס אוטומטי מומלץ:{" "}
+                <strong className="text-crust">
+                  1 : {ratioPreview.flourMult} : {ratioPreview.waterMult}
+                </strong>
+                {" · "}
+                שיא ~{ratioPreview.peakHours} שע׳ @ {Math.round(roomTemp)}°C
+              </p>
             </div>
           </div>
 

@@ -5,6 +5,8 @@ import {
   BeakerIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
+import { AlarmButtonGroup } from "@/components/AlarmButton";
+import type { AlarmResult } from "@/lib/alarms";
 import { StepStageIcon } from "@/components/icons/BakingStageIcons";
 import type { FermentationPace } from "@/lib/expressMode";
 import { heContent } from "@/lib/content";
@@ -42,6 +44,7 @@ export interface BakingTimelineProps {
   /** Show compact float-test callout before bulk / mix step */
   showFloatTestReminder?: boolean;
   className?: string;
+  onAlarmResult?: (result: AlarmResult) => void;
 }
 
 function resolveStartMs(currentTime?: Date | number): number {
@@ -83,6 +86,7 @@ export function BakingTimeline({
   dough,
   showFloatTestReminder = true,
   className,
+  onAlarmResult,
 }: BakingTimelineProps) {
   const startMs = resolveStartMs(currentTime);
   const nowMs = Date.now();
@@ -235,28 +239,17 @@ export function BakingTimeline({
                   </p>
 
                   {step.alarms && step.alarms.length > 0 && (
-                    <ul className="mt-3 space-y-1.5 border-t border-stone-200/70 pt-3">
-                      {step.alarms.map((alarm) => (
-                        <li
-                          key={`${alarm.ts}-${alarm.short}`}
-                          className="flex items-center justify-between gap-2 rounded-lg bg-white/70 px-2.5 py-1.5 text-xs"
-                        >
-                          <span className="font-medium text-charcoal">
-                            {copy.foldLabel} · {alarm.short}
-                          </span>
-                          <time
-                            className="shrink-0 tabular-nums text-stone-500"
-                            dateTime={new Date(alarm.ts).toISOString()}
-                          >
-                            {new Intl.DateTimeFormat("he-IL", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            }).format(new Date(alarm.ts))}
-                          </time>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="mt-3 space-y-2 border-t border-stone-200/70 pt-3">
+                      <p className="text-xs font-semibold text-stone-600">
+                        {copy.foldLabel}
+                      </p>
+                      <AlarmButtonGroup
+                        alarms={step.alarms}
+                        onResult={onAlarmResult}
+                        compact
+                        stacked
+                      />
+                    </div>
                   )}
 
                   {index === 0 && plan.workflow && (

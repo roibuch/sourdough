@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { restorePendingNotifications } from "@/lib/alarms";
 import { getBasePath } from "@/lib/basePath";
 
 const SW_URL_SUFFIX = "sw.js?v=8";
@@ -10,6 +11,8 @@ export function ServiceWorkerRegister() {
   const reloaded = useRef(false);
 
   useEffect(() => {
+    restorePendingNotifications();
+
     if (!("serviceWorker" in navigator)) return;
 
     const base = getBasePath();

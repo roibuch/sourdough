@@ -174,7 +174,6 @@ export function useRecipeForm() {
       flourPcts,
       fermentationPace,
       ...(bulkHoursOverride != null ? { bulkHours: bulkHoursOverride } : {}),
-      starterPeakHours: hoursToAutolyse,
     };
     return buildTimelineInputWithPace(base);
   }, [

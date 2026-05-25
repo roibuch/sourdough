@@ -2,6 +2,8 @@ import { heContent } from "@/lib/content";
 import { formatScheduleTime } from "./timeline";
 
 const alarmCopy = heContent.alarms;
+const PENDING_KEY = "sourdough-pending-notifications";
+const MAX_NOTIFICATION_DELAY_MS = 7 * 24 * 60 * 60 * 1000;
 
 function pad2(n: number): string {
   return String(n).padStart(2, "0");
@@ -20,7 +22,21 @@ export function isIOSDevice(): boolean {
   );
 }
 
-/** Standard Android AlarmClock intent URIs (Chrome / WebView) */
+/** Primary URI — matches legacy sourdough_app.html (Chrome / Android WebView). */
+export function buildPrimaryAndroidAlarmUri(
+  hour: number,
+  minute: number,
+  message: string,
+): string {
+  const h = Math.max(0, Math.min(23, hour));
+  const m = Math.max(0, Math.min(59, minute));
+  return (
+    `intent://set_alarm?hour=${h}&minute=${m}&message=${encodeURIComponent(message.slice(0, 120))}` +
+    "#Intent;scheme=android-app;action=android.intent.action.SET_ALARM;end;"
+  );
+}
+
+/** Fallback intent variants with explicit clock packages */
 export function buildAndroidAlarmIntents(
   hour: number,
   minute: number,
@@ -38,39 +54,128 @@ export function buildAndroidAlarmIntents(
     `i.android.intent.extra.MINUTES=${m};`;
 
   return [
+    buildPrimaryAndroidAlarmUri(h, m, message),
     `intent:#Intent;action=android.intent.action.SET_ALARM;${base}end`,
     `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.google.android.deskclock;${base}end`,
     `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.sec.android.app.clockpackage;${base}end`,
   ];
 }
 
-function navigateIntent(uri: string): void {
-  const a = document.createElement("a");
-  a.href = uri;
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-
+/** Must run synchronously inside a click handler (user activation). */
 export function openAndroidClockAlarm(
   hour: number,
   minute: number,
   message: string,
 ): void {
-  for (const uri of buildAndroidAlarmIntents(hour, minute, message)) {
-    try {
-      navigateIntent(uri);
-      return;
-    } catch {
-      /* try next */
-    }
-  }
+  const uris = buildAndroidAlarmIntents(hour, minute, message);
+  window.location.assign(uris[0]);
+}
+
+interface PendingNotification {
+  id: string;
+  ts: number;
+  title: string;
+  body: string;
+}
+
+function loadPending(): PendingNotification[] {
+  if (typeof localStorage === "undefined") return [];
   try {
-    window.location.href = buildAndroidAlarmIntents(hour, minute, message)[0];
+    const raw = localStorage.getItem(PENDING_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as PendingNotification[];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    /* fallback handled by caller */
+    return [];
   }
+}
+
+function savePending(list: PendingNotification[]): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(PENDING_KEY, JSON.stringify(list));
+  } catch {
+    /* quota */
+  }
+}
+
+function fireBrowserNotification(title: string, body: string): void {
+  if (typeof window === "undefined" || !("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  try {
+    new Notification(title, {
+      body,
+      tag: `sourdough-${title}`,
+      lang: "he",
+    });
+  } catch {
+    /* blocked */
+  }
+}
+
+function armTimeout(alarm: PendingNotification): void {
+  const delay = alarm.ts - Date.now();
+  if (delay <= 0 || delay > MAX_NOTIFICATION_DELAY_MS) return;
+  window.setTimeout(() => {
+    fireBrowserNotification(alarm.title, alarm.body);
+    savePending(loadPending().filter((a) => a.id !== alarm.id));
+  }, delay);
+}
+
+/** Restore timers after reload (same tab session). */
+export function restorePendingNotifications(): void {
+  if (typeof window === "undefined") return;
+  const now = Date.now();
+  const pending = loadPending().filter((a) => a.ts > now);
+  savePending(pending);
+  for (const alarm of pending) {
+    armTimeout(alarm);
+  }
+}
+
+export function scheduleWebNotification(
+  timestampMs: number,
+  message: string,
+): boolean {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return false;
+  }
+  if (Notification.permission !== "granted") return false;
+
+  const delay = timestampMs - Date.now();
+  if (delay <= 0 || delay > MAX_NOTIFICATION_DELAY_MS) return false;
+
+  const title = alarmCopy.ics.calendarName;
+  const body = `${message} · ${formatScheduleTime(timestampMs)}`;
+  const id = `alarm-${timestampMs}`;
+
+  const pending = loadPending().filter((a) => a.id !== id);
+  pending.push({ id, ts: timestampMs, title, body });
+  savePending(pending);
+  armTimeout({ id, ts: timestampMs, title, body });
+  return true;
+}
+
+export async function ensureNotificationPermission(): Promise<boolean> {
+  if (typeof window === "undefined" || !("Notification" in window)) {
+    return false;
+  }
+  if (Notification.permission === "granted") return true;
+  if (Notification.permission === "denied") return false;
+  const result = await Notification.requestPermission();
+  return result === "granted";
+}
+
+export function copyAlarmToClipboard(
+  timestampMs: number,
+  message: string,
+): boolean {
+  if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
+    return false;
+  }
+  const text = `${message} — ${formatScheduleTime(timestampMs)}`;
+  void navigator.clipboard.writeText(text);
+  return true;
 }
 
 /** Local floating time — imports reliably into mobile calendars */
@@ -120,7 +225,7 @@ export function buildIcsCalendar(events: IcsEventInput[]): string {
       `SUMMARY:${summary}`,
       `DESCRIPTION:${alarmCopy.ics.calendarName}`,
       "BEGIN:VALARM",
-      "TRIGGER:-PT10M",
+      "TRIGGER:-PT0M",
       "ACTION:DISPLAY",
       `DESCRIPTION:${summary}`,
       "END:VALARM",
@@ -173,7 +278,7 @@ async function shareIcsFile(
   }
 }
 
-function downloadIcsBlob(ics: string, filename: string): void {
+export function downloadIcsBlob(ics: string, filename: string): void {
   const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -182,6 +287,12 @@ function downloadIcsBlob(ics: string, filename: string): void {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
+}
+
+/** Synchronous download — safe inside click handler. */
+export function downloadIcsAlarmSync(startMs: number, summary: string): void {
+  const ics = buildIcsCalendar([{ startMs, summary }]);
+  downloadIcsBlob(ics, "sourdough-reminder.ics");
 }
 
 export async function downloadIcsAlarm(
@@ -220,26 +331,24 @@ export type AlarmResult =
   | "android"
   | "android-fallback"
   | "ios-clock"
+  | "notification"
   | "shared"
   | "opened"
   | "google"
-  | "invalid";
+  | "invalid"
+  | "past";
 
-/** Opens the iOS Clock app (user sets alarm manually). */
-export function openIOSClockApp(): void {
-  try {
-    window.location.href = "clock-worldclock://";
-  } catch {
-    /* noop */
-  }
-}
-
-/** Primary path: hardware clock alarm (Android intent / iOS Clock app). */
-export async function triggerClockAlarm(
+/**
+ * Opens native clock UI on Android — must be called synchronously from click.
+ * Returns "pending" when further async setup is needed (iOS / desktop).
+ */
+export function triggerClockAlarmImmediate(
   timestampMs: number,
   message: string,
-): Promise<AlarmResult> {
+): AlarmResult | "pending" {
   if (!timestampMs || Number.isNaN(timestampMs)) return "invalid";
+  if (timestampMs <= Date.now()) return "past";
+
   const d = new Date(timestampMs);
   const hour = d.getHours();
   const minute = d.getMinutes();
@@ -249,16 +358,51 @@ export async function triggerClockAlarm(
     return "android";
   }
 
-  if (isIOSDevice()) {
-    openIOSClockApp();
-    return "ios-clock";
-  }
-
-  openAndroidClockAlarm(hour, minute, message);
-  return "android-fallback";
+  return "pending";
 }
 
-/** @deprecated Use triggerClockAlarm — kept for callers migrating gradually. */
+export async function triggerClockAlarmAsync(
+  timestampMs: number,
+  message: string,
+): Promise<AlarmResult> {
+  if (!timestampMs || Number.isNaN(timestampMs)) return "invalid";
+  if (timestampMs <= Date.now()) return "past";
+
+  const granted = await ensureNotificationPermission();
+  if (granted && scheduleWebNotification(timestampMs, message)) {
+    if (isIOSDevice()) {
+      copyAlarmToClipboard(timestampMs, message);
+    }
+    return "notification";
+  }
+
+  if (isIOSDevice()) {
+    copyAlarmToClipboard(timestampMs, message);
+    const icsResult = await downloadIcsAlarm(timestampMs, message);
+    return icsResult === "shared" ? "shared" : "opened";
+  }
+
+  downloadIcsAlarmSync(timestampMs, message);
+  return "opened";
+}
+
+/** Full alarm flow: sync Android intent + async notification / calendar fallback. */
+export async function triggerClockAlarm(
+  timestampMs: number,
+  message: string,
+): Promise<AlarmResult> {
+  const immediate = triggerClockAlarmImmediate(timestampMs, message);
+  if (immediate !== "pending") {
+    if (immediate === "android") {
+      const granted = await ensureNotificationPermission();
+      if (granted) scheduleWebNotification(timestampMs, message);
+    }
+    return immediate;
+  }
+  return triggerClockAlarmAsync(timestampMs, message);
+}
+
+/** @deprecated Use triggerClockAlarm */
 export async function triggerHardwareAlarm(
   timestampMs: number,
   message: string,
@@ -289,6 +433,8 @@ export function alarmResultMessage(result: AlarmResult): string {
       return r.iosClock;
     case "android-fallback":
       return r.androidFallback;
+    case "notification":
+      return r.notification;
     case "shared":
       return isAndroidDevice() ? r.sharedAndroid : r.sharedIos;
     case "opened":
@@ -299,6 +445,8 @@ export function alarmResultMessage(result: AlarmResult): string {
           : r.openedDesktop;
     case "google":
       return r.google;
+    case "past":
+      return r.past;
     default:
       return r.invalid;
   }

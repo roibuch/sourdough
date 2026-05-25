@@ -23,6 +23,11 @@ export const STARTER_PEAK_HOURS_AT_REF: Record<number, number> = {
   5: 12,
 };
 
+const RATIO_ANCHORS = [1, 2, 3, 4, 5] as const;
+
+/** Minutes before autolyse that starter should reach peak (ready, not rushed). */
+export const STARTER_READY_BUFFER_H = 0.5;
+
 const STARTER_RATIO_NOTES: Record<number, string> = {
   1: "1:1:1 — שיא בכ־4–6 שעות ב־22°C; מתאים לאפייה באותו יום.",
   2: "1:2:2 — שיא בכ־6–8 שעות; האכלת ערב → בוקר נפוצה.",
@@ -47,9 +52,20 @@ export function adjustHoursForTemperature(
 ): number {
   if (!Number.isFinite(hoursAtRefC) || hoursAtRefC <= 0) return hoursAtRefC;
   const t = Number.isFinite(tempC) ? tempC : REFERENCE_TEMP_C;
-  return (
-    hoursAtRefC * Math.pow(FERMENTATION_RATE_PER_C, refTempC - t)
-  );
+  return hoursAtRefC * Math.pow(FERMENTATION_RATE_PER_C, refTempC - t);
+}
+
+function peakHoursAtRefForRatio(a: number): number {
+  const clamped = Math.max(1, Math.min(5, a));
+  const lower = Math.floor(clamped);
+  const upper = Math.ceil(clamped);
+  if (lower === upper) {
+    return STARTER_PEAK_HOURS_AT_REF[lower] ?? 12;
+  }
+  const lo = STARTER_PEAK_HOURS_AT_REF[lower] ?? 5;
+  const hi = STARTER_PEAK_HOURS_AT_REF[upper] ?? 12;
+  const t = clamped - lower;
+  return lo + (hi - lo) * t;
 }
 
 /** Expected peak after feeding 1:a:a at room temperature. */
@@ -57,8 +73,7 @@ export function starterPeakHours(
   feedMultiplier: number,
   tempC: number = REFERENCE_TEMP_C,
 ): number {
-  const a = Math.max(1, Math.min(5, Math.round(feedMultiplier)));
-  const base = STARTER_PEAK_HOURS_AT_REF[a] ?? 12;
+  const base = peakHoursAtRefForRatio(feedMultiplier);
   return roundTimingHours(adjustHoursForTemperature(base, tempC));
 }
 
@@ -71,20 +86,22 @@ export interface PickedStarterRatio {
 }
 
 /**
- * Pick the most diluted feed that still peaks before `hoursUntilUse`.
- * Prefers a longer, milder feed when multiple ratios fit.
+ * Pick the most diluted feed (largest a) that still peaks before autolyse.
+ * `hoursUntilAutolyse` = full hours from feed → start of autolyse/mix.
  */
 export function pickStarterFeedRatio(
-  hoursUntilUse: number,
+  hoursUntilAutolyse: number,
   tempC: number = REFERENCE_TEMP_C,
 ): PickedStarterRatio {
-  const targetH = Math.max(1.5, hoursUntilUse);
+  const targetH = Math.max(2, hoursUntilAutolyse);
+  const latestPeakH = targetH - STARTER_READY_BUFFER_H;
+
   let bestA = 1;
   let bestPeak = starterPeakHours(1, tempC);
 
-  for (let a = 1; a <= 5; a++) {
+  for (const a of RATIO_ANCHORS) {
     const peak = starterPeakHours(a, tempC);
-    if (peak <= targetH + 0.35) {
+    if (peak <= latestPeakH + 0.01) {
       bestA = a;
       bestPeak = peak;
     }
@@ -158,7 +175,7 @@ export function starterPctForBulkHours(
   return Math.round(Math.max(5, Math.min(40, pct)) * 10) / 10;
 }
 
-/** Hours from feed until starter is ready — matches pickStarterFeedRatio peak. */
+/** Hours from feed until starter is ready (peak) for a given ratio or auto-pick. */
 export function hoursUntilStarterPeak(
   hoursToAutolyse: number,
   tempC: number,
@@ -172,6 +189,11 @@ export function hoursUntilStarterPeak(
 
 /** Suggested feed lead time from forecast / room temperature. */
 export function recommendHoursToAutolyseFromTemp(avgTempC: number): number {
-  const peak = starterPeakHours(3, avgTempC);
-  return roundTimingHours(Math.max(4, Math.min(14, peak)));
+  const picked = pickStarterFeedRatio(
+    starterPeakHours(3, avgTempC) + STARTER_READY_BUFFER_H,
+    avgTempC,
+  );
+  return roundTimingHours(
+    Math.max(4, Math.min(14, picked.peakHours + STARTER_READY_BUFFER_H)),
+  );
 }

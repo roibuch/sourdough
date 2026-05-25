@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { BakingGuide } from "@/components/BakingGuide";
+import { alarmToastMessage } from "@/components/AlarmButton";
 import { BakingTimeline } from "@/components/BakingTimeline";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { RecipeResultsPanel } from "@/components/dashboard/RecipeResultsPanel";
@@ -46,6 +47,7 @@ export function SourdoughApp() {
             fermentationPace: form.fermentationPace,
           }}
           showFloatTestReminder={false}
+          onAlarmResult={(type) => form.showToast(alarmToastMessage(type))}
         />
       </div>
       <RecipeResultsPanel form={form} />

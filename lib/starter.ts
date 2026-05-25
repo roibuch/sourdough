@@ -4,11 +4,11 @@ import type { StarterRatioPreset } from "./expressMode";
 import { STARTER_RATIO_OPTIONS } from "./expressMode";
 import {
   adjustHoursForTemperature,
-  hoursUntilStarterPeak,
   pickStarterFeedRatio,
   recommendHoursToAutolyseFromTemp,
   roundTimingHours,
   starterPeakHours,
+  STARTER_READY_BUFFER_H,
 } from "./fermentationTiming";
 
 export interface RatioPick {
@@ -40,9 +40,12 @@ export interface StarterFeedResult {
   explain: string;
 }
 
-/** @deprecated Use pickStarterFeedRatio — kept for tests / legacy imports */
+const MIN_SEED_G = 8;
+const FEED_SAFETY_BUFFER = 1.1;
+
+/** @deprecated Use pickStarterFeedRatio */
 export function effectiveHoursForRatio(hours: number, tempC: number): number {
-  return hoursUntilStarterPeak(hours, tempC);
+  return pickStarterFeedRatio(hours, tempC).peakHours;
 }
 
 /** Pick 1:a:a ratio so peak aligns with hours until autolyse */
@@ -60,6 +63,7 @@ export function pickRatio(hoursUntilUse: number, tempC: number): RatioPick {
 function ratioFromPreset(
   preset: StarterRatioPreset,
   tempC: number,
+  hoursUntilAutolyse: number,
 ): RatioPick | null {
   const def = STARTER_RATIO_OPTIONS.find((r) => r.id === preset);
   if (!def || preset === "auto") return null;
@@ -82,12 +86,16 @@ function ratioFromPreset(
     };
   }
   const mult = def.flourMult;
+  const peak = starterPeakHours(Math.max(1, mult), tempC);
+  if (peak > hoursUntilAutolyse - STARTER_READY_BUFFER_H + 0.01) {
+    return null;
+  }
   return {
     a: mult,
     flourMult: mult,
     waterMult: def.waterMult,
     note: def.note,
-    peakHours: starterPeakHours(Math.max(1, mult), tempC),
+    peakHours: peak,
   };
 }
 
@@ -109,15 +117,14 @@ export function calculateStarterFeed(
 
   const keepG = Math.max(0, input.keepInJarG || 0);
   const tempC = Number.isFinite(input.roomTempC) ? input.roomTempC : 22;
-  const hours = Number.isFinite(input.hoursToAutolyse) ? input.hoursToAutolyse : 8;
+  const hours = Math.max(2, Number.isFinite(input.hoursToAutolyse) ? input.hoursToAutolyse : 8);
 
   const preset = input.ratioPreset ?? "auto";
   const picked =
-    ratioFromPreset(preset, tempC) ?? pickRatio(hours, tempC);
+    ratioFromPreset(preset, tempC, hours) ?? pickRatio(hours, tempC);
 
   const isPeakOnly = picked.flourMult === 0 && picked.waterMult === 0;
-  const buffer = isPeakOnly ? 1.03 : 1.08;
-  const totalTarget = (needG + keepG) * buffer;
+  const totalTarget = (needG + keepG) * FEED_SAFETY_BUFFER;
 
   let seedG: number;
   let flourAddG: number;
@@ -125,31 +132,38 @@ export function calculateStarterFeed(
   const ratioLabel = formatRatioLabel(picked.flourMult, picked.waterMult);
 
   if (isPeakOnly) {
-    seedG = Math.ceil(totalTarget);
+    seedG = Math.max(MIN_SEED_G, Math.ceil(totalTarget));
     flourAddG = 0;
     waterAddG = 0;
   } else {
     const mult = 1 + picked.flourMult + picked.waterMult;
-    seedG = Math.ceil(totalTarget / mult);
-    flourAddG = seedG * picked.flourMult;
-    waterAddG = seedG * picked.waterMult;
+    seedG = Math.max(MIN_SEED_G, Math.ceil(totalTarget / mult));
+    flourAddG = Math.round(seedG * picked.flourMult);
+    waterAddG = Math.round(seedG * picked.waterMult);
   }
 
-  const expectedPeakHours = roundTimingHours(
-    isPeakOnly ? picked.peakHours : picked.peakHours,
-  );
+  const expectedPeakHours = roundTimingHours(picked.peakHours);
 
-  let explain = `שיא צפוי בכ־${expectedPeakHours} שעות ב־${Math.round(tempC)}°C`;
+  let explain = `ב־${Math.round(tempC)}°C שיא צפוי בכ־${expectedPeakHours} שעות`;
+  explain += ` (חלון ${hours} שעות עד אוטוליזה, מרווח ${STARTER_READY_BUFFER_H} שע׳ לפני ערבוב).`;
   if (preset === "auto") {
-    explain += ` (יחס ${ratioLabel} לפי ${hours} שעות עד אוטוליזה)`;
+    explain += ` יחס ${ratioLabel} נבחר לפי הזמן והטמפרטורה.`;
   } else {
-    explain += ` (${ratioLabel})`;
+    explain += ` יחס קבוע: ${ratioLabel}.`;
   }
-  explain += `. ${picked.note}`;
+  explain += ` ${picked.note}`;
 
-  const usableG = seedG + flourAddG + waterAddG;
-  if (usableG < needG + keepG - 0.5) {
-    seedG += Math.ceil(needG + keepG - usableG);
+  let totalMixG = seedG + flourAddG + waterAddG;
+  if (totalMixG < needG + keepG) {
+    const deficit = needG + keepG - totalMixG;
+    if (isPeakOnly) {
+      seedG += Math.ceil(deficit);
+    } else {
+      seedG += Math.ceil(deficit / (1 + picked.flourMult + picked.waterMult));
+      flourAddG = Math.round(seedG * picked.flourMult);
+      waterAddG = Math.round(seedG * picked.waterMult);
+    }
+    totalMixG = seedG + flourAddG + waterAddG;
   }
 
   return {
@@ -159,9 +173,9 @@ export function calculateStarterFeed(
     effectiveHours: hours,
     expectedPeakHours,
     seedG,
-    flourAddG: Math.round(flourAddG),
-    waterAddG: Math.round(waterAddG),
-    totalMixG: Math.round(seedG + flourAddG + waterAddG),
+    flourAddG,
+    waterAddG,
+    totalMixG: Math.round(totalMixG),
     explain,
   };
 }

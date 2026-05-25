@@ -34,14 +34,19 @@ describe("pickStarterFeedRatio", () => {
     expect(p.flourMult).toBe(2);
   });
 
-  it("picks 1:3:3 for ~9h at 22°C", () => {
+  it("picks 1:2:2 for ~9h at 22°C (buffer before autolyse)", () => {
     const p = pickStarterFeedRatio(9, 22);
+    expect(p.flourMult).toBe(2);
+  });
+
+  it("picks 1:3:3 for ~10h at 22°C", () => {
+    const p = pickStarterFeedRatio(10, 22);
     expect(p.flourMult).toBe(3);
   });
 
-  it("picks 1:5:5 for long overnight windows", () => {
+  it("picks 1:4:4 for long overnight windows", () => {
     const p = pickStarterFeedRatio(12, 22);
-    expect(p.flourMult).toBe(5);
+    expect(p.flourMult).toBe(4);
   });
 });
 

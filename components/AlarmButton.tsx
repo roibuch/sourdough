@@ -10,6 +10,8 @@ import {
   isIOSDevice,
   openGoogleCalendarEvent,
   triggerClockAlarm,
+  triggerClockAlarmAsync,
+  triggerClockAlarmImmediate,
   type AlarmResult,
 } from "@/lib/alarms";
 import { heContent } from "@/lib/content";
@@ -46,11 +48,25 @@ export function AlarmButton({
     }
   };
 
+  const onClockClick = () => {
+    const immediate = triggerClockAlarmImmediate(timestampMs, message);
+    if (immediate !== "pending") {
+      onResult?.(immediate);
+      if (immediate === "android") {
+        void triggerClockAlarm(timestampMs, message).then((r) => {
+          if (r === "notification") onResult?.(r);
+        });
+      }
+      return;
+    }
+    void run(() => triggerClockAlarmAsync(timestampMs, message));
+  };
+
   const btnClass = cn(
     "inline-flex items-center gap-2 rounded-2xl font-bold text-white",
     compact
-      ? "min-h-[2.25rem] px-3 py-1.5 text-xs"
-      : "min-h-[2.75rem] px-4 py-2.5 text-sm",
+      ? "min-h-11 px-3 py-2 text-xs"
+      : "min-h-11 px-4 py-2.5 text-sm",
     "shadow-md transition active:scale-[0.98]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
     "disabled:opacity-60",
@@ -74,9 +90,7 @@ export function AlarmButton({
           compact && "w-full justify-center",
         )}
         title={alarmTimeTitle(timestampMs)}
-        onClick={() =>
-          run(async () => triggerClockAlarm(timestampMs, message))
-        }
+        onClick={onClockClick}
       >
         <ClockIcon className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
         <span>
