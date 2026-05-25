@@ -4,7 +4,7 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "alarm" | "weather";
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-crust text-dough shadow-md shadow-crust/25 hover:bg-crust-dark active:bg-crust-dark",
+    "bg-amber-600 text-white shadow-md shadow-amber-900/20 motion-safe:transition-all hover:bg-amber-700 active:bg-amber-800",
   secondary:
     "border-2 border-warm-border bg-white text-charcoal hover:border-crust/40 hover:bg-wheat-muted/50",
   ghost:
@@ -32,7 +32,7 @@ export function Button({
     <button
       type="button"
       className={cn(
-        "inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl px-5 py-3 text-base font-semibold transition-all duration-200 sm:min-h-12 sm:py-3.5",
+        "inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-2xl px-5 py-3 text-base font-semibold motion-safe:transition-all duration-200 sm:min-h-12 sm:py-3.5",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat focus-visible:ring-offset-2 focus-visible:ring-offset-dough",
         "disabled:pointer-events-none disabled:opacity-50",
         variants[variant],

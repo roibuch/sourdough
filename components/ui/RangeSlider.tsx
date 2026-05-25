@@ -64,11 +64,11 @@ export function RangeSlider({
       </div>
       <div className="relative flex min-h-11 items-center py-0.5">
         <div
-          className="pointer-events-none absolute inset-x-0 top-1/2 h-3 -translate-y-1/2 overflow-hidden rounded-full bg-warm-border shadow-inner"
+          className="pointer-events-none absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 overflow-hidden rounded-full bg-stone-200 shadow-inner"
           aria-hidden
         >
           <div
-            className="h-full rounded-full bg-gradient-to-l from-crust via-wheat to-wheat-light transition-[width] duration-200 motion-reduce:transition-none"
+            className="h-full rounded-full bg-gradient-to-l from-amber-700 via-amber-500 to-amber-300 transition-[width] duration-200 motion-reduce:transition-none"
             style={{ width: `${fillPct}%` }}
           />
         </div>
@@ -83,13 +83,13 @@ export function RangeSlider({
           className={cn(
             "relative z-10 h-11 w-full min-w-0 cursor-pointer appearance-none bg-transparent",
             "accent-crust",
-            "[&::-webkit-slider-runnable-track]:h-3 [&::-webkit-slider-runnable-track]:rounded-full",
-            "[&::-webkit-slider-runnable-track]:bg-warm-border",
+            "[&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:rounded-full",
+            "[&::-webkit-slider-runnable-track]:bg-stone-200",
             "[&::-webkit-slider-thumb]:mt-[-0.375rem] [&::-webkit-slider-thumb]:h-7 [&::-webkit-slider-thumb]:w-7",
             "[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full",
             "[&::-webkit-slider-thumb]:bg-crust [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:shadow-crust/30",
             "[&::-webkit-slider-thumb]:ring-2 [&::-webkit-slider-thumb]:ring-wheat-light",
-            "[&::-moz-range-track]:h-3 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-warm-border",
+            "[&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-stone-200",
             "[&::-moz-range-thumb]:h-7 [&::-moz-range-thumb]:w-7 [&::-moz-range-thumb]:rounded-full",
             "[&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-crust",
             "[&::-moz-range-thumb]:shadow-md",

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { CalculatorIcon } from "@heroicons/react/24/outline";
 import { AppBrandHeader } from "@/components/brand/AppBrandHeader";
+import { Button } from "@/components/ui/Button";
 import {
   DesktopViewTabs,
   type DesktopMainTab,
@@ -48,7 +50,7 @@ export function DashboardShell({
 
   return (
     <div className="dashboard-shell flex min-h-screen min-w-0 max-w-[100vw] flex-col overflow-x-clip">
-      <header className="sticky top-0 z-30 border-b border-warm-border/70 bg-dough/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6">
           <AppBrandHeader
             tagline={heContent.app.brandSubtitle}
@@ -64,7 +66,7 @@ export function DashboardShell({
           <aside
             className={cn(
               "@container/sidebar hidden min-w-0 shrink-0 lg:block",
-              "lg:min-w-[320px] lg:w-[22rem] xl:w-[28rem] 2xl:w-[30rem]",
+              "lg:min-w-[320px] lg:max-w-[400px] lg:w-[22rem] xl:w-[28rem]",
               "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.75rem)]",
               "lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-1.5rem)]",
               "lg:overflow-y-auto lg:overscroll-contain",
@@ -126,6 +128,26 @@ export function DashboardShell({
         onSelect={handleMobileTab}
         guideVisible={!!guide}
       />
+
+      {!sheetOpen && (
+        <div
+          className={cn(
+            "fixed inset-x-0 z-40 border-t border-stone-200/90 bg-white/95 px-3 py-2.5 backdrop-blur-md",
+            "bottom-[calc(var(--shell-nav-h)+env(safe-area-inset-bottom,0px))]",
+            "lg:hidden",
+          )}
+        >
+          <Button
+            variant="primary"
+            fullWidth
+            className="min-h-11 shadow-lg shadow-amber-900/15"
+            onClick={() => form.handleCalculate()}
+          >
+            <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+            {heContent.inputs.actions.calculate}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

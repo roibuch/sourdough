@@ -1,7 +1,7 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import dynamic from "next/dynamic";
-import { BakingGuide } from "@/components/BakingGuide";
 import { alarmToastMessage } from "@/components/AlarmButton";
 import { BakingTimeline } from "@/components/BakingTimeline";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -9,10 +9,24 @@ import { RecipeResultsPanel } from "@/components/dashboard/RecipeResultsPanel";
 import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
 import { SmartWarningBanner } from "@/components/feedback/SmartWarningBanner";
 import { useBakerAlerts } from "@/hooks/useBakerAlerts";
-import { ReferenceTables } from "@/components/ReferenceTables";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
-import { Toast } from "@/components/Toast";
+import { Toast, type ToastPayload } from "@/components/Toast";
 import { useRecipeForm } from "@/hooks/useRecipeForm";
+import { heContent } from "@/lib/content";
+
+const BakingGuide = dynamic(
+  () =>
+    import("@/components/BakingGuide").then((m) => ({ default: m.BakingGuide })),
+  { loading: () => null },
+);
+
+const ReferenceTables = dynamic(
+  () =>
+    import("@/components/ReferenceTables").then((m) => ({
+      default: m.ReferenceTables,
+    })),
+  { loading: () => null },
+);
 
 const OptionalSchedulePanel = dynamic(
   () =>
@@ -24,7 +38,16 @@ const OptionalSchedulePanel = dynamic(
 
 export function SourdoughApp() {
   const form = useRecipeForm();
+  const [swToast, setSwToast] = useState<ToastPayload>(null);
   const bakerAlerts = useBakerAlerts(form);
+
+  const onSwUpdate = useCallback((reload: () => void) => {
+    setSwToast({
+      message: heContent.toasts.swUpdate.message,
+      actionLabel: heContent.toasts.swUpdate.action,
+      onAction: reload,
+    });
+  }, []);
   const hydrationAlerts = bakerAlerts.filter((a) =>
     a.id.startsWith("hydration"),
   );
@@ -94,14 +117,14 @@ export function SourdoughApp() {
 
   return (
     <>
-      <ServiceWorkerRegister />
+      <ServiceWorkerRegister onUpdateAvailable={onSwUpdate} />
       <DashboardShell
         form={form}
         outputs={outputs}
         guide={guide}
         reference={reference}
       />
-      <Toast message={form.toast} />
+      <Toast payload={swToast ?? form.toast} />
     </>
   );
 }

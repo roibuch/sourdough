@@ -79,6 +79,7 @@ export function useRecipeForm() {
     flourAdjusted: paramsFlourAdjusted,
     patchState,
     setState,
+    commitStateToUrl,
   } = useRecipeParams();
 
   const [presetNote, setPresetNote] = useState(FLOUR_PRESETS.classic.note);
@@ -289,9 +290,8 @@ export function useRecipeForm() {
       const next =
         typeof updater === "function" ? updater(flourDraft) : updater;
       setFlourDraft(next);
-      commitFlourPcts(next);
     },
-    [flourDraft, commitFlourPcts],
+    [flourDraft],
   );
 
   const setPreset = useCallback(
@@ -470,6 +470,7 @@ export function useRecipeForm() {
   }, [targetBakeTime, timelineInput, showToast]);
 
   const runCalculate = useCallback(() => {
+    commitFlourPcts(flourDraft);
     const dough = math.calculate();
     if (!dough) {
       showToast(toasts.invalidDoughWeight);
@@ -477,7 +478,7 @@ export function useRecipeForm() {
     }
     setShowGuide(true);
     setStarterOnlyMode(false);
-    setState({ ...state, calculated: true });
+    commitStateToUrl((prev) => ({ ...prev, calculated: true }));
     persistState(true);
 
     requestAnimationFrame(() => {
@@ -487,7 +488,14 @@ export function useRecipeForm() {
       });
     });
     return true;
-  }, [math, showToast, setState, state, persistState]);
+  }, [
+    math,
+    showToast,
+    commitFlourPcts,
+    flourDraft,
+    commitStateToUrl,
+    persistState,
+  ]);
 
   const handleCalculate = useCallback(() => {
     return runCalculate();
@@ -512,7 +520,10 @@ export function useRecipeForm() {
   }, [rebuildTimeline, setState, state, showResults]);
 
   const handleCopyLink = useCallback(async () => {
-    setState({ ...state, calculated: showResults });
+    commitStateToUrl((prev) => ({
+      ...prev,
+      calculated: showResults,
+    }));
     const url = window.location.href;
     try {
       await navigator.clipboard.writeText(url);
@@ -520,7 +531,7 @@ export function useRecipeForm() {
     } catch {
       showToast(url);
     }
-  }, [setState, state, showResults, showToast]);
+  }, [commitStateToUrl, showResults, showToast]);
 
   const selectScheduleOption = useCallback(
     (option: ScheduleOption) => {

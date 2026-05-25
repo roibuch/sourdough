@@ -39,7 +39,7 @@
   }
 
   body {
-    @apply min-h-screen bg-dough text-charcoal leading-relaxed;
+    @apply min-h-screen bg-amber-50 text-stone-900 leading-relaxed;
     overflow-x: clip;
     background-image:
       radial-gradient(ellipse 80% 45% at 50% -8%, rgb(212 165 116 / 0.14), transparent),

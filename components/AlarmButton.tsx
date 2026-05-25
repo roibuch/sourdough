@@ -136,7 +136,7 @@ export function AlarmButton({
         disabled={busy}
         className={cn(
           btnClass,
-          "bg-orange-700 shadow-orange-900/25 hover:bg-orange-800 focus-visible:ring-orange-500",
+          "min-h-11 min-w-11 bg-amber-600 shadow-amber-900/25 motion-safe:transition-all hover:bg-amber-700 focus-visible:ring-amber-500",
           compact && "w-full justify-center",
         )}
         title={alarmTimeTitle(timestampMs)}

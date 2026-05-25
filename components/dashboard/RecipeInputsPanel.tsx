@@ -195,7 +195,10 @@ export function RecipeInputsPanel({
               step={1}
               onChange={setWaterPct}
               error={validation.fields.waterPct?.invalid}
-              hint={validation.fields.waterPct?.message}
+              hint={
+                validation.fields.waterPct?.message ??
+                inp.fields.hydrationHint
+              }
             />
 
             <div

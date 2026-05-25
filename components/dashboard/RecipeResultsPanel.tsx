@@ -14,30 +14,32 @@ import {
   getHydrationRecommendation,
 } from "@/lib/flour";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
+import { heContent } from "@/lib/content";
+
+const res = heContent.inputs.results;
 
 export function RecipeResultsPanel({ form }: { form: RecipeForm }) {
   const { results, showResults, mix, waterPct } = form;
 
   if (!showResults || !results) {
     return (
-      <div className="glass-panel animate-section-in flex min-h-[min(20rem,45vh)] flex-col items-center justify-center px-6 py-16 text-center lg:min-h-[min(28rem,55vh)]">
-        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-wheat-muted/80 ring-2 ring-wheat/40">
+      <div className="glass-panel animate-section-in flex min-h-[min(20rem,45vh)] flex-col items-center justify-center rounded-2xl bg-white/80 px-6 py-16 text-center backdrop-blur-md lg:min-h-[min(28rem,55vh)]">
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100/80 ring-2 ring-amber-200/80">
           <ScaleIcon
-            className="h-9 w-9 text-crust/70"
+            className="h-9 w-9 text-amber-700/80"
             strokeWidth={1.25}
           />
         </div>
-        <p className="font-serif text-xl font-semibold text-charcoal">
-          ברוכים הבאים — כאן יופיעו המרכיבים
+        <p className="font-serif text-xl font-semibold text-stone-900">
+          {res.emptyTitle}
         </p>
         <p className="mt-2 max-w-md text-sm leading-relaxed text-stone-600">
-          בחרו משקל בצק, הידרציה ותערובת קמחים, ולחצו «חישוב מרכיבים». לאחר
-          החישוב תראו כאן קמח, מים, מחמצת ומלח — ולוח זמנים בלשונית התזמון.
+          {res.emptyBody}
         </p>
-        <ol className="mt-6 max-w-sm list-inside list-decimal space-y-1.5 text-start text-sm text-charcoal-muted">
-          <li>התאימו פרמטרים בפאנל הימני (או בכפתור «התאמה» במובייל)</li>
-          <li>לחצו «חישוב מרכיבים» — הכפתור נשאר גלוי גם בתחתית הפאנל</li>
-          <li>עברו לתזמון ולמעוררים לפי צורך</li>
+        <ol className="mt-6 max-w-sm list-inside list-decimal space-y-1.5 text-start text-sm text-stone-600">
+          <li>התאימו פרמטרים בצד (או «התאמה» במובייל)</li>
+          <li>לחצו «צור מתכון עכשיו» — הכפתור תמיד זמין למטה</li>
+          <li>קבלו גרמים מדויקים ולוח זמנים לפי הצורך</li>
         </ol>
       </div>
     );

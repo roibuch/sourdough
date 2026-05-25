@@ -61,6 +61,10 @@ export interface UseRecipeParamsResult {
   setState: (next: RecipeState) => void;
   patchState: (patch: RecipeParamsPatch) => void;
   updateState: (fn: (prev: RecipeState) => RecipeState) => void;
+  /** Persist draft to URL + localStorage (e.g. after «צור מתכון עכשיו»). */
+  commitStateToUrl: (
+    next?: RecipeState | ((prev: RecipeState) => RecipeState),
+  ) => void;
 }
 
 export function useRecipeParams(): UseRecipeParamsResult {
@@ -158,26 +162,26 @@ export function useRecipeParams(): UseRecipeParamsResult {
     [writeUrlNow],
   );
 
-  const patchState = useCallback(
-    (patch: RecipeParamsPatch) => {
-      setDraft((prev) => {
-        const next = mergeRecipeState(prev, patch);
-        scheduleUrlWrite(next);
-        return next;
-      });
-    },
-    [scheduleUrlWrite],
-  );
+  const patchState = useCallback((patch: RecipeParamsPatch) => {
+    setDraft((prev) => mergeRecipeState(prev, patch));
+  }, []);
 
-  const updateState = useCallback(
-    (fn: (prev: RecipeState) => RecipeState) => {
+  const updateState = useCallback((fn: (prev: RecipeState) => RecipeState) => {
+    setDraft((prev) => fn(prev));
+  }, []);
+
+  const commitStateToUrl = useCallback(
+    (next?: RecipeState | ((prev: RecipeState) => RecipeState)) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      pendingStateRef.current = null;
       setDraft((prev) => {
-        const next = fn(prev);
-        scheduleUrlWrite(next);
-        return next;
+        const resolved =
+          typeof next === "function" ? next(prev) : (next ?? prev);
+        writeUrlNow(resolved);
+        return resolved;
       });
     },
-    [scheduleUrlWrite],
+    [writeUrlNow],
   );
 
   return {
@@ -188,6 +192,7 @@ export function useRecipeParams(): UseRecipeParamsResult {
     setState,
     patchState,
     updateState,
+    commitStateToUrl,
   };
 }
 

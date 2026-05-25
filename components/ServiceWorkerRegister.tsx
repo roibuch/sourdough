@@ -3,12 +3,21 @@
 import { useEffect, useRef } from "react";
 import { restorePendingNotifications } from "@/lib/alarms";
 import { getBasePath } from "@/lib/basePath";
+import { heContent } from "@/lib/content";
 
 const SW_URL_SUFFIX = "sw.js?v=9";
 const RELOAD_KEY = "sourdough-sw-reload-v9";
 
-export function ServiceWorkerRegister() {
+export interface ServiceWorkerRegisterProps {
+  /** Show toast instead of silent reload when a new SW activates */
+  onUpdateAvailable?: (reload: () => void) => void;
+}
+
+export function ServiceWorkerRegister({
+  onUpdateAvailable,
+}: ServiceWorkerRegisterProps) {
   const reloaded = useRef(false);
+  const updateToast = heContent.toasts.swUpdate;
 
   useEffect(() => {
     restorePendingNotifications();
@@ -18,7 +27,7 @@ export function ServiceWorkerRegister() {
     const base = getBasePath();
     const swUrl = `${base}/${SW_URL_SUFFIX}`;
 
-    const maybeReload = () => {
+    const reload = () => {
       if (reloaded.current) return;
       if (sessionStorage.getItem(RELOAD_KEY) === "1") return;
       sessionStorage.setItem(RELOAD_KEY, "1");
@@ -26,16 +35,24 @@ export function ServiceWorkerRegister() {
       window.location.reload();
     };
 
+    const notifyUpdate = () => {
+      if (onUpdateAvailable) {
+        onUpdateAvailable(reload);
+        return;
+      }
+      reload();
+    };
+
     const onMessage = (event: MessageEvent) => {
       if (event.data?.type === "SW_ACTIVATED_V9") {
-        maybeReload();
+        notifyUpdate();
       }
     };
 
     navigator.serviceWorker.addEventListener("message", onMessage);
 
     const onControllerChange = () => {
-      maybeReload();
+      notifyUpdate();
     };
     navigator.serviceWorker.addEventListener(
       "controllerchange",
@@ -61,7 +78,7 @@ export function ServiceWorkerRegister() {
         onControllerChange,
       );
     };
-  }, []);
+  }, [onUpdateAvailable]);
 
   return null;
 }

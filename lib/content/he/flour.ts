@@ -22,12 +22,12 @@ export const FLOUR_HE = {
   balanceTo100: "אזן ל־100%",
   totalLabel: "סה״כ תערובת",
   balanceDialog: {
-    title: "סה״כ הקמחים לא 100%",
-    body: "כרגע {total}% (הפרש {delta}%). איך לעגל לפני החישוב?",
+    title: "סך הקמחים חורג מ-100%",
+    body: "כרגע {total}% (הפרש {delta}%). תרצו שנתקן זאת אוטומטית?",
     adjustOne: "להוסיף/להפחית את ההפרש בקמח אחד שאבחר",
     proportional: "לחלק את ההפרש בין כל הקמחים (יחסי)",
     preview: "אחרי העיגול:",
-    confirm: "עגל וחשב",
+    confirm: "אזן וצור מתכון",
     cancel: "ביטול",
   },
 } as const;

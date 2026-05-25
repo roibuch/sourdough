@@ -1,8 +1,8 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
 import { BlackoutPeriodsEditor } from "@/components/scheduling/BlackoutPeriodsEditor";
-import { WeatherPanel } from "@/components/WeatherPanel";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
@@ -10,6 +10,14 @@ import type { RecipeForm } from "@/hooks/useRecipeForm";
 import { heContent, t } from "@/lib/content";
 
 const sch = heContent.inputs.schedule;
+
+const WeatherPanel = dynamic(
+  () =>
+    import("@/components/WeatherPanel").then((m) => ({
+      default: m.WeatherPanel,
+    })),
+  { loading: () => null },
+);
 
 interface ScheduleAdjustmentsPanelProps {
   form: RecipeForm;

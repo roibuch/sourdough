@@ -45,7 +45,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
 
   const handleCalcStarter = () => {
     if (useRecipeStarter && (!results || results.starter <= 0)) {
-      showToast("קודם חשבו את מתכון הבצק ולחצו «חישוב מרכיבים».");
+      showToast("קודם לחצו «צור מתכון עכשיו» למעלה, ואז נחשב את המחמצת.");
       return;
     }
     if (!useRecipeStarter && starterNeedG <= 0) {

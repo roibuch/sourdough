@@ -21,7 +21,7 @@ export interface UseSourdoughMathOptions {
   starterPercent?: number;
   saltPercent?: number;
   starterHydrationPercent?: number;
-  /** Persist committed inputs to parent (e.g. recipe URL state) */
+  /** Called only on calculate — not while typing */
   onCommitInputs?: (patch: Partial<SourdoughMathInputs>) => void;
 }
 
@@ -42,6 +42,15 @@ export function useSourdoughMath(options: UseSourdoughMathOptions = {}) {
     externalTargetWeightG != null ? String(externalTargetWeightG) : "",
   );
 
+  const [waterDraft, setWaterDraft] = useState(externalWater);
+  const [starterDraft, setStarterDraft] = useState(externalStarter);
+  const [saltDraft, setSaltDraft] = useState(externalSalt);
+  const committedPctRef = useRef({
+    water: externalWater,
+    starter: externalStarter,
+    salt: externalSalt,
+  });
+
   const [results, setResults] = useState<DoughResult | null>(null);
   const [showResults, setShowResults] = useState(false);
 
@@ -53,6 +62,25 @@ export function useSourdoughMath(options: UseSourdoughMathOptions = {}) {
     setTargetWeightDraft(s);
   }, [externalTargetWeightG]);
 
+  useEffect(() => {
+    const c = committedPctRef.current;
+    if (
+      externalWater === c.water &&
+      externalStarter === c.starter &&
+      externalSalt === c.salt
+    ) {
+      return;
+    }
+    committedPctRef.current = {
+      water: externalWater,
+      starter: externalStarter,
+      salt: externalSalt,
+    };
+    setWaterDraft(externalWater);
+    setStarterDraft(externalStarter);
+    setSaltDraft(externalSalt);
+  }, [externalWater, externalStarter, externalSalt]);
+
   const committedTargetWeightG = useMemo((): number | null => {
     const trimmed = targetWeightDraft.trim().replace(",", ".");
     if (trimmed === "") return externalTargetWeightG;
@@ -63,17 +91,17 @@ export function useSourdoughMath(options: UseSourdoughMathOptions = {}) {
   const inputs: SourdoughMathInputs = useMemo(
     () => ({
       targetWeightG: externalTargetWeightG ?? committedTargetWeightG,
-      waterPercent: externalWater,
-      starterPercent: externalStarter,
-      saltPercent: externalSalt,
+      waterPercent: waterDraft,
+      starterPercent: starterDraft,
+      saltPercent: saltDraft,
       starterHydrationPercent: externalStarterHydration,
     }),
     [
       externalTargetWeightG,
       committedTargetWeightG,
-      externalWater,
-      externalStarter,
-      externalSalt,
+      waterDraft,
+      starterDraft,
+      saltDraft,
       externalStarterHydration,
     ],
   );
@@ -110,31 +138,20 @@ export function useSourdoughMath(options: UseSourdoughMathOptions = {}) {
           : "";
     setTargetWeightDraft(next);
     committedWeightRef.current = next;
-    const committed = next === "" ? null : n;
-    onCommitInputs?.({ targetWeightG: committed });
-    return committed;
-  }, [targetWeightDraft, onCommitInputs]);
+    return next === "" ? null : n;
+  }, [targetWeightDraft]);
 
-  const setWaterPercent = useCallback(
-    (value: number) => {
-      onCommitInputs?.({ waterPercent: value });
-    },
-    [onCommitInputs],
-  );
+  const setWaterPercent = useCallback((value: number) => {
+    setWaterDraft(value);
+  }, []);
 
-  const setStarterPercent = useCallback(
-    (value: number) => {
-      onCommitInputs?.({ starterPercent: value });
-    },
-    [onCommitInputs],
-  );
+  const setStarterPercent = useCallback((value: number) => {
+    setStarterDraft(value);
+  }, []);
 
-  const setSaltPercent = useCallback(
-    (value: number) => {
-      onCommitInputs?.({ saltPercent: value });
-    },
-    [onCommitInputs],
-  );
+  const setSaltPercent = useCallback((value: number) => {
+    setSaltDraft(value);
+  }, []);
 
   const setStarterHydrationPercent = useCallback(
     (value: number) => {
@@ -171,7 +188,17 @@ export function useSourdoughMath(options: UseSourdoughMathOptions = {}) {
 
     setResults(dough);
     setShowResults(true);
-    onCommitInputs?.({ targetWeightG: w });
+    committedPctRef.current = {
+      water: waterPercent,
+      starter: starterPercent,
+      salt: saltPercent,
+    };
+    onCommitInputs?.({
+      targetWeightG: w,
+      waterPercent,
+      starterPercent,
+      saltPercent,
+    });
     return dough;
   }, [commitTargetWeight, inputs, onCommitInputs]);
 
@@ -191,9 +218,9 @@ export function useSourdoughMath(options: UseSourdoughMathOptions = {}) {
   return {
     inputs,
     targetWeight: targetWeightDraft,
-    waterPercent: inputs.waterPercent,
-    starterPercent: inputs.starterPercent,
-    saltPercent: inputs.saltPercent,
+    waterPercent: waterDraft,
+    starterPercent: starterDraft,
+    saltPercent: saltDraft,
     starterHydrationPercent: inputs.starterHydrationPercent,
     setTargetWeight,
     commitTargetWeight,
@@ -206,7 +233,7 @@ export function useSourdoughMath(options: UseSourdoughMathOptions = {}) {
     results,
     showResults,
     trueHydrationPercent: values?.trueHydrationPercent ?? null,
-    bakersWaterPercent: values?.bakersWaterPercent ?? inputs.waterPercent,
+    bakersWaterPercent: values?.bakersWaterPercent ?? waterDraft,
     calculate,
     clearResults,
     restoreResults,
