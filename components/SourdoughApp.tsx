@@ -2,8 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { BakingGuide } from "@/components/BakingGuide";
+import { BakingTimeline } from "@/components/BakingTimeline";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { RecipeResultsPanel } from "@/components/dashboard/RecipeResultsPanel";
+import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
 import { SmartWarningBanner } from "@/components/feedback/SmartWarningBanner";
 import { useBakerAlerts } from "@/hooks/useBakerAlerts";
 import { ReferenceTables } from "@/components/ReferenceTables";
@@ -16,7 +18,7 @@ const OptionalSchedulePanel = dynamic(
     import("@/components/scheduling/OptionalSchedulePanel").then((m) => ({
       default: m.OptionalSchedulePanel,
     })),
-  { ssr: false, loading: () => null },
+  { loading: () => null },
 );
 
 export function SourdoughApp() {
@@ -31,6 +33,21 @@ export function SourdoughApp() {
       {hydrationAlerts.length > 0 && (
         <SmartWarningBanner alerts={hydrationAlerts} />
       )}
+      <div className="hidden space-y-4 lg:block">
+        <StarterFloatTestAlert />
+        <BakingTimeline
+          dough={{
+            starterPct: form.starterPct,
+            waterPct: form.waterPct,
+            flourPcts: form.flourDraft,
+            roomTempC: form.roomTemp,
+            hoursToAutolyse: form.hoursToAutolyse,
+            coldRetardHours: form.coldRetardHours,
+            fermentationPace: form.fermentationPace,
+          }}
+          showFloatTestReminder={false}
+        />
+      </div>
       <RecipeResultsPanel form={form} />
       <OptionalSchedulePanel form={form} />
     </div>

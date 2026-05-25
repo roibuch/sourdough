@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { calculateDough } from "@/lib/bakingMath";
+import { calculateDoughMasses } from "@/lib/bakingMath";
+import { useSourdoughMath } from "@/hooks/useSourdoughMath";
 import {
   FLOUR_FIELDS,
   FLOUR_PRESETS,
@@ -27,6 +28,7 @@ import {
 import type { SchedulingEngineInput } from "@/lib/scheduling/types";
 import { MS_MIN } from "@/lib/scheduling/timeUtils";
 import { heContent, t } from "@/lib/content";
+import { sumFlourPcts } from "@/lib/flourBalance";
 import { normalizeFlourPercentages } from "@/lib/schemas/recipeParamsSchema";
 import { CUSTOM_FLOUR_NOTE } from "@/lib/validation/recipeValidation";
 
@@ -73,10 +75,10 @@ import { saveRecipeStateToStorage } from "@/lib/recipeState";
 export function useRecipeForm() {
   const {
     state,
-    isReady,
+    hydrated,
+    flourAdjusted: paramsFlourAdjusted,
     patchState,
     setState,
-    flourAdjusted,
   } = useRecipeParams();
 
   const [presetNote, setPresetNote] = useState(FLOUR_PRESETS.classic.note);
@@ -85,24 +87,57 @@ export function useRecipeForm() {
   const [bulkHoursOverride, setBulkHoursOverride] = useState<number | null>(
     null,
   );
-  const [results, setResults] = useState<DoughResult | null>(null);
-  const [showResults, setShowResults] = useState(false);
   const [timelinePlan, setTimelinePlan] = useState<TimelinePlan | null>(null);
   const [adaptiveSchedule, setAdaptiveSchedule] =
     useState<AdaptiveScheduleResult | null>(null);
   const [blackouts, setBlackoutsState] = useState<BlackoutPeriod[]>(loadBlackouts);
   const [showTimeline, setShowTimeline] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [flourDraft, setFlourDraft] = useState<number[]>(() => [
+    ...state.flourBlend.percentages,
+  ]);
   const initDone = useRef(false);
-  const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const math = useSourdoughMath({
+    targetWeightG: state.totalWeightG,
+    waterPercent: state.waterPercent,
+    starterPercent: state.starterPercent,
+    saltPercent: state.saltPercent,
+    onCommitInputs: (patch) => {
+      patchState({
+        ...(patch.targetWeightG !== undefined && {
+          totalWeightG: patch.targetWeightG,
+        }),
+        ...(patch.waterPercent !== undefined && {
+          waterPercent: patch.waterPercent,
+        }),
+        ...(patch.starterPercent !== undefined && {
+          starterPercent: patch.starterPercent,
+        }),
+        ...(patch.saltPercent !== undefined && {
+          saltPercent: patch.saltPercent,
+        }),
+      });
+    },
+  });
+
+  const { results, showResults } = math;
+  const persistTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flourPcts = state.flourBlend.percentages;
+  const committedFlourKeyRef = useRef(flourPcts.join(","));
+
+  /** Sync draft only when committed flour changed (preset / URL), not while typing */
+  useEffect(() => {
+    const key = flourPcts.join(",");
+    if (key === committedFlourKeyRef.current) return;
+    committedFlourKeyRef.current = key;
+    setFlourDraft([...flourPcts]);
+  }, [flourPcts]);
   const preset = state.flourBlend.preset;
-  const totalWeight =
-    state.totalWeightG != null ? String(state.totalWeightG) : "";
-  const waterPct = state.waterPercent;
-  const starterPct = state.starterPercent;
-  const saltPct = state.saltPercent;
+  const totalWeight = math.targetWeight;
+  const waterPct = math.waterPercent;
+  const starterPct = math.starterPercent;
+  const saltPct = math.saltPercent;
   const targetBakeTime = state.schedule.targetBakeTime;
   const coldRetardHours = state.schedule.coldRetardHours;
   const hoursToAutolyse = state.schedule.hoursToAutolyse;
@@ -116,7 +151,8 @@ export function useRecipeForm() {
   const fermentationPace = state.schedule.fermentationPace;
   const starterRatioPreset = state.starter.ratioPreset;
 
-  const mix = useMemo(() => buildFlourMix(flourPcts), [flourPcts]);
+  const mix = useMemo(() => buildFlourMix(flourDraft), [flourDraft]);
+  const committedMix = useMemo(() => buildFlourMix(flourPcts), [flourPcts]);
 
   const setBlackouts = useCallback((next: BlackoutPeriod[]) => {
     setBlackoutsState(next);
@@ -192,14 +228,13 @@ export function useRecipeForm() {
 
   const persistState = useCallback(
     (calculated?: boolean) => {
-      if (!isReady) return;
       const next = {
         ...state,
         calculated: calculated ?? showResults,
       };
       saveRecipeStateToStorage(recipeStateToUrlRecord(next));
     },
-    [isReady, state, showResults],
+    [state, showResults],
   );
 
   const schedulePersist = useCallback(() => {
@@ -207,65 +242,58 @@ export function useRecipeForm() {
     persistTimer.current = setTimeout(() => persistState(), 350);
   }, [persistState]);
 
-  const setTotalWeight = useCallback(
-    (value: string) => {
-      const trimmed = value.trim();
-      const n = parseFloat(trimmed.replace(",", "."));
-      patchState({
-        totalWeightG:
-          trimmed === ""
-            ? null
-            : Number.isFinite(n) && n > 0
-              ? n
-              : null,
-      });
-    },
-    [patchState],
-  );
+  const setWeightDraftValue = math.setTargetWeight;
+  const commitTotalWeight = math.commitTargetWeight;
+  const setWaterPct = math.setWaterPercent;
+  const setStarterPct = math.setStarterPercent;
+  const setSaltPct = math.setSaltPercent;
 
-  const setWaterPct = useCallback(
-    (v: number) => patchState({ waterPercent: v }),
-    [patchState],
-  );
-  const setStarterPct = useCallback(
-    (v: number) => patchState({ starterPercent: v }),
-    [patchState],
-  );
-  const setSaltPct = useCallback(
-    (v: number) => patchState({ saltPercent: v }),
-    [patchState],
+  const setFlourDraftPct = useCallback((index: number, value: number) => {
+    setFlourDraft((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  }, []);
+
+  const setFlourDraftFromPreset = useCallback((pcts: number[]) => {
+    setFlourDraft([...pcts]);
+  }, []);
+
+  const commitFlourPcts = useCallback(
+    (pcts: number[]) => {
+      const clean = pcts.map((p) => {
+        const n = Number(p);
+        return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 0;
+      });
+      const total = Math.round(clean.reduce((s, p) => s + p, 0) * 10) / 10;
+      setFlourDraft(clean);
+      committedFlourKeyRef.current = clean.join(",");
+      patchState({
+        flourBlend: {
+          preset: "custom",
+          percentages: clean,
+          totalPercent: total,
+        },
+      });
+      setPresetNote(
+        Math.abs(total - 100) <= 0.1
+          ? CUSTOM_FLOUR_NOTE(100)
+          : CUSTOM_FLOUR_NOTE(total),
+      );
+    },
+    [patchState, setPresetNote],
   );
 
   const setFlourPcts = useCallback(
     (updater: number[] | ((prev: number[]) => number[])) => {
       const next =
-        typeof updater === "function" ? updater(flourPcts) : updater;
-      const rounded = next.map(
-        (p) => Math.round(Math.min(100, Math.max(0, p)) * 10) / 10,
-      );
-      const total = Math.round(rounded.reduce((s, p) => s + p, 0) * 10) / 10;
-      patchState({
-        flourBlend: {
-          preset: "custom",
-          percentages: rounded,
-          totalPercent: total,
-        },
-      });
+        typeof updater === "function" ? updater(flourDraft) : updater;
+      setFlourDraft(next);
+      commitFlourPcts(next);
     },
-    [flourPcts, patchState],
+    [flourDraft, commitFlourPcts],
   );
-
-  const balanceFlourBlend = useCallback(() => {
-    const normalized = normalizeFlourPercentages(flourPcts);
-    patchState({
-      flourBlend: {
-        preset: "custom",
-        percentages: normalized,
-        totalPercent: 100,
-      },
-    });
-    setPresetNote(CUSTOM_FLOUR_NOTE(100));
-  }, [flourPcts, patchState, setPresetNote]);
 
   const setPreset = useCallback(
     (key: PresetKey) => {
@@ -334,6 +362,8 @@ export function useRecipeForm() {
       const p = FLOUR_PRESETS[key];
       if (!p) return;
       const percentages = [...p.values];
+      setFlourDraft(percentages);
+      committedFlourKeyRef.current = percentages.join(",");
       patchState({
         flourBlend: {
           preset: key,
@@ -382,10 +412,10 @@ export function useRecipeForm() {
   );
 
   useEffect(() => {
-    if (!isReady || initDone.current) return;
+    if (!hydrated || initDone.current) return;
     initDone.current = true;
 
-    if (flourAdjusted) {
+    if (paramsFlourAdjusted) {
       showToast(toasts.flourNormalized);
     }
 
@@ -401,15 +431,22 @@ export function useRecipeForm() {
     if (state.calculated && state.totalWeightG) {
       const w = state.totalWeightG;
       if (w > 0 && Math.abs(state.flourBlend.totalPercent - 100) < 0.2) {
-        setResults(
-          calculateDough(w, state.waterPercent, state.starterPercent, state.saltPercent),
+        math.restoreResults(
+          calculateDoughMasses({
+            targetDoughWeightG: w,
+            percentages: {
+              water: state.waterPercent,
+              starter: state.starterPercent,
+              salt: state.saltPercent,
+            },
+          }),
+          w,
         );
-        setShowResults(true);
       }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReady]);
+  }, [hydrated]);
 
   const buildSimpleTimeline = useCallback(() => {
     if (!targetBakeTime.trim()) {
@@ -433,31 +470,12 @@ export function useRecipeForm() {
     }
   }, [targetBakeTime, timelineInput, showToast]);
 
-  const handleCalculate = useCallback(() => {
-    const w = state.totalWeightG;
-    if (!w || w <= 0) {
+  const runCalculate = useCallback(() => {
+    const dough = math.calculate();
+    if (!dough) {
       showToast(toasts.invalidDoughWeight);
-      return;
+      return false;
     }
-    if (Math.abs(mix.totalPct - 100) > 0.1) {
-      const balanced = normalizeFlourPercentages(flourPcts);
-      patchState({
-        flourBlend: {
-          preset: "custom",
-          percentages: balanced,
-          totalPercent: 100,
-        },
-      });
-      showToast(toasts.flourNormalized);
-    }
-    const dough = calculateDough(
-      w,
-      state.waterPercent,
-      state.starterPercent,
-      state.saltPercent,
-    );
-    setResults(dough);
-    setShowResults(true);
     setShowGuide(true);
     setStarterOnlyMode(false);
     setState({ ...state, calculated: true });
@@ -469,15 +487,17 @@ export function useRecipeForm() {
         block: "start",
       });
     });
-  }, [
-    state,
-    mix.totalPct,
-    flourPcts,
-    patchState,
-    showToast,
-    setState,
-    persistState,
-  ]);
+    return true;
+  }, [math, showToast, setState, state, persistState]);
+
+  const handleCalculate = useCallback(() => {
+    return runCalculate();
+  }, [runCalculate]);
+
+  const needsFlourBalance = useCallback(
+    (pcts?: number[]) => Math.abs(sumFlourPcts(pcts ?? flourDraft) - 100) > 0.1,
+    [flourDraft],
+  );
 
   const handleBuildTimeline = useCallback(() => {
     const plan = rebuildTimeline(false);
@@ -603,7 +623,8 @@ export function useRecipeForm() {
 
   return {
     totalWeight,
-    setTotalWeight,
+    setWeightDraftValue,
+    commitTotalWeight,
     waterPct,
     setWaterPct,
     starterPct,
@@ -613,8 +634,13 @@ export function useRecipeForm() {
     preset,
     setPreset,
     flourPcts,
+    flourDraft,
+    setFlourDraftPct,
+    setFlourDraftFromPreset,
+    commitFlourPcts,
     setFlourPcts,
-    balanceFlourBlend,
+    needsFlourBalance,
+    runCalculate,
     presetNote,
     setPresetNote,
     targetBakeTime,
@@ -663,7 +689,8 @@ export function useRecipeForm() {
     rebuildTimeline,
     buildSimpleTimeline,
     recipeParams: state,
-    isParamsReady: isReady,
+    isParamsReady: hydrated,
+    sourdoughMath: math,
   };
 }
 

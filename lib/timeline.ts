@@ -1,5 +1,13 @@
-import type { FermentationPace } from "./expressMode";
-import { pctOf, buildFlourMix } from "./flour";
+import {
+  buildTimelineInputWithPace,
+  type FermentationPace,
+} from "./expressMode";
+import {
+  estimateBulkFermentationHours,
+  hoursUntilStarterPeak,
+  roundTimingHours,
+} from "./fermentationTiming";
+import { buildFlourMix } from "./flour";
 import { getDoughWorkflow } from "./workflow";
 import { heContent, t as fmt } from "@/lib/content";
 import type { FlourMix, TimelinePlan, TimelineStep } from "./types";
@@ -47,18 +55,23 @@ export function formatDurationLabel(hours: number): string {
   return `${hours} שעות`;
 }
 
-export function getTimelineBulkHours(starterPct: number, mix: FlourMix): number {
-  const sp = starterPct || 20;
-  let hours = 6 - ((sp - 15) / 10) * 2;
-  hours = Math.max(4, Math.min(6, hours));
-  const whole = pctOf(mix, "wholeWheat") + pctOf(mix, "wholeRye");
-  if (whole > 15) hours = Math.max(4, hours - 0.5);
-  return Math.round(hours * 10) / 10;
+export function getTimelineBulkHours(
+  starterPct: number,
+  mix: FlourMix,
+  roomTempC = 22,
+): number {
+  return estimateBulkFermentationHours(starterPct, roomTempC, mix);
 }
 
-export function getTimelineStarterHours(hoursToAutolyse: number): number {
+export function getTimelineStarterHours(
+  hoursToAutolyse: number,
+  roomTempC = 22,
+): number {
   if (Number.isNaN(hoursToAutolyse)) return 5;
-  return Math.max(4, Math.min(10, hoursToAutolyse));
+  const peak = hoursUntilStarterPeak(hoursToAutolyse, roomTempC);
+  return roundTimingHours(
+    Math.max(2, Math.min(16, Math.min(hoursToAutolyse, peak))),
+  );
 }
 
 export interface BuildTimelineInput {
@@ -97,10 +110,11 @@ export function getTimelineAnchors(
 
   const mix = buildFlourMix(input.flourPcts);
   const bulkH =
-    input.bulkHours ?? getTimelineBulkHours(input.starterPct, mix);
+    input.bulkHours ??
+    getTimelineBulkHours(input.starterPct, mix, input.roomTemp);
   const starterPeakH =
     input.starterPeakHours ??
-    getTimelineStarterHours(input.hoursToAutolyse);
+    getTimelineStarterHours(input.hoursToAutolyse, input.roomTemp);
 
   const tBakeEnd = bakeEnd.getTime();
   const tBakeStart = tBakeEnd - MS_H;
@@ -123,6 +137,122 @@ export function getTimelineAnchors(
     tBulkEnd,
     starterPeakH,
     bulkH,
+  };
+}
+
+export interface BuildForwardTimelineInput extends BuildTimelineInput {
+  /** Anchor "now" for forward schedule (defaults to Date.now()) */
+  startMs?: number;
+}
+
+/** Build a step-by-step schedule forward from the current time (or `startMs`). */
+export function buildForwardTimelineFromNow(
+  input: BuildForwardTimelineInput,
+): TimelinePlan {
+  const paced = buildTimelineInputWithPace(input);
+  const startMs = input.startMs ?? Date.now();
+  const mix = buildFlourMix(paced.flourPcts);
+  const bulkH =
+    paced.bulkHours ??
+    getTimelineBulkHours(paced.starterPct, mix, paced.roomTemp);
+  const starterPeakH =
+    paced.starterPeakHours ??
+    getTimelineStarterHours(paced.hoursToAutolyse, paced.roomTemp);
+  const autolyseH = paced.autolyseHours ?? 1;
+
+  const tStarterFeed = startMs;
+  const tAutolyseStart = tStarterFeed + starterPeakH * MS_H;
+  const tAutolyseEnd = tAutolyseStart + autolyseH * MS_H;
+  const tBulkStart = tAutolyseEnd;
+  const tBulkEnd = tBulkStart + bulkH * MS_H;
+  const tPreshapeStart = tBulkEnd;
+  const tPreshapeEnd = tPreshapeStart + 0.5 * MS_H;
+  const tRetardStart = tPreshapeEnd;
+  const tRetardEnd = tRetardStart + paced.coldRetardHours * MS_H;
+  const tBakeStart = tRetardEnd;
+  const tBakeEnd = tBakeStart + MS_H;
+
+  const workflow = getDoughWorkflow(
+    mix,
+    paced.waterPct,
+    paced.starterPct,
+    paced.roomTemp,
+  );
+
+  const anchors = {
+    tBulkStart,
+    tBulkEnd,
+    tAutolyseStart,
+    tStarterFeed,
+    bulkH,
+  };
+  const schedule = buildWorkflowSchedule(workflow, anchors);
+
+  const steps: TimelineStep[] = [
+    {
+      icon: "🦠",
+      title: tl.steps.starterFeed.title,
+      start: tStarterFeed,
+      duration: formatDurationLabel(starterPeakH),
+      meta: tl.steps.starterFeed.meta,
+    },
+    {
+      icon: "🥣",
+      title: tl.steps.autolyse.title,
+      start: tAutolyseStart,
+      duration: formatDurationLabel(autolyseH),
+      meta:
+        autolyseH <= 0.5
+          ? tl.steps.autolyse.metaExpress
+          : tl.steps.autolyse.metaStandard,
+    },
+    {
+      icon: "🧂",
+      title: tl.steps.bulk.title,
+      start: tBulkStart,
+      duration: formatDurationLabel(bulkH),
+      meta: fmt(tl.steps.bulk.meta, { starterPct: paced.starterPct }),
+      alarms: schedule
+        ? [...schedule.folds, schedule.endBulk]
+        : undefined,
+    },
+    {
+      icon: "✋",
+      title: tl.steps.preshape.title,
+      start: tPreshapeStart,
+      duration: tl.duration.halfHour,
+      meta: tl.steps.preshape.meta,
+    },
+    {
+      icon: "❄️",
+      title: tl.steps.coldRetard.title,
+      start: tRetardStart,
+      duration: formatDurationLabel(paced.coldRetardHours),
+      meta: tl.steps.coldRetard.meta,
+    },
+    {
+      icon: "🔥",
+      title: tl.steps.bake.title,
+      start: tBakeStart,
+      duration: tl.duration.oneHour,
+      meta: tl.steps.bake.meta,
+      isTarget: true,
+    },
+  ];
+
+  const totalHours = Math.round(((tBakeEnd - tStarterFeed) / MS_H) * 10) / 10;
+
+  return {
+    steps,
+    summary: {
+      starterFeed: tStarterFeed,
+      bakeEnd: tBakeEnd,
+      totalHours,
+      bulkHours: bulkH,
+      starterPct: paced.starterPct,
+    },
+    workflow,
+    schedule,
   };
 }
 

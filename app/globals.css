@@ -122,8 +122,30 @@
   }
 
   .glass-input {
-    @apply rounded-2xl border-2 border-warm-border/90 bg-white/90 px-4 py-3.5 text-center text-base text-charcoal;
+    @apply min-h-11 rounded-2xl border-2 border-warm-border/90 bg-white/90 px-4 py-3 text-base text-charcoal;
     @apply focus:border-crust focus:outline-none focus:ring-2 focus:ring-wheat/40;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /** WCAG-friendly tap area (44×44px minimum) */
+  .touch-target {
+    @apply inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center;
+  }
+
+  /**
+   * Calculator fields: 16px on mobile prevents iOS Safari zoom-on-focus.
+   * Use with sm: text-lg / text-xl modifiers where larger type is desired.
+   */
+  .calc-field {
+    @apply min-h-11 text-base tabular-nums;
+    @apply [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .calc-range-track {
+    @apply h-11 w-full min-w-0 cursor-pointer appearance-none bg-transparent;
   }
 
   .brand-choice-active {

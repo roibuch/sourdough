@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { FlourBalanceDialog } from "@/components/dashboard/FlourBalanceDialog";
 import {
   BeakerIcon,
   CalculatorIcon,
@@ -9,7 +10,9 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
+import { BakingTimeline } from "@/components/BakingTimeline";
 import { FlourBlendEditor } from "@/components/dashboard/FlourBlendEditor";
+import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { StarterPanel } from "@/components/sections/StarterPanel";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
@@ -30,13 +33,22 @@ const inp = heContent.inputs;
 
 interface RecipeInputsPanelProps {
   form: RecipeForm;
+  /** Mobile bottom sheet — tighter single-column layout */
   compact?: boolean;
+  /** Desktop sticky sidebar vs full-width contexts */
+  surface?: "sidebar" | "sheet" | "default";
 }
 
-export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
+export function RecipeInputsPanel({
+  form,
+  compact,
+  surface = "default",
+}: RecipeInputsPanelProps) {
+  const isSidebar = surface === "sidebar";
   const {
     totalWeight,
-    setTotalWeight,
+    setWeightDraftValue,
+    commitTotalWeight,
     waterPct,
     setWaterPct,
     starterPct,
@@ -46,13 +58,20 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
     preset,
     mix,
     setPresetNote,
-    handleCalculate,
+    flourDraft,
+    commitFlourPcts,
+    needsFlourBalance,
+    runCalculate,
     handleCopyLink,
     handleClearStorage,
     openStarterOnlyGuide,
     showToast,
     keepInJarG,
     setKeepInJarG,
+    hoursToAutolyse,
+    roomTemp,
+    coldRetardHours,
+    fermentationPace,
   } = form;
 
   const validation = useRecipeValidation({
@@ -68,16 +87,29 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
     [mix],
   );
 
+  const [balanceOpen, setBalanceOpen] = useState(false);
+
   const onCalculate = () => {
     if (!validation.canCalculate) {
       const first =
         validation.fields.totalWeight?.message ??
-        validation.fields.flourTotal?.message ??
         validation.fields.waterPct?.message;
       showToast(first ?? VALIDATION_BLOCKED_MESSAGE);
       return;
     }
-    handleCalculate();
+    commitTotalWeight();
+    commitFlourPcts(flourDraft);
+    if (needsFlourBalance(flourDraft)) {
+      setBalanceOpen(true);
+      return;
+    }
+    runCalculate();
+  };
+
+  const onBalanceConfirm = (balanced: number[]) => {
+    commitFlourPcts(balanced);
+    setBalanceOpen(false);
+    runCalculate();
   };
 
   useEffect(() => {
@@ -87,7 +119,23 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
   }, [mix.totalPct, preset, setPresetNote]);
 
   return (
-    <div className={cn("space-y-4", compact && "pb-2")}>
+    <div
+      className={cn(
+        "@container/panel min-w-0 max-w-full space-y-4 overflow-x-clip",
+        compact && "pb-2",
+      )}
+    >
+      <FlourBalanceDialog
+        open={balanceOpen}
+        pcts={flourDraft}
+        onCancel={() => setBalanceOpen(false)}
+        onConfirm={onBalanceConfirm}
+      />
+
+      <div className={cn(isSidebar && "lg:hidden")}>
+        <StarterFloatTestAlert />
+      </div>
+
       <Accordion type="multiple" defaultValue={["dough", "flour"]}>
         <AccordionItem
           id="dough"
@@ -99,11 +147,14 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
               id="totalWeightStepper"
               label={inp.fields.doughWeight}
               value={parseFloat(totalWeight) || 0}
-              min={100}
-              max={5000}
-              step={50}
+              min={1}
+              max={10000}
+              step={1}
               allowEmpty
-              onChange={(v) => setTotalWeight(v > 0 ? String(v) : "")}
+              deferCommit
+              exactCommit
+              onChange={(v) => setWeightDraftValue(v > 0 ? String(v) : "")}
+              onDeferredBlur={commitTotalWeight}
               minusLabel={inp.actions.decreaseWeight}
               plusLabel={inp.actions.increaseWeight}
               compact
@@ -129,8 +180,15 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
               hint={validation.fields.waterPct?.message}
             />
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
+            <div
+              className={cn(
+                "grid min-w-0 gap-4",
+                compact || isSidebar
+                  ? "grid-cols-1"
+                  : "grid-cols-1 @xl/panel:grid-cols-2",
+              )}
+            >
+              <div className="min-w-0">
                 <div className="mb-2 flex items-center gap-1.5">
                   <label
                     htmlFor="starterPct"
@@ -226,6 +284,21 @@ export function RecipeInputsPanel({ form, compact }: RecipeInputsPanelProps) {
           </div>
         </AccordionItem>
       </Accordion>
+
+      <div className={cn(isSidebar && "lg:hidden")}>
+        <BakingTimeline
+          dough={{
+            starterPct,
+            waterPct,
+            flourPcts: flourDraft,
+            roomTempC: roomTemp,
+            hoursToAutolyse,
+            coldRetardHours,
+            fermentationPace,
+          }}
+          showFloatTestReminder={false}
+        />
+      </div>
 
       <div className="flex flex-col gap-2 pt-2">
         <Button variant="ghost" fullWidth onClick={handleCopyLink}>

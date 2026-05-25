@@ -13,6 +13,8 @@ export interface BakersPercentages {
 export interface DoughMassInput {
   targetDoughWeightG: number;
   percentages: BakersPercentages;
+  /** Starter hydration % (default 100 — equal flour and water in starter) */
+  starterHydrationPct?: number;
 }
 
 export interface DDTInput {
@@ -56,15 +58,36 @@ export function flourWeightFromTarget(
   return targetDoughWeightG / factor;
 }
 
-/** Starter assumed at 100% hydration */
+/** Split starter mass into flour + water by starter hydration (default 100%). */
+export function starterFlourAndWater(
+  starterG: number,
+  starterHydrationPct = 100,
+): { flourG: number; waterG: number } {
+  if (starterG <= 0 || !Number.isFinite(starterHydrationPct)) {
+    return { flourG: 0, waterG: 0 };
+  }
+  const h = Math.max(0, starterHydrationPct) / 100;
+  const flourG = starterG / (1 + h);
+  return { flourG, waterG: starterG - flourG };
+}
+
+/**
+ * Final dough hydration % = total water / total flour (starter counted at its hydration).
+ */
 export function getTrueHydration(
   flourG: number,
   waterG: number,
   starterG: number,
+  starterHydrationPct = 100,
 ): number {
-  const denom = flourG + starterG / 2;
-  if (denom <= 0) return 0;
-  return Math.round(((waterG + starterG / 2) / denom) * 1000) / 10;
+  const { flourG: starterFlourG, waterG: starterWaterG } = starterFlourAndWater(
+    starterG,
+    starterHydrationPct,
+  );
+  const totalFlour = flourG + starterFlourG;
+  if (totalFlour <= 0) return 0;
+  const totalWater = waterG + starterWaterG;
+  return Math.round((totalWater / totalFlour) * 1000) / 10;
 }
 
 export function getBassinageAmounts(totalWaterG: number): BassinageAmounts {
@@ -80,7 +103,7 @@ export function getBassinageAmounts(totalWaterG: number): BassinageAmounts {
 }
 
 export function calculateDoughMasses(input: DoughMassInput): DoughResult {
-  const { targetDoughWeightG, percentages } = input;
+  const { targetDoughWeightG, percentages, starterHydrationPct = 100 } = input;
   const flour = flourWeightFromTarget(targetDoughWeightG, percentages);
   const water = flour * (percentages.water / 100);
   const starter = flour * (percentages.starter / 100);
@@ -96,7 +119,12 @@ export function calculateDoughMasses(input: DoughMassInput): DoughResult {
     water: rWater,
     starter: rStarter,
     salt: rSalt,
-    trueHydration: getTrueHydration(rFlour, rWater, rStarter),
+    trueHydration: getTrueHydration(
+      rFlour,
+      rWater,
+      rStarter,
+      starterHydrationPct,
+    ),
   };
 }
 
@@ -106,10 +134,12 @@ export function calculateDough(
   waterPct: number,
   starterPct: number,
   saltPct: number,
+  starterHydrationPct = 100,
 ): DoughResult {
   return calculateDoughMasses({
     targetDoughWeightG: totalWeight,
     percentages: { water: waterPct, starter: starterPct, salt: saltPct },
+    starterHydrationPct,
   });
 }
 

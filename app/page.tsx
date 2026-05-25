@@ -1,6 +1,9 @@
 import { RecipeParamsProvider } from "@/components/RecipeParamsProvider";
 import { heContent } from "@/lib/content";
 
+/** Static export: pre-render calculator shell at build time (GitHub Pages). */
+export const dynamic = "force-static";
+
 export default function HomePage() {
   return (
     <>

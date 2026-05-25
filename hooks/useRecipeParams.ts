@@ -1,8 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createDefaultRecipeState } from "@/lib/constants/recipeDefaults";
+import {
+  getClientPathname,
+  getClientSearchKey,
+  replaceRecipeUrl,
+} from "@/lib/recipeUrlClient";
 import {
   parseRecipeParamsFromSearch,
   type ParseRecipeParamsResult,
@@ -13,7 +17,10 @@ import {
   recipeStateToSearchParams,
   recipeStateToUrlRecord,
 } from "@/lib/urlRecipeCodec";
-import { loadRecipeStateFromStorage, saveRecipeStateToStorage } from "@/lib/recipeState";
+import {
+  loadRecipeStateFromStorage,
+  saveRecipeStateToStorage,
+} from "@/lib/recipeState";
 
 export type RecipeParamsPatch = Partial<{
   totalWeightG: number | null;
@@ -47,7 +54,8 @@ const URL_DEBOUNCE_MS = 900;
 
 export interface UseRecipeParamsResult {
   state: RecipeState;
-  isReady: boolean;
+  /** True after URL / localStorage hydration (UI is never blocked). */
+  hydrated: boolean;
   flourAdjusted: boolean;
   parseIssues: ParseRecipeParamsResult["issues"];
   setState: (next: RecipeState) => void;
@@ -56,47 +64,30 @@ export interface UseRecipeParamsResult {
 }
 
 export function useRecipeParams(): UseRecipeParamsResult {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
-  const storageHydrated = useRef(false);
-  const [isReady, setIsReady] = useState(false);
+  const [draft, setDraft] = useState<RecipeState>(createDefaultRecipeState);
+  const [hydrated, setHydrated] = useState(false);
+  const [flourAdjusted, setFlourAdjusted] = useState(false);
+  const [parseIssues, setParseIssues] = useState<
+    ParseRecipeParamsResult["issues"]
+  >([]);
 
-  const searchKey = searchParams.toString();
-
-  const parsed = useMemo((): ParseRecipeParamsResult => {
-    if (!searchKey) {
-      return {
-        state: createDefaultRecipeState(),
-        flourAdjusted: false,
-        issues: [],
-      };
-    }
-    return parseRecipeParamsFromSearch(new URLSearchParams(searchKey));
-  }, [searchKey]);
-
-  const [draft, setDraft] = useState(parsed.state);
-  const urlSyncKey = useRef(searchKey);
+  const hydrateStarted = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingStateRef = useRef<RecipeState | null>(null);
+  const pathnameRef = useRef("/");
 
-  useEffect(() => {
-    if (urlSyncKey.current !== searchKey) {
-      urlSyncKey.current = searchKey;
-      setDraft(parsed.state);
-    }
-  }, [searchKey, parsed.state]);
+  const applyParsed = useCallback((result: ParseRecipeParamsResult) => {
+    setDraft(result.state);
+    setFlourAdjusted(result.flourAdjusted);
+    setParseIssues(result.issues);
+  }, []);
 
-  const writeUrlNow = useCallback(
-    (next: RecipeState) => {
-      const qs = recipeStateToSearchParams(next).toString();
-      const href = qs ? `${pathname}?${qs}` : pathname;
-      router.replace(href, { scroll: false });
-      saveRecipeStateToStorage(recipeStateToUrlRecord(next));
-      pendingStateRef.current = null;
-    },
-    [pathname, router],
-  );
+  const writeUrlNow = useCallback((next: RecipeState) => {
+    const qs = recipeStateToSearchParams(next).toString();
+    replaceRecipeUrl(pathnameRef.current, qs);
+    saveRecipeStateToStorage(recipeStateToUrlRecord(next));
+    pendingStateRef.current = null;
+  }, []);
 
   const scheduleUrlWrite = useCallback(
     (next: RecipeState) => {
@@ -112,23 +103,51 @@ export function useRecipeParams(): UseRecipeParamsResult {
   );
 
   useEffect(() => {
+    pathnameRef.current = getClientPathname();
+
+    if (hydrateStarted.current) return;
+    hydrateStarted.current = true;
+
+    const searchKey = getClientSearchKey();
+    if (searchKey) {
+      applyParsed(
+        parseRecipeParamsFromSearch(new URLSearchParams(searchKey)),
+      );
+    } else {
+      const stored = loadRecipeStateFromStorage();
+      if (stored) {
+        const { state } = legacyUrlRecordToRecipeState(stored);
+        setDraft(state);
+        writeUrlNow(state);
+      }
+    }
+    setHydrated(true);
+  }, [applyParsed, writeUrlNow]);
+
+  useEffect(() => {
+    const onPopState = () => {
+      const searchKey = getClientSearchKey();
+      if (searchKey) {
+        applyParsed(
+          parseRecipeParamsFromSearch(new URLSearchParams(searchKey)),
+        );
+      } else {
+        applyParsed({
+          state: createDefaultRecipeState(),
+          flourAdjusted: false,
+          issues: [],
+        });
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [applyParsed]);
+
+  useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    if (storageHydrated.current) return;
-    storageHydrated.current = true;
-
-    if (!searchKey) {
-      const stored = loadRecipeStateFromStorage();
-      if (stored) {
-        writeUrlNow(legacyUrlRecordToRecipeState(stored).state);
-      }
-    }
-    setIsReady(true);
-  }, [searchKey, writeUrlNow]);
 
   const setState = useCallback(
     (next: RecipeState) => {
@@ -139,13 +158,16 @@ export function useRecipeParams(): UseRecipeParamsResult {
     [writeUrlNow],
   );
 
-  const patchState = useCallback((patch: RecipeParamsPatch) => {
-    setDraft((prev) => {
-      const next = mergeRecipeState(prev, patch);
-      scheduleUrlWrite(next);
-      return next;
-    });
-  }, [scheduleUrlWrite]);
+  const patchState = useCallback(
+    (patch: RecipeParamsPatch) => {
+      setDraft((prev) => {
+        const next = mergeRecipeState(prev, patch);
+        scheduleUrlWrite(next);
+        return next;
+      });
+    },
+    [scheduleUrlWrite],
+  );
 
   const updateState = useCallback(
     (fn: (prev: RecipeState) => RecipeState) => {
@@ -160,9 +182,9 @@ export function useRecipeParams(): UseRecipeParamsResult {
 
   return {
     state: draft,
-    isReady,
-    flourAdjusted: parsed.flourAdjusted,
-    parseIssues: parsed.issues,
+    hydrated,
+    flourAdjusted,
+    parseIssues,
     setState,
     patchState,
     updateState,

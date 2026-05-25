@@ -20,7 +20,7 @@ export function InfoTooltip({ term, className }: InfoTooltipProps) {
       <button
         type="button"
         className={cn(
-          "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+          "touch-target -my-1 inline-flex shrink-0 rounded-full",
           "text-amber-800/80 transition hover:bg-amber-100 hover:text-amber-950",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-1",
           open && "bg-amber-100 text-amber-950",

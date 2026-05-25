@@ -105,7 +105,7 @@ export function AccordionItem({
         aria-expanded={isOpen}
         aria-controls={`${panelId}-panel`}
         onClick={() => ctx.toggle(id)}
-        className="flex w-full items-start gap-2.5 px-3 py-3 text-start transition hover:bg-wheat-muted/50 sm:items-center sm:gap-3 sm:px-4 sm:py-3.5"
+        className="flex min-h-11 w-full items-center gap-2.5 px-3 py-3 text-start transition hover:bg-wheat-muted/50 sm:gap-3 sm:px-4"
       >
         {icon && (
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-wheat-muted text-crust">
@@ -145,7 +145,7 @@ export function AccordionItem({
         <div className="overflow-hidden">
           <div
             className={cn(
-              "border-t border-stone-100 px-4 pb-4 pt-3",
+              "min-w-0 border-t border-stone-100 px-3 pb-4 pt-3 sm:px-4",
               contentClassName,
             )}
           >

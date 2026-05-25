@@ -18,10 +18,6 @@ import { MasterBakerTip } from "@/components/ui/MasterBakerTip";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { AnimatedStat } from "@/components/ui/AnimatedStat";
 import { useRecipeValidation } from "@/hooks/useRecipeValidation";
-import {
-  clampFlourPctAtIndex,
-  maxFlourPctAtIndex,
-} from "@/lib/validation/recipeValidation";
 import { cn } from "@/lib/cn";
 import { getBassinageAmounts } from "@/lib/bakingMath";
 import {
@@ -38,7 +34,8 @@ import type { PresetKey } from "@/lib/types";
 export function RecipeCalculator({ form }: { form: RecipeForm }) {
   const {
     totalWeight,
-    setTotalWeight,
+    setWeightDraftValue,
+    commitTotalWeight,
     waterPct,
     setWaterPct,
     starterPct,
@@ -47,7 +44,10 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
     setSaltPct,
     preset,
     setPreset,
-    flourPcts,
+    flourDraft,
+    setFlourDraftPct,
+    commitFlourPcts,
+    needsFlourBalance,
     presetNote,
     setPresetNote,
     results,
@@ -82,18 +82,16 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
   });
 
   const handleFlourPctChange = (index: number, value: number) => {
-    setPreset("custom");
-    form.setFlourPcts((prev) => {
-      const next = [...prev];
-      next[index] = clampFlourPctAtIndex(prev, index, value);
-      return next;
-    });
-    setPresetNote(
-      `עריכה ידנית: סך הקמחים כרגע ${mix.totalPct}%. צריך להגיע ל־100%.`,
-    );
+    setFlourDraftPct(index, value);
   };
 
   const onCalculate = () => {
+    commitTotalWeight();
+    commitFlourPcts(flourDraft);
+    if (needsFlourBalance(flourDraft)) {
+      showToast("סך הקמחים אינו 100% — עגלו בלוח הבקרה או התאימו את האחוזים.");
+      return;
+    }
     if (!validation.canCalculate) {
       const first =
         validation.fields.totalWeight?.message ??
@@ -173,7 +171,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
                   : undefined
               }
               className={cn(
-                "w-full rounded-2xl border-2 bg-amber-50/70 px-4 py-5 text-center text-2xl font-semibold text-stone-900 transition-colors duration-200 focus:bg-white focus:outline-none focus:ring-2",
+                "calc-field w-full rounded-2xl border-2 bg-amber-50/70 px-4 py-3 text-center font-semibold text-stone-900 transition-colors duration-200 focus:bg-white focus:outline-none focus:ring-2 sm:py-4 sm:text-2xl",
                 validation.fields.totalWeight?.invalid
                   ? "border-red-400 bg-red-50/80 focus:border-red-500 focus:ring-red-500/30"
                   : "border-stone-200 focus:border-emerald-600 focus:ring-emerald-500/30",
@@ -183,7 +181,8 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
               step={1}
               inputMode="numeric"
               value={totalWeight}
-              onChange={(e) => setTotalWeight(e.target.value)}
+              onChange={(e) => setWeightDraftValue(e.target.value)}
+              onBlur={() => commitTotalWeight()}
               onKeyDown={(e) => e.key === "Enter" && onCalculate()}
             />
             {validation.fields.totalWeight?.message && (
@@ -271,7 +270,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
               </label>
               <select
                 id="flourPreset"
-                className="w-full rounded-2xl border-2 border-stone-200 bg-white px-4 py-4 text-center text-base text-stone-900 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                className="glass-input w-full text-center text-stone-900 focus:border-emerald-600 focus:ring-emerald-500/30"
                 value={preset}
                 onChange={(e) =>
                   handlePresetChange(e.target.value as PresetKey)
@@ -290,11 +289,12 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
                 key={field.key}
                 id={`flour-${field.key}`}
                 label={`${field.label} (%)`}
-                value={flourPcts[i] ?? 0}
+                value={flourDraft[i] ?? 0}
                 min={0}
-                max={maxFlourPctAtIndex(flourPcts, i)}
+                max={100}
                 step={1}
-                allowEmpty
+                deferCommit
+                exactCommit
                 onChange={(v) => handleFlourPctChange(i, v)}
                 minusLabel={`הפחת ${field.label}`}
                 plusLabel={`הוסף ${field.label}`}

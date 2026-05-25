@@ -569,7 +569,10 @@ export class SchedulingEngine {
       ]);
     }
 
-    const solved = SchedulingEngine.buildAdaptivePlan(modified);
+    const solved =
+      drag.blockId === "preshape" || drag.blockId === "bulk"
+        ? null
+        : SchedulingEngine.buildAdaptivePlan(modified);
     const plan =
       drag.blockId === "preshape" || drag.blockId === "bulk"
         ? preview

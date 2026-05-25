@@ -47,7 +47,7 @@ export function DashboardShell({
   };
 
   return (
-    <div className="dashboard-shell flex min-h-screen min-w-0 flex-col">
+    <div className="dashboard-shell flex min-h-screen min-w-0 max-w-[100vw] flex-col overflow-x-clip">
       <header className="sticky top-0 z-30 border-b border-warm-border/70 bg-dough/90 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-6">
           <AppBrandHeader
@@ -59,26 +59,28 @@ export function DashboardShell({
 
       <StickyMetricsBar form={form} />
 
-      <div className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-3 py-4 sm:px-6 sm:py-6">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+      <div className="mx-auto w-full min-w-0 max-w-[90rem] flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:py-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8 xl:gap-10">
           <aside
             className={cn(
-              "hidden min-w-0 shrink-0 lg:block lg:w-72 xl:w-80",
+              "@container/sidebar hidden min-w-0 shrink-0 lg:block",
+              "lg:w-[22rem] xl:w-[28rem] 2xl:w-[30rem]",
               "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+0.75rem)]",
               "lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-1.5rem)]",
               "lg:overflow-y-auto lg:overscroll-contain",
-              "rounded-2xl border border-warm-border/80 bg-white/70 p-4 shadow-sm backdrop-blur-md",
+              "rounded-2xl border border-warm-border/80 bg-white/80 p-4 shadow-md shadow-crust/5 backdrop-blur-md",
+              "xl:p-5 2xl:p-6",
               "scrollbar-thin",
             )}
             aria-label="פרמטרי מתכון"
           >
-            <p className="mb-4 font-serif text-sm font-semibold uppercase tracking-wide text-charcoal-muted">
+            <p className="mb-4 font-serif text-base font-semibold text-charcoal xl:mb-5">
               התאמת מתכון
             </p>
-            <RecipeInputsPanel form={form} />
+            <RecipeInputsPanel form={form} surface="sidebar" />
           </aside>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 lg:min-w-[min(100%,28rem)]">
             <div className="lg:hidden">
               {mobileTab === "outputs" && (
                 <div className="space-y-4 sm:space-y-6">{outputs}</div>
@@ -116,7 +118,7 @@ export function DashboardShell({
         onOpenChange={setSheetOpen}
         title="התאמת פרמטרים"
       >
-        <RecipeInputsPanel form={form} compact />
+        <RecipeInputsPanel form={form} surface="sheet" compact />
       </Sheet>
 
       <MobileBottomNav

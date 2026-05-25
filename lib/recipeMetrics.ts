@@ -1,4 +1,4 @@
-import { calculateDough } from "@/lib/bakingMath";
+import { computeSourdoughMath } from "@/lib/sourdoughMath";
 import type { DoughResult } from "@/lib/types";
 
 export interface RecipeMetrics {
@@ -44,20 +44,21 @@ export function computeRecipeMetrics(params: {
     totalWeightG > 0 &&
     Math.abs(flourTotalPercent - 100) <= 0.15
   ) {
-    const est = calculateDough(
-      totalWeightG,
+    const est = computeSourdoughMath({
+      targetWeightG: totalWeightG,
       waterPercent,
       starterPercent,
       saltPercent,
-    );
-    const totalGrams =
-      est.flour + est.water + est.starter + est.salt;
-    return {
-      totalGrams,
-      hydrationPercent: est.trueHydration,
-      isCalculated: false,
-      label: "הערכה חיה",
-    };
+      starterHydrationPercent: 100,
+    });
+    if (est) {
+      return {
+        totalGrams: est.totalDoughG,
+        hydrationPercent: est.trueHydrationPercent,
+        isCalculated: false,
+        label: "הערכה חיה",
+      };
+    }
   }
 
   return {

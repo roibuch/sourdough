@@ -20,7 +20,7 @@ export function RecipeResultsPanel({ form }: { form: RecipeForm }) {
 
   if (!showResults || !results) {
     return (
-      <div className="glass-panel flex flex-col items-center justify-center px-6 py-16 text-center">
+      <div className="glass-panel flex min-h-[min(20rem,45vh)] flex-col items-center justify-center px-6 py-16 text-center lg:min-h-[min(24rem,50vh)]">
         <ScaleIcon
           className="mb-4 h-12 w-12 text-stone-400"
           strokeWidth={1.25}

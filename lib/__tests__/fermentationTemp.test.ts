@@ -78,9 +78,10 @@ describe("suggestBlackoutFermentationBypass", () => {
 });
 
 describe("calculateRequiredStarterPct", () => {
-  it("suggests lower inoculation for longer bulk", () => {
+  it("suggests more starter for shorter bulk windows", () => {
     const mix = buildFlourMix([100, 0, 0, 0, 0, 0]);
-    const pct = calculateRequiredStarterPct(8, mix);
-    expect(pct).toBeLessThan(15);
+    const shortBulk = calculateRequiredStarterPct(6, mix);
+    const longBulk = calculateRequiredStarterPct(10, mix);
+    expect(shortBulk).toBeGreaterThan(longBulk);
   });
 });

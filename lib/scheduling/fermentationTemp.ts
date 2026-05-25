@@ -6,7 +6,8 @@
  */
 
 import { heContent, t } from "@/lib/content";
-import { buildFlourMix, pctOf } from "@/lib/flour";
+import { buildFlourMix } from "@/lib/flour";
+import { starterPctForBulkHours } from "@/lib/fermentationTiming";
 import { getTimelineBulkHours } from "@/lib/timeline";
 import type { FlourMix } from "@/lib/types";
 
@@ -89,17 +90,14 @@ export function clampDoughTemp(tempC: number): number {
 }
 
 /**
- * Inverse of `getTimelineBulkHours` (ignoring whole-grain tweak) for starter % suggestion.
+ * Inverse of bulk timeline estimate for starter % suggestion.
  */
 export function calculateRequiredStarterPct(
   targetBulkHours: number,
   mix: FlourMix,
+  baseTempC = 22,
 ): number {
-  const whole = pctOf(mix, "wholeWheat") + pctOf(mix, "wholeRye");
-  let h = targetBulkHours;
-  if (whole > 15) h += 0.5;
-  const pct = 15 + (6 - h) / 0.2;
-  return Math.round(Math.max(5, Math.min(35, pct)) * 10) / 10;
+  return starterPctForBulkHours(targetBulkHours, baseTempC, mix);
 }
 
 export type FermentationBypassStrategy = "temperature" | "starter";

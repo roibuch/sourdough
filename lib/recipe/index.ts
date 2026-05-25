@@ -37,6 +37,7 @@ export {
   calculateDough,
   calculateDoughMasses,
   getTrueHydration,
+  starterFlourAndWater,
   getBassinageAmounts,
   calculateWaterTempDDT,
   totalBakersPercentFactor,
@@ -46,3 +47,13 @@ export {
   type DDTInput,
   type DDTResult,
 } from "@/lib/bakingMath";
+
+export {
+  computeSourdoughMath,
+  doughResultToSourdoughValues,
+  type SourdoughMathInputs,
+  type SourdoughMathValues,
+} from "@/lib/sourdoughMath";
+
+export { useSourdoughMath } from "@/hooks/useSourdoughMath";
+export type { UseSourdoughMathOptions } from "@/hooks/useSourdoughMath";

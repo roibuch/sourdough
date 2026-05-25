@@ -17,6 +17,12 @@ export interface SmartNumberInputProps {
   compact?: boolean;
   /** Allow clearing the field while typing; on blur empty → 0 or min */
   allowEmpty?: boolean;
+  /** Only notify parent on blur / ± — keeps typed text while editing */
+  deferCommit?: boolean;
+  /** On blur: keep the parsed number as typed (no extra rounding) */
+  exactCommit?: boolean;
+  /** Called after blur commit (e.g. sync draft to URL) */
+  onDeferredBlur?: () => void;
   suffix?: string;
   error?: boolean;
   warning?: boolean;
@@ -32,9 +38,19 @@ function formatStored(value: number, step: number): number {
   return Math.round(value);
 }
 
-function toDisplay(value: number, step: number): string {
+function toDisplay(value: number, step: number, exact: boolean): string {
+  if (!Number.isFinite(value)) return "";
+  if (exact) return String(value);
   if (step < 1) return String(formatStored(value, step));
   return String(Math.round(value));
+}
+
+function displayFromRaw(raw: string, exact: boolean): string {
+  const trimmed = raw.trim().replace(",", ".");
+  if (trimmed === "" || trimmed === "-" || trimmed === ".") return trimmed;
+  const n = parseFloat(trimmed);
+  if (Number.isNaN(n)) return raw;
+  return exact ? String(n) : raw;
 }
 
 export function SmartNumberInput({
@@ -49,48 +65,59 @@ export function SmartNumberInput({
   plusLabel,
   compact,
   allowEmpty = true,
+  deferCommit = false,
+  exactCommit = false,
+  onDeferredBlur,
   suffix,
   error,
   warning,
   hint,
 }: SmartNumberInputProps) {
-  const [text, setText] = useState(() => toDisplay(value, step));
+  const exact = exactCommit || deferCommit;
+  const [text, setText] = useState(() => toDisplay(value, step, exact));
+  const [focused, setFocused] = useState(false);
 
   useEffect(() => {
-    setText(toDisplay(value, step));
-  }, [value, step]);
+    if (focused && deferCommit) return;
+    setText(toDisplay(value, step, exact));
+  }, [value, step, focused, deferCommit, exact]);
 
   const commit = (raw: string) => {
     const trimmed = raw.trim();
     if (trimmed === "" || trimmed === "-" || trimmed === ".") {
       const fallback = allowEmpty ? 0 : min;
       onChange(clamp(fallback, min, max));
-      setText(allowEmpty ? "" : toDisplay(fallback, step));
+      setText(allowEmpty ? "" : toDisplay(fallback, step, exact));
       return;
     }
     const n = parseFloat(trimmed.replace(",", "."));
     if (Number.isNaN(n)) {
-      setText(toDisplay(value, step));
+      setText(toDisplay(value, step, exact));
       return;
     }
-    const next = clamp(formatStored(n, step), min, max);
+    const next = exact
+      ? clamp(n, min, max)
+      : clamp(formatStored(n, step), min, max);
     onChange(next);
-    setText(toDisplay(next, step));
+    setText(exact ? displayFromRaw(trimmed, true) : toDisplay(next, step, false));
   };
 
   const adjust = (dir: "minus" | "plus") => {
-    const base = text === "" ? value : parseFloat(text);
+    const base = text === "" ? value : parseFloat(text.replace(",", "."));
     const current = Number.isNaN(base) ? value : base;
     const delta = dir === "plus" ? step : -step;
-    const next = clamp(formatStored(current + delta, step), min, max);
+    const next = exact
+      ? clamp(current + delta, min, max)
+      : clamp(formatStored(current + delta, step), min, max);
     onChange(next);
-    setText(toDisplay(next, step));
+    setText(toDisplay(next, step, exact));
   };
 
   const btnClass = cn(
-    "flex shrink-0 items-center justify-center rounded-full bg-crust text-dough shadow-md shadow-crust/25 transition",
+    "inline-flex shrink-0 items-center justify-center rounded-full bg-crust text-dough shadow-md shadow-crust/25 transition",
     "hover:bg-crust-dark active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wheat focus-visible:ring-offset-2",
-    compact ? "h-11 w-11" : "h-12 w-12 sm:h-14 sm:w-14",
+    "h-9 w-9 min-h-9 min-w-9 @min-[17.5rem]/stepper:h-11 @min-[17.5rem]/stepper:min-h-11 @min-[17.5rem]/stepper:w-11 @min-[17.5rem]/stepper:min-w-11",
+    !compact && "@min-[20rem]/stepper:h-12 @min-[20rem]/stepper:w-12",
   );
 
   return (
@@ -127,7 +154,7 @@ export function SmartNumberInput({
           {hint}
         </p>
       )}
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="@container/stepper flex w-full min-w-0 items-center gap-1.5 @min-[17.5rem]/stepper:gap-2 @min-[20rem]/stepper:gap-3">
         <button
           type="button"
           className={btnClass}
@@ -144,7 +171,7 @@ export function SmartNumberInput({
           aria-invalid={error || undefined}
           aria-describedby={hint ? `${id}-hint` : undefined}
           className={cn(
-            "min-w-0 flex-1 rounded-2xl border-2 bg-wheat-muted/60 text-center font-semibold text-charcoal tabular-nums transition-colors duration-200",
+            "calc-field min-w-0 flex-1 rounded-2xl border-2 bg-wheat-muted/60 text-center font-semibold text-charcoal transition-colors duration-200",
             error
               ? "border-red-400 bg-red-50/80 focus:border-red-500 focus:ring-red-500/30"
               : warning
@@ -156,22 +183,35 @@ export function SmartNumberInput({
               : warning
                 ? "focus:ring-wheat/40"
                 : "focus:ring-wheat/35",
-            "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-            compact ? "px-3 py-3 text-lg" : "px-4 py-4 text-xl sm:text-2xl",
+            compact
+              ? "px-3 py-2.5 sm:text-lg"
+              : "px-4 py-3 sm:text-xl sm:py-3.5",
           )}
           value={text}
           placeholder="—"
+          onFocus={() => setFocused(true)}
           onChange={(e) => {
             const raw = e.target.value;
             if (/^-?\d*\.?\d*$/.test(raw) || raw === "") {
               setText(raw);
+              if (deferCommit) return;
               if (raw !== "" && raw !== "-" && raw !== ".") {
-                const n = parseFloat(raw);
-                if (!Number.isNaN(n)) onChange(clamp(formatStored(n, step), min, max));
+                const n = parseFloat(raw.replace(",", "."));
+                if (!Number.isNaN(n)) {
+                  onChange(
+                    exact
+                      ? clamp(n, min, max)
+                      : clamp(formatStored(n, step), min, max),
+                  );
+                }
               }
             }
           }}
-          onBlur={() => commit(text)}
+          onBlur={() => {
+            setFocused(false);
+            commit(text);
+            if (deferCommit) onDeferredBlur?.();
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               (e.target as HTMLInputElement).blur();

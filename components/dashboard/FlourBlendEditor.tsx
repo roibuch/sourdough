@@ -1,10 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
 import { FlourPieChart } from "@/components/FlourPieChart";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
-import { Button } from "@/components/ui/Button";
-import { FLOUR_FIELDS, PRESET_OPTIONS } from "@/lib/flour";
+import { FLOUR_FIELDS, PRESET_OPTIONS, buildFlourMix } from "@/lib/flour";
 import { FLOUR_TOTAL_TARGET, FLOUR_TOTAL_TOLERANCE } from "@/lib/validation/recipeValidation";
+import { sumFlourPcts } from "@/lib/flourBalance";
 import { heContent } from "@/lib/content";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import type { PresetKey } from "@/lib/types";
@@ -25,16 +26,15 @@ export function FlourBlendEditor({
 }: FlourBlendEditorProps) {
   const {
     preset,
-    flourPcts,
-    mix,
+    flourDraft,
+    setFlourDraftPct,
     presetNote,
     applyPreset,
     setPreset,
-    setFlourPcts,
-    balanceFlourBlend,
   } = form;
 
-  const total = mix.totalPct;
+  const draftMix = useMemo(() => buildFlourMix(flourDraft), [flourDraft]);
+  const total = sumFlourPcts(flourDraft);
   const totalOk = Math.abs(total - FLOUR_TOTAL_TARGET) <= FLOUR_TOTAL_TOLERANCE;
 
   const handlePreset = (key: PresetKey) => {
@@ -43,31 +43,29 @@ export function FlourBlendEditor({
   };
 
   const handlePct = (index: number, value: number) => {
-    setPreset("custom");
-    setFlourPcts((prev) => {
-      const next = [...prev];
-      next[index] = Math.round(Math.min(100, Math.max(0, value)) * 10) / 10;
-      return next;
-    });
+    setFlourDraftPct(index, value);
   };
 
   return (
     <div
       className={cn(
-        flourTotalInvalid && "rounded-xl ring-2 ring-red-300/70 ring-offset-2",
+        "min-w-0 max-w-full",
+        flourTotalInvalid &&
+          !totalOk &&
+          "rounded-xl ring-2 ring-amber-300/70 ring-offset-2",
       )}
     >
       <p className="mb-2 text-sm font-semibold text-slate-800">
         {heContent.inputs.fields.flourPreset}
       </p>
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-4 flex min-w-0 flex-wrap gap-2">
         {PRESET_OPTIONS.map((opt) => (
           <button
             key={opt.value}
             type="button"
             onClick={() => handlePreset(opt.value)}
             className={cn(
-              "rounded-xl border px-3 py-2 text-xs font-semibold transition sm:text-sm",
+              "min-h-11 rounded-xl border px-4 py-2.5 text-sm font-semibold transition",
               preset === opt.value
                 ? "border-crust bg-crust text-dough shadow-sm"
                 : "border-warm-border bg-white/80 text-charcoal hover:bg-wheat-muted/50",
@@ -80,7 +78,7 @@ export function FlourBlendEditor({
 
       <div
         className={cn(
-          "mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2.5",
+          "mb-4 rounded-xl border px-3 py-2.5",
           totalOk
             ? "border-emerald-200/80 bg-emerald-50/60"
             : "border-amber-200/80 bg-amber-50/60",
@@ -91,25 +89,23 @@ export function FlourBlendEditor({
           <span className="tabular-nums">{total.toFixed(1)}%</span>
         </span>
         {!totalOk && (
-          <Button variant="ghost" type="button" onClick={balanceFlourBlend}>
-            {fl.balanceTo100}
-          </Button>
+          <p className="mt-1 text-xs text-amber-900">
+            {flourTotalMessage ?? "בלחיצה על «חישוב» תבחרו איך לעגל ל־100%."}
+          </p>
         )}
       </div>
-      {flourTotalMessage && !totalOk && (
-        <p className="mb-3 text-xs text-red-800">{flourTotalMessage}</p>
-      )}
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 @2xl/panel:grid-cols-2">
         {FLOUR_FIELDS.map((field, i) => (
           <SmartNumberInput
             key={field.key}
             id={`flour-${field.key}`}
             label={`${field.label} (%)`}
-            value={flourPcts[i] ?? 0}
+            value={flourDraft[i] ?? 0}
             min={0}
             max={100}
-            step={5}
+            step={1}
+            deferCommit
             onChange={(v) => handlePct(i, v)}
             minusLabel={`הפחת ${field.label}`}
             plusLabel={`הוסף ${field.label}`}
@@ -118,7 +114,7 @@ export function FlourBlendEditor({
         ))}
       </div>
 
-      <FlourPieChart mix={mix} className="mt-4 mb-2" />
+      <FlourPieChart mix={draftMix} className="mt-4 mb-2" />
       <p className="text-xs leading-relaxed text-stone-600">{presetNote}</p>
     </div>
   );

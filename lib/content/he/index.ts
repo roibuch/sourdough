@@ -11,6 +11,7 @@ import { NAVIGATION_HE } from "@/lib/content/he/navigation";
 import { OPTIONAL_SCHEDULE_HE } from "@/lib/content/he/optionalSchedule";
 import { SCHEDULE_HE } from "@/lib/content/he/schedule";
 import { SCHEDULING_HE } from "@/lib/content/he/scheduling";
+import { BAKING_TIMELINE_HE } from "@/lib/content/he/bakingTimeline";
 import { TIMELINE_HE } from "@/lib/content/he/timeline";
 import { TOASTS_HE } from "@/lib/content/he/toasts";
 import { VALIDATION_HE } from "@/lib/content/he/validation";
@@ -22,6 +23,7 @@ export const heContent = {
   navigation: NAVIGATION_HE,
   glossary: GLOSSARY_HE,
   timeline: TIMELINE_HE,
+  bakingTimeline: BAKING_TIMELINE_HE,
   alerts: ALERTS_HE,
   validation: VALIDATION_HE,
   scheduling: SCHEDULING_HE,

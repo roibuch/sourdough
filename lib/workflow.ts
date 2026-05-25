@@ -1,3 +1,4 @@
+import { estimateBulkFermentationHours } from "./fermentationTiming";
 import { getHydrationRecommendation, pctOf } from "./flour";
 import type { DoughWorkflow, FlourMix } from "./types";
 
@@ -70,25 +71,13 @@ export function getDoughWorkflow(
     foldNote += " רב תכליתי בכמות גבוהה — הידרציה בינונית.";
   }
 
-  const baseBulk = 4.6;
-  const starterFactor = Math.pow(20 / Math.max(starterPct, 5), 0.55);
-  const tempFactor =
-    tempC >= 22
-      ? Math.max(0.55, 1 - (tempC - 22) * 0.08)
-      : 1 + (22 - tempC) * 0.12;
-  let flourFactor = 1;
-  if (wholePct >= 35) flourFactor -= 0.12;
-  if (rye >= 20) flourFactor -= 0.08;
-  if (manitoba >= 25) flourFactor += 0.08;
-  if (highHydration) flourFactor -= 0.05;
-  if (lowHydration) flourFactor += 0.06;
-
-  const bulkCenter = Math.max(
-    2,
-    Math.min(10, baseBulk * starterFactor * tempFactor * flourFactor),
+  const bulkCenter = estimateBulkFermentationHours(starterPct, tempC, mix);
+  const bulkLow = roundHalf(
+    Math.max(2, estimateBulkFermentationHours(starterPct, tempC, mix, { riseFraction: 0.82 })),
   );
-  const bulkLow = roundHalf(Math.max(1.75, bulkCenter * 0.82));
-  const bulkHigh = roundHalf(Math.min(12, bulkCenter * 1.25));
+  const bulkHigh = roundHalf(
+    Math.min(16, estimateBulkFermentationHours(starterPct, tempC, mix, { riseFraction: 1.28 })),
+  );
 
   let riseTarget = "כ־50%–75% עליה בנפח";
   if (fragilePct >= 25) riseTarget = "כ־30%–50% עליה בנפח";

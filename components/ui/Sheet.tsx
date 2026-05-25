@@ -70,13 +70,13 @@ export function Sheet({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-stone-600 hover:bg-stone-200/80"
+            className="touch-target rounded-xl text-stone-600 hover:bg-stone-200/80"
             aria-label="סגור פאנל"
           >
             <XMarkIcon className="h-5 w-5" />
           </button>
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 pb-6 sm:px-4 sm:pb-8">
+        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-3 py-4 pb-6 sm:px-4 sm:pb-8">
           {children}
         </div>
       </div>

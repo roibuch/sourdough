@@ -1,4 +1,5 @@
 import { buildFlourMix } from "./flour";
+import { adjustHoursForTemperature, roundTimingHours } from "./fermentationTiming";
 import {
   getTimelineAnchors,
   getTimelineBulkHours,
@@ -45,11 +46,13 @@ function roundHalf(n: number): number {
 }
 
 /** Bulk block length tuned to forecast temp during bulk */
-export function adjustBulkHoursForTemp(baseH: number, tempC: number): number {
-  let h = baseH;
-  if (tempC > 26) h -= 0.5 + (tempC - 26) * 0.12;
-  else if (tempC < 20) h += 0.5 + (20 - tempC) * 0.18;
-  return roundHalf(Math.max(3, Math.min(7, h)));
+export function adjustBulkHoursForTemp(
+  baseH: number,
+  tempC: number,
+  refTempC = 22,
+): number {
+  const h = adjustHoursForTemperature(baseH, tempC, refTempC);
+  return roundTimingHours(Math.max(2.5, Math.min(16, h)));
 }
 
 function buildTimelineInput(
@@ -72,7 +75,7 @@ function buildTimelineInput(
 function anchorsFromNow(input: BakingWeatherPlanInput): TimelineAnchors {
   const mix = buildFlourMix(input.flourPcts);
   const starterPeakH = input.hoursToAutolyse;
-  const bulkH = getTimelineBulkHours(input.starterPct, mix);
+  const bulkH = getTimelineBulkHours(input.starterPct, mix, input.roomTemp);
   const now = Date.now();
   const tStarterFeed = now;
   const tAutolyseStart = tStarterFeed + starterPeakH * MS_H;

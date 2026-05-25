@@ -86,7 +86,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
               <strong className="text-crust">
                 {results?.starter} גרם
               </strong>{" "}
-              מחמצת בשיא. חכו לכפילות נפח (בדרך כלל 4–8 שעות).
+              מחמצת בשיא. חכו לכפילות נפח לפי יחס ההאכלה (בדרך כלל 4–12 שעות @ 22°C).
             </>
           ) : (
             <>
@@ -197,7 +197,10 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
                 <p className="inline-block rounded-full bg-white px-4 py-2 font-serif text-2xl font-bold text-crust shadow-sm">
                   {starterResult.ratioLabel}
                 </p>
-                <p className="mt-3 text-sm leading-relaxed text-stone-700">
+                <p className="mt-2 text-sm font-medium text-crust-dark">
+                  שיא צפוי: כ־{starterResult.expectedPeakHours} שעות
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-stone-700">
                   {starterResult.explain}
                 </p>
               </div>
