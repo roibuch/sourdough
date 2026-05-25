@@ -102,32 +102,70 @@ export function getAndroidAlarmHref(
 }
 
 /**
- * Fire SET_ALARM from a click without navigating the PWA (no target=_blank, no location).
- * Hidden iframe hands off to the Clock app; avoids black-screen tabs and reload loops.
+ * Open Android Clock — same as legacy sourdough_app.html (location.href in click handler).
  */
 export function launchAndroidSetAlarmFromClick(
   timestampMs: number,
   message: string,
 ): void {
-  const uri = getAndroidAlarmHref(timestampMs, message);
-  const iframe = document.createElement("iframe");
-  iframe.setAttribute("aria-hidden", "true");
-  iframe.style.cssText =
-    "position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none";
-  iframe.src = uri;
-  document.body.appendChild(iframe);
-  window.setTimeout(() => iframe.remove(), 2000);
+  window.location.href = getAndroidAlarmHref(timestampMs, message);
+}
+
+/** Immediate user-visible action + platform handoff. No await before side effects. */
+export function executeAlarmOnClick(
+  timestampMs: number,
+  message: string,
+): AlarmResult {
+  if (!timestampMs || Number.isNaN(timestampMs)) return "invalid";
+  if (timestampMs <= Date.now()) return "past";
+
+  if (isAndroid()) {
+    try {
+      launchAndroidSetAlarmFromClick(timestampMs, message);
+      return "android";
+    } catch {
+      downloadIcsAlarmSync(timestampMs, message);
+      return "android-fallback";
+    }
+  }
+
+  if (isIOS()) {
+    downloadIcsAlarmSync(timestampMs, message);
+    copyAlarmToClipboard(timestampMs, message);
+    return "ios-copied";
+  }
+
+  downloadIcsAlarmSync(timestampMs, message);
+  return "opened";
+}
+
+/** Desktop/iOS extras after sync ICS — may show a second toast. */
+export async function executeAlarmFollowUpAsync(
+  timestampMs: number,
+  message: string,
+): Promise<AlarmResult | null> {
+  if (isAndroid() || isIOS()) return null;
+  if (!timestampMs || Number.isNaN(timestampMs) || timestampMs <= Date.now()) {
+    return null;
+  }
+
+  const scheduled = await scheduleTimestampTriggerNotification(
+    timestampMs,
+    message,
+  );
+  if (scheduled) return "scheduled";
+
+  const granted = await ensureNotificationPermission();
+  if (granted && scheduleWebNotification(timestampMs, message)) {
+    return "notification";
+  }
+
+  return null;
 }
 
 /** @deprecated Use launchAndroidSetAlarmFromClick */
 export function launchAndroidIntentViaAnchor(uri: string): void {
-  const iframe = document.createElement("iframe");
-  iframe.setAttribute("aria-hidden", "true");
-  iframe.style.cssText =
-    "position:fixed;width:0;height:0;border:0;opacity:0;pointer-events:none";
-  iframe.src = uri;
-  document.body.appendChild(iframe);
-  window.setTimeout(() => iframe.remove(), 2000);
+  window.location.href = uri;
 }
 
 /** @deprecated Use launchAndroidSetAlarmFromClick */
@@ -226,7 +264,12 @@ export async function scheduleTimestampTriggerNotification(
   if (!granted) return false;
 
   try {
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise<ServiceWorkerRegistration>((_, reject) => {
+        window.setTimeout(() => reject(new Error("sw-ready-timeout")), 4000);
+      }),
+    ]);
     const base = getBasePath();
     const icon = `${base}/icon-512x512.png`;
     const title = alarmCopy.ics.calendarName;
@@ -556,65 +599,30 @@ export type AlarmResult =
   | "past"
   | "unsupported";
 
-/**
- * Android: synchronous only. iOS/desktop: returns "pending" for async follow-up.
- */
+/** Synchronous alarm action (ICS download / Android intent). */
 export function triggerClockAlarmImmediate(
   timestampMs: number,
   message: string,
-): AlarmResult | "pending" {
-  if (!timestampMs || Number.isNaN(timestampMs)) return "invalid";
-  if (timestampMs <= Date.now()) return "past";
-
-  if (isAndroid()) {
-    try {
-      launchAndroidSetAlarmFromClick(timestampMs, message);
-      return "android";
-    } catch {
-      return "android-fallback";
-    }
-  }
-
-  return "pending";
+): AlarmResult {
+  return executeAlarmOnClick(timestampMs, message);
 }
 
 export async function triggerClockAlarmAsync(
   timestampMs: number,
   message: string,
 ): Promise<AlarmResult> {
-  if (!timestampMs || Number.isNaN(timestampMs)) return "invalid";
-  if (timestampMs <= Date.now()) return "past";
-
-  if (isIOS()) {
-    copyAlarmToClipboard(timestampMs, message);
-    downloadIcsAlarmSync(timestampMs, message);
-    return "ios-copied";
-  }
-
-  const scheduled = await scheduleTimestampTriggerNotification(
-    timestampMs,
-    message,
-  );
-  if (scheduled) return "scheduled";
-
-  const granted = await ensureNotificationPermission();
-  if (granted && scheduleWebNotification(timestampMs, message)) {
-    return "notification";
-  }
-
-  downloadIcsAlarmSync(timestampMs, message);
-  return "opened";
+  const primary = executeAlarmOnClick(timestampMs, message);
+  const extra = await executeAlarmFollowUpAsync(timestampMs, message);
+  return extra ?? primary;
 }
 
 export async function triggerClockAlarm(
   timestampMs: number,
   message: string,
 ): Promise<AlarmResult> {
-  const immediate = triggerClockAlarmImmediate(timestampMs, message);
-  if (immediate !== "pending") {
-    return immediate;
-  }
-  return triggerClockAlarmAsync(timestampMs, message);
+  const primary = executeAlarmOnClick(timestampMs, message);
+  const extra = await executeAlarmFollowUpAsync(timestampMs, message);
+  return extra ?? primary;
 }
 
 /** @deprecated Use triggerClockAlarm */

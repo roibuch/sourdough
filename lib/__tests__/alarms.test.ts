@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildAndroidAlarmIntents,
   buildPrimaryAndroidAlarmUri,
+  executeAlarmOnClick,
   generateIcsBlobUrl,
   getAndroidAlarmHref,
 } from "@/lib/alarms";
@@ -38,6 +39,16 @@ describe("getAndroidAlarmHref", () => {
     const href = getAndroidAlarmHref(ts, "test");
     expect(href).toContain("intent://set_alarm");
     expect(href).toContain("SET_ALARM");
+  });
+});
+
+describe("executeAlarmOnClick", () => {
+  it("returns past for timestamps in the past", () => {
+    expect(executeAlarmOnClick(Date.now() - 1000, "x")).toBe("past");
+  });
+
+  it("returns invalid for missing timestamp", () => {
+    expect(executeAlarmOnClick(0, "x")).toBe("invalid");
   });
 });
 

@@ -6,13 +6,11 @@ import {
   alarmResultMessage,
   alarmTimeTitle,
   downloadIcsAlarm,
-  downloadIcsAlarmSync,
+  executeAlarmFollowUpAsync,
+  executeAlarmOnClick,
   isAndroid,
   isIOS,
-  launchAndroidSetAlarmFromClick,
   openGoogleCalendarEvent,
-  scheduleTimestampTriggerNotification,
-  scheduleWebNotification,
   type AlarmResult,
 } from "@/lib/alarms";
 import { heContent } from "@/lib/content";
@@ -38,83 +36,23 @@ export function AlarmButton({
   const [busy, setBusy] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
   const mobile = isAndroid() || isIOS();
-  const android = isAndroid();
 
   const notify = (result: AlarmResult) => {
     onResult?.(result);
   };
 
-  const fallbackToIcsSync = () => {
-    downloadIcsAlarmSync(timestampMs, message);
-    notify("opened");
-  };
-
-  const handleIOSAndDesktopFlow = async () => {
-    if (isIOS()) {
-      try {
-        const timeString = new Date(timestampMs).toLocaleTimeString("he-IL", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        });
-        await navigator.clipboard.writeText(`${timeString} — ${message}`);
-      } catch {
-        /* clipboard blocked */
-      }
-      fallbackToIcsSync();
-      notify("ios-copied");
-      return;
-    }
-
-    const scheduled = await scheduleTimestampTriggerNotification(
-      timestampMs,
-      message,
-    );
-    if (scheduled) {
-      notify("scheduled");
-      return;
-    }
-
-    if (typeof window !== "undefined" && "Notification" in window) {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted" && scheduleWebNotification(timestampMs, message)) {
-        notify("notification");
-        return;
-      }
-    }
-
-    fallbackToIcsSync();
-  };
-
   const handleAlarmClick = () => {
-    if (!timestampMs || Number.isNaN(timestampMs)) {
-      notify("invalid");
-      return;
-    }
+    const result = executeAlarmOnClick(timestampMs, message);
+    notify(result);
 
-    if (timestampMs <= Date.now()) {
-      notify("past");
-      return;
+    if (!isAndroid() && !isIOS()) {
+      setBusy(true);
+      void executeAlarmFollowUpAsync(timestampMs, message)
+        .then((extra) => {
+          if (extra) notify(extra);
+        })
+        .finally(() => setBusy(false));
     }
-
-    if (android) {
-      try {
-        launchAndroidSetAlarmFromClick(timestampMs, message);
-        window.setTimeout(() => notify("android"), 400);
-      } catch {
-        fallbackToIcsSync();
-        notify("android-fallback");
-      }
-      return;
-    }
-
-    setBusy(true);
-    void handleIOSAndDesktopFlow()
-      .catch(() => {
-        fallbackToIcsSync();
-        notify("unsupported");
-      })
-      .finally(() => setBusy(false));
   };
 
   const btnClass = cn(
