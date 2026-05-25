@@ -24,7 +24,7 @@ export function MobileLuxuryTabs({
 }) {
   return (
     <nav
-      className="flex border-t border-border-subtle bg-surface/90 backdrop-blur-md"
+      className="flex border-t border-border-subtle bg-surface backdrop-blur-md"
       aria-label="תוספות למתכון"
     >
       {ITEMS.filter((t) => t.id !== "guide" || guideVisible).map((item) => (

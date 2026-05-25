@@ -43,7 +43,7 @@ export function Sheet({
     <div className="fixed inset-0 z-[60] lg:hidden" role="presentation">
       <button
         type="button"
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-background/60 backdrop-blur-sm"
         aria-label="סגור"
         onClick={() => onOpenChange(false)}
       />

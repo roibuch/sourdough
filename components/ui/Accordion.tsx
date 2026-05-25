@@ -95,7 +95,7 @@ export function AccordionItem({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-sm border border-border-subtle bg-surface/80 backdrop-blur-sm",
+        "overflow-hidden rounded-sm border border-border-subtle bg-surface shadow-sm",
         className,
       )}
     >

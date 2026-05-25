@@ -1,12 +1,12 @@
 import { getBasePath } from "@/lib/basePath";
 
-/** Luxury Artisan — dark boutique bakery */
+/** Luxury Artisan — warm atelier */
 export const BRAND = {
-  themeColor: "#11100F",
-  backgroundColor: "#11100F",
+  themeColor: "#4A4541",
+  backgroundColor: "#4A4541",
   accentGold: "#D4AF37",
-  surface: "#1C1A19",
-  textPrimary: "#F4F1EB",
+  surface: "#57524E",
+  textPrimary: "#FAF7F2",
 } as const;
 
 export function brandAssetPath(filename: string): string {

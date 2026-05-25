@@ -58,7 +58,7 @@ export function DashboardShell({
 
   return (
     <div className="dashboard-shell flex min-h-screen min-w-0 max-w-[100vw] flex-col overflow-x-clip bg-background">
-      <header className="sticky top-0 z-40 border-b border-border-subtle bg-background/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-border-subtle bg-surface/95 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-[100rem] items-center justify-between gap-3 px-4 sm:h-16 sm:px-8">
           <AppBrandHeader
             tagline={heContent.app.brandSubtitle}
@@ -172,7 +172,7 @@ export function DashboardShell({
 
       <div
         className={cn(
-          "fixed inset-x-0 z-50 border-t border-border-subtle bg-background/95 px-4 py-3 backdrop-blur-xl lg:hidden",
+          "fixed inset-x-0 z-50 border-t border-border-subtle bg-surface/98 px-4 py-3 backdrop-blur-xl lg:hidden",
           "bottom-[env(safe-area-inset-bottom,0px)]",
         )}
       >
