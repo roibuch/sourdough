@@ -17,7 +17,6 @@ export interface DashboardSections {
   empty: ReactNode;
   hero: ReactNode;
   recipe: ReactNode;
-  timeline: ReactNode;
   starter: ReactNode;
   guide: ReactNode | null;
   reference: ReactNode;
@@ -35,7 +34,7 @@ export function DashboardShell({
   calculateFlow,
   sections,
 }: DashboardShellProps) {
-  const { showResults } = form;
+  const { showResults, showGuide } = form;
   const {
     requestCalculate,
     balanceOpen,
@@ -48,10 +47,12 @@ export function DashboardShell({
   const [editSheetOpen, setEditSheetOpen] = useState(false);
 
   useEffect(() => {
-    if (showResults) {
+    if (showResults && showGuide) {
+      setSegment("guide");
+    } else if (showResults) {
       setSegment("recipe");
     }
-  }, [showResults]);
+  }, [showResults, showGuide]);
 
   useEffect(() => {
     if (segment === "guide" && !sections.guide) {
@@ -64,8 +65,6 @@ export function DashboardShell({
     switch (segment) {
       case "recipe":
         return sections.recipe;
-      case "timeline":
-        return sections.timeline;
       case "starter":
         return sections.starter;
       case "guide":

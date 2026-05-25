@@ -4,16 +4,14 @@ import { cn } from "@/lib/cn";
 
 export type AppSegment =
   | "recipe"
-  | "timeline"
   | "starter"
   | "guide"
   | "reference";
 
 const ITEMS: { id: AppSegment; label: string }[] = [
   { id: "recipe", label: "המתכון" },
-  { id: "timeline", label: "לוח זמנים" },
-  { id: "starter", label: "האכלת מחמצת" },
   { id: "guide", label: "מדריך" },
+  { id: "starter", label: "האכלת מחמצת" },
   { id: "reference", label: "טבלאות" },
 ];
 

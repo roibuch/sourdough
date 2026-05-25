@@ -1,16 +1,19 @@
 "use client";
 
-import { useMemo } from "react";
-import { ClockIcon, FireIcon, SparklesIcon } from "@heroicons/react/24/outline";
-import { AlarmButtonGroup, alarmToastMessage } from "@/components/AlarmButton";
+import { useMemo, useState } from "react";
+import { SparklesIcon } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
+import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
+import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { Card } from "@/components/ui/Card";
 import { MasterBakerTip } from "@/components/ui/MasterBakerTip";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { buildBakingGuidePlan } from "@/lib/bakingGuidePlan";
+import { expressModeSummary } from "@/lib/expressMode";
 import { heContent, t } from "@/lib/content";
 import { getBassinageAmounts } from "@/lib/bakingMath";
-import { describeFlourMix } from "@/lib/flour";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
+import { cn } from "@/lib/cn";
 
 const g = heContent.guide;
 
@@ -21,38 +24,59 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
     showGuide,
     starterOnlyMode,
     mix,
-    timelinePlan,
-    showToast,
+    waterPct,
+    starterPct,
+    roomTemp,
+    hoursToAutolyse,
+    coldRetardHours,
+    fermentationPace,
+    setFermentationPace,
+    setRoomTemp,
+    setColdRetardHours,
+    setHoursToAutolyse,
   } = form;
 
-  const bassinage = results ? getBassinageAmounts(results.water) : null;
-  const workflow = timelinePlan?.workflow;
-  const bulkAlarms =
-    timelinePlan?.schedule &&
-    [...timelinePlan.schedule.folds, timelinePlan.schedule.endBulk];
+  const [showDetails, setShowDetails] = useState(true);
 
-  const foldAdvice = useMemo(() => {
-    if (!workflow) return null;
-    return [
-      {
-        type: "good" as const,
-        text: `${workflow.foldCount} סטים של ${workflow.foldStyle}, כל ${workflow.foldEvery}.`,
-      },
-      { type: "good" as const, text: workflow.foldNote },
-    ];
-  }, [workflow]);
+  const bassinage = results ? getBassinageAmounts(results.water) : null;
+
+  const plan = useMemo(() => {
+    if (!showResults && starterOnlyMode) return null;
+    return buildBakingGuidePlan({
+      mix,
+      waterPct,
+      starterPct,
+      roomTempC: roomTemp,
+      hoursToAutolyse,
+      coldRetardHours,
+      fermentationPace,
+    });
+  }, [
+    mix,
+    waterPct,
+    starterPct,
+    roomTemp,
+    hoursToAutolyse,
+    coldRetardHours,
+    fermentationPace,
+    showResults,
+    starterOnlyMode,
+  ]);
 
   if (!showGuide) return null;
 
   const hideLaterSteps = starterOnlyMode && !showResults;
+  const expressSummary = expressModeSummary(fermentationPace);
 
   return (
-    <Card nested className="border-0 bg-transparent p-0 shadow-none">
+    <Card nested className="border-0 bg-transparent p-0 shadow-none" id="section-guide">
       <SectionHeader
         icon={<SparklesIcon className="h-6 w-6" strokeWidth={1.75} />}
         title={g.title}
         subtitle={g.subtitle}
       />
+
+      <StarterFloatTestAlert />
 
       {starterOnlyMode && !showResults && (
         <p className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
@@ -60,109 +84,159 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
         </p>
       )}
 
-      {!hideLaterSteps && results && (
+      {!hideLaterSteps && plan && (
         <>
-          <article className="step-card mb-5">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-900">
-                🥣
-              </span>
-              <h3 className="font-serif text-xl font-semibold">
-                {g.steps.autolyse.title}
-              </h3>
-            </div>
-            <p className="text-sm leading-relaxed text-stone-600">
-              {t(g.steps.autolyse.body, {
-                flour: results.flour,
-                water: bassinage?.autolyseG ?? results.water,
-              })}
-              {bassinage &&
-                t(g.steps.autolyse.bassinage, {
-                  hold: bassinage.holdG,
-                  min: bassinage.minG,
-                  max: bassinage.maxG,
-                })}
-              {g.steps.autolyse.rest}
-            </p>
-            <p className="mt-2 text-xs text-stone-500">{describeFlourMix(mix)}</p>
-          </article>
+          <p className="mb-4 rounded-xl border border-border-subtle bg-surface-elevated px-4 py-3 text-sm text-text-secondary">
+            <span className="font-medium text-text-primary">{g.totalLabel}: </span>
+            {plan.totalHoursLabel}
+          </p>
 
-          <article className="step-card mb-5">
-            <h3 className="mb-2 font-serif text-xl font-semibold">
-              {g.steps.finalMix.title}
+          <div className="mb-6 rounded-2xl border border-border-subtle bg-surface p-4">
+            <h3 className="mb-3 text-sm font-semibold text-text-primary">
+              {g.tuning.title}
             </h3>
-            <p className="text-sm text-stone-600">
-              {t(g.steps.finalMix.body, {
-                starter: results.starter,
-                salt: results.salt,
-                bassinage: bassinage
-                  ? t(g.steps.finalMix.bassinage, { hold: bassinage.holdG })
-                  : "",
-              })}
-            </p>
-          </article>
-
-          {workflow && (
-            <>
-              <article className="step-card mb-5">
-                <h3 className="mb-2 font-serif text-xl font-semibold">
-                  {g.steps.folds.title}
-                </h3>
-                <p className="mb-3 text-sm text-stone-600">
-                  {t(g.steps.folds.profile, {
-                    profile: workflow.profile,
-                    low: workflow.bulkLow,
-                    high: workflow.bulkHigh,
-                  })}
-                </p>
-                {foldAdvice && <AdviceList items={foldAdvice} />}
-                {bulkAlarms && bulkAlarms.length > 0 && (
-                  <div className="mt-4">
-                    <AlarmButtonGroup
-                      alarms={bulkAlarms}
-                      onResult={(type) => showToast(alarmToastMessage(type))}
-                    />
-                  </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={cn(
+                  "min-h-[44px] rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                  fermentationPace === "standard"
+                    ? "bg-accent text-white"
+                    : "border border-border-subtle bg-surface-elevated text-text-secondary",
                 )}
-              </article>
+                onClick={() => setFermentationPace("standard")}
+              >
+                {g.tuning.paceStandard}
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  "min-h-[44px] rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+                  fermentationPace === "express"
+                    ? "bg-accent text-white"
+                    : "border border-border-subtle bg-surface-elevated text-text-secondary",
+                )}
+                onClick={() => setFermentationPace("express")}
+              >
+                {g.tuning.paceExpress}
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-text-muted">{g.tuning.paceHint}</p>
+            {expressSummary && (
+              <p className="mt-2 text-xs text-amber-900">{expressSummary}</p>
+            )}
 
-              <article className="step-card mb-5">
-                <h3 className="mb-2 font-serif text-xl font-semibold">
-                  {g.steps.bulkShape.title}
-                </h3>
-                <p className="text-sm text-stone-600">{workflow.riseTarget}</p>
-              </article>
-            </>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <SmartNumberInput
+                id="guideRoomTemp"
+                label={g.tuning.roomTemp}
+                value={roomTemp}
+                min={16}
+                max={32}
+                step={1}
+                onChange={setRoomTemp}
+                minusLabel="הפחת"
+                plusLabel="הוסף"
+                compact
+              />
+              <SmartNumberInput
+                id="guideColdRetard"
+                label={g.tuning.coldRetard}
+                value={coldRetardHours}
+                min={4}
+                max={48}
+                step={1}
+                onChange={setColdRetardHours}
+                minusLabel="הפחת"
+                plusLabel="הוסף"
+                compact
+              />
+              <SmartNumberInput
+                id="guideHoursToAutolyse"
+                label={g.tuning.windowLabel}
+                value={hoursToAutolyse}
+                min={2}
+                max={16}
+                step={0.5}
+                onChange={setHoursToAutolyse}
+                minusLabel="הפחת"
+                plusLabel="הוסף"
+                compact
+              />
+            </div>
+
+            <button
+              type="button"
+              className="mt-4 min-h-[44px] text-sm font-medium text-text-muted underline-offset-2 hover:text-text-primary hover:underline"
+              onClick={() => setShowDetails((v) => !v)}
+            >
+              {showDetails ? g.tuning.hideDetails : g.tuning.showDetails}
+            </button>
+          </div>
+
+          {results && (
+            <div className="mb-6 rounded-xl border border-dashed border-border-subtle px-4 py-3 text-sm text-text-secondary">
+              <p className="mb-1 font-medium text-text-primary">{g.masses.title}</p>
+              <p>
+                {t(g.masses.autolyse, {
+                  flour: results.flour,
+                  water: bassinage?.autolyseG ?? results.water,
+                })}
+              </p>
+              <p className="mt-1">
+                {t(g.masses.mix, {
+                  starter: results.starter,
+                  salt: results.salt,
+                  bassinage: bassinage
+                    ? t(g.masses.bassinage, { hold: bassinage.holdG })
+                    : "",
+                })}
+              </p>
+            </div>
           )}
 
-          <article className="step-card mb-5">
-            <div className="mb-2 flex items-center gap-2">
-              <ClockIcon className="h-5 w-5 text-stone-500" />
-              <h3 className="font-serif text-xl font-semibold">
-                {g.steps.coldRetard.title}
-              </h3>
-            </div>
-            <p className="text-sm text-stone-600">
-              {t(g.steps.coldRetard.body, { hours: form.coldRetardHours })}
-            </p>
-          </article>
-
-          <article className="step-card mb-5">
-            <div className="mb-2 flex items-center gap-2">
-              <FireIcon className="h-5 w-5 text-orange-700" />
-              <h3 className="font-serif text-xl font-semibold">
-                {g.steps.bake.title}
-              </h3>
-            </div>
-            <p className="text-sm text-stone-600">{g.steps.bake.body}</p>
-          </article>
-
-          <article className="step-card">
-            <h3 className="mb-2 font-serif text-xl font-semibold">
-              {g.steps.cool.title}
-            </h3>
-            <p className="text-sm text-stone-600">{g.steps.cool.body}</p>
-          </article>
+          <ol className="space-y-4">
+            {plan.steps.map((step, index) => (
+              <li
+                key={step.id}
+                className="step-card list-none rounded-2xl border border-border-subtle bg-surface p-4 sm:p-5"
+              >
+                <div className="flex flex-wrap items-start gap-3">
+                  <span
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-lg"
+                    aria-hidden
+                  >
+                    {step.icon}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <h3 className="font-serif text-lg font-semibold text-text-primary">
+                        {index + 1}. {step.title}
+                      </h3>
+                      <span className="shrink-0 rounded-full bg-accent-muted px-3 py-1 text-xs font-semibold text-accent">
+                        {step.duration}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+                      {step.summary}
+                    </p>
+                    {showDetails && step.details.length > 0 && (
+                      <ul className="mt-3 space-y-2 border-t border-border-subtle pt-3">
+                        {step.details.map((d) => (
+                          <li key={d.title} className="text-sm">
+                            <span className="font-medium text-text-primary">
+                              {d.title}:{" "}
+                            </span>
+                            <span className="text-text-secondary">{d.body}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ol>
 
           {bassinage && (
             <MasterBakerTip className="mt-6">
@@ -170,6 +244,19 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
             </MasterBakerTip>
           )}
         </>
+      )}
+
+      {starterOnlyMode && plan && (
+        <article className="step-card mt-4">
+          <AdviceList
+            items={[
+              {
+                type: "good",
+                text: plan.steps[0]?.summary ?? "",
+              },
+            ]}
+          />
+        </article>
       )}
     </Card>
   );

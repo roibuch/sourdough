@@ -11,13 +11,7 @@ export function useBakerAlerts(form: RecipeForm) {
         mix: form.mix,
         waterPercent: form.waterPct,
         trueHydrationPercent: form.results?.trueHydration ?? null,
-        timelinePlan: form.timelinePlan,
       }),
-    [
-      form.mix,
-      form.waterPct,
-      form.results?.trueHydration,
-      form.timelinePlan,
-    ],
+    [form.mix, form.waterPct, form.results?.trueHydration],
   );
 }

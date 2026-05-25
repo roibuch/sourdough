@@ -77,7 +77,6 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
     try {
       const data = await fetchLocalWeatherForecast();
       const bakingPlan = planBakingFromForecast(data.forecastList, {
-        targetBakeTime: form.targetBakeTime || undefined,
         coldRetardHours: form.coldRetardHours,
         starterPct: form.starterPct,
         waterPct: form.waterPct,
@@ -137,13 +136,6 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
           </p>
         </div>
       </div>
-
-      {!form.showTimeline && (
-        <p className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">
-          טיפ: בחרו קודם מועד אפייה בלוח למטה — כך התכנון יתבסס על השעות המדויקות
-          שלכם, לא רק מהרגע הנוכחי.
-        </p>
-      )}
 
       <Button
         variant="weather"

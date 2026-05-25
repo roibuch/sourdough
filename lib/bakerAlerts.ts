@@ -167,7 +167,6 @@ export interface CollectBakerAlertsInput {
   mix: FlourMix;
   waterPercent: number;
   trueHydrationPercent?: number | null;
-  timelinePlan: TimelinePlan | null;
 }
 
 export function collectBakerAlerts(input: CollectBakerAlertsInput): BakerAlert[] {
@@ -178,7 +177,6 @@ export function collectBakerAlerts(input: CollectBakerAlertsInput): BakerAlert[]
       input.waterPercent,
       input.trueHydrationPercent,
     ),
-    ...getScheduleAlerts(input.timelinePlan),
   ];
   return all.filter((a) => {
     if (seen.has(a.id)) return false;

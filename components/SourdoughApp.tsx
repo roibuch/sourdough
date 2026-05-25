@@ -2,13 +2,10 @@
 
 import { useCallback, useState } from "react";
 import dynamic from "next/dynamic";
-import { alarmToastMessage } from "@/components/AlarmButton";
-import { BakingTimeline } from "@/components/BakingTimeline";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ResultsHero } from "@/components/dashboard/ResultsHero";
 import { RecipeResultsDetails } from "@/components/dashboard/RecipeResultsDetails";
 import { WelcomeEmptyState } from "@/components/dashboard/WelcomeEmptyState";
-import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
 import { SmartWarningBanner } from "@/components/feedback/SmartWarningBanner";
 import { useBakerAlerts } from "@/hooks/useBakerAlerts";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
@@ -31,14 +28,6 @@ const ReferenceTables = dynamic(
       default: m.ReferenceTables,
     })),
   { loading: () => <PanelSkeleton className="min-h-[16rem]" /> },
-);
-
-const OptionalSchedulePanel = dynamic(
-  () =>
-    import("@/components/scheduling/OptionalSchedulePanel").then((m) => ({
-      default: m.OptionalSchedulePanel,
-    })),
-  { loading: () => null },
 );
 
 export function SourdoughApp() {
@@ -68,25 +57,6 @@ export function SourdoughApp() {
     empty: <WelcomeEmptyState />,
     hero: <ResultsHero form={form} />,
     recipe: <RecipeResultsDetails form={form} />,
-    timeline: (
-      <div className="space-y-4">
-        <StarterFloatTestAlert />
-        <BakingTimeline
-          dough={{
-            starterPct: form.starterPct,
-            waterPct: form.waterPct,
-            flourPcts: form.flourDraft,
-            roomTempC: form.roomTemp,
-            hoursToAutolyse: form.hoursToAutolyse,
-            coldRetardHours: form.coldRetardHours,
-            fermentationPace: form.fermentationPace,
-          }}
-          showFloatTestReminder
-          onAlarmResult={(type) => form.showToast(alarmToastMessage(type))}
-        />
-        <OptionalSchedulePanel form={form} />
-      </div>
-    ),
     starter: <StarterPanel form={form} />,
     guide: form.showGuide ? (
       <div className="app-card p-4 sm:p-6">

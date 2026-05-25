@@ -11,63 +11,18 @@ import {
 } from "@/lib/flour";
 import { STORAGE_KEY } from "@/lib/recipeState.types";
 import {
-  buildTimelineInputWithPace,
   type FermentationPace,
   type StarterRatioPreset,
 } from "@/lib/expressMode";
-import {
-  findScheduleOptionByTarget,
-  generateScheduleOptions,
-} from "@/lib/scheduleOptions";
-import { buildReverseTimeline } from "@/lib/timeline";
-import {
-  SchedulingEngine,
-  type AdaptiveScheduleResult,
-  type BlackoutPeriod,
-} from "@/lib/scheduling";
-import type { SchedulingEngineInput } from "@/lib/scheduling/types";
-import { MS_MIN } from "@/lib/scheduling/timeUtils";
-import { heContent, t } from "@/lib/content";
+import { heContent } from "@/lib/content";
 import { sumFlourPcts } from "@/lib/flourBalance";
 import { normalizeFlourPercentages } from "@/lib/schemas/recipeParamsSchema";
 import { CUSTOM_FLOUR_NOTE } from "@/lib/validation/recipeValidation";
 
 const toasts = heContent.toasts;
 
-const BLACKOUTS_STORAGE_KEY = "sourdough-blackouts-v1";
-
-function isValidBlackout(entry: unknown): entry is BlackoutPeriod {
-  if (!entry || typeof entry !== "object") return false;
-  const b = entry as BlackoutPeriod;
-  return (
-    typeof b.id === "string" &&
-    typeof b.label === "string" &&
-    typeof b.startMinutes === "number" &&
-    typeof b.endMinutes === "number" &&
-    Number.isFinite(b.startMinutes) &&
-    Number.isFinite(b.endMinutes)
-  );
-}
-
-function loadBlackouts(): BlackoutPeriod[] {
-  if (typeof window === "undefined") return SchedulingEngine.defaultBlackouts();
-  try {
-    const raw = localStorage.getItem(BLACKOUTS_STORAGE_KEY);
-    if (!raw) return SchedulingEngine.defaultBlackouts();
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return SchedulingEngine.defaultBlackouts();
-    }
-    const valid = parsed.filter(isValidBlackout);
-    if (valid.length === 0) return SchedulingEngine.defaultBlackouts();
-    return valid;
-  } catch {
-    return SchedulingEngine.defaultBlackouts();
-  }
-}
-import type { ScheduleOption } from "@/lib/scheduleOptions";
 import type { BakingWeatherPlan } from "@/lib/weatherPlan";
-import type { DoughResult, PresetKey, TimelinePlan } from "@/lib/types";
+import type { PresetKey } from "@/lib/types";
 import { useRecipeParams } from "@/hooks/useRecipeParams";
 import { recipeStateToUrlRecord } from "@/lib/urlRecipeCodec";
 import { saveRecipeStateToStorage } from "@/lib/recipeState";
@@ -85,14 +40,6 @@ export function useRecipeForm() {
   const [presetNote, setPresetNote] = useState(FLOUR_PRESETS.classic.note);
   const [showGuide, setShowGuide] = useState(false);
   const [starterOnlyMode, setStarterOnlyMode] = useState(false);
-  const [bulkHoursOverride, setBulkHoursOverride] = useState<number | null>(
-    null,
-  );
-  const [timelinePlan, setTimelinePlan] = useState<TimelinePlan | null>(null);
-  const [adaptiveSchedule, setAdaptiveSchedule] =
-    useState<AdaptiveScheduleResult | null>(null);
-  const [blackouts, setBlackoutsState] = useState<BlackoutPeriod[]>(loadBlackouts);
-  const [showTimeline, setShowTimeline] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [flourDraft, setFlourDraft] = useState<number[]>(() => [
     ...state.flourBlend.percentages,
@@ -139,7 +86,6 @@ export function useRecipeForm() {
   const waterPct = math.waterPercent;
   const starterPct = math.starterPercent;
   const saltPct = math.saltPercent;
-  const targetBakeTime = state.schedule.targetBakeTime;
   const coldRetardHours = state.schedule.coldRetardHours;
   const hoursToAutolyse = state.schedule.hoursToAutolyse;
   const roomTemp = state.schedule.roomTempC;
@@ -154,72 +100,6 @@ export function useRecipeForm() {
 
   const mix = useMemo(() => buildFlourMix(flourDraft), [flourDraft]);
   const committedMix = useMemo(() => buildFlourMix(flourPcts), [flourPcts]);
-
-  const setBlackouts = useCallback((next: BlackoutPeriod[]) => {
-    setBlackoutsState(next);
-    try {
-      localStorage.setItem(BLACKOUTS_STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const timelineInput = useMemo(() => {
-    const base = {
-      targetBakeTime,
-      coldRetardHours,
-      starterPct,
-      waterPct,
-      roomTemp,
-      hoursToAutolyse,
-      flourPcts,
-      fermentationPace,
-      ...(bulkHoursOverride != null ? { bulkHours: bulkHoursOverride } : {}),
-    };
-    return buildTimelineInputWithPace(base);
-  }, [
-    targetBakeTime,
-    coldRetardHours,
-    starterPct,
-    waterPct,
-    roomTemp,
-    hoursToAutolyse,
-    flourPcts,
-    bulkHoursOverride,
-    fermentationPace,
-  ]);
-
-  const schedulingEngineInput = useMemo((): SchedulingEngineInput => {
-    return {
-      ...timelineInput,
-      blackouts,
-      earliestStartMs: Date.now(),
-    };
-  }, [timelineInput, blackouts]);
-
-  const applyAdaptiveResult = useCallback((result: AdaptiveScheduleResult) => {
-    setAdaptiveSchedule(result);
-    setTimelinePlan(result.plan);
-    setShowTimeline(true);
-    if (Math.abs(result.applied.bulkHoursDelta) > 0.05) {
-      setBulkHoursOverride(
-        Math.round(result.plan.summary.bulkHours * 10) / 10,
-      );
-    }
-    if (Math.abs(result.applied.bakeShiftMs) > MS_MIN) {
-      const bakeEnd = new Date(result.plan.summary.bakeEnd);
-      const y = bakeEnd.getFullYear();
-      const mo = String(bakeEnd.getMonth() + 1).padStart(2, "0");
-      const d = String(bakeEnd.getDate()).padStart(2, "0");
-      const h = String(bakeEnd.getHours()).padStart(2, "0");
-      const mi = String(bakeEnd.getMinutes()).padStart(2, "0");
-      patchState({
-        schedule: {
-          targetBakeTime: `${y}-${mo}-${d}T${h}:${mi}`,
-        },
-      });
-    }
-  }, [patchState]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -306,10 +186,6 @@ export function useRecipeForm() {
     [patchState, state.flourBlend],
   );
 
-  const setTargetBakeTime = useCallback(
-    (v: string) => patchState({ schedule: { targetBakeTime: v } }),
-    [patchState],
-  );
   const setColdRetardHours = useCallback(
     (v: number) => patchState({ schedule: { coldRetardHours: v } }),
     [patchState],
@@ -375,41 +251,6 @@ export function useRecipeForm() {
     [patchState, state.flourBlend],
   );
 
-  const rebuildTimeline = useCallback(
-    (silent: boolean) => {
-      const result = SchedulingEngine.buildAdaptivePlan(schedulingEngineInput);
-      if (!result) {
-        if (!silent) {
-          if (!targetBakeTime) showToast(toasts.selectBakeTime);
-          else showToast(toasts.invalidDateTime);
-        }
-        return null;
-      }
-      applyAdaptiveResult(result);
-      if (!silent && result.adaptations.length > 0) {
-        const first = result.adaptations[0];
-        if (first.id !== "unresolved") {
-          showToast(first.message);
-        }
-      }
-      return result.plan;
-    },
-    [
-      schedulingEngineInput,
-      applyAdaptiveResult,
-      targetBakeTime,
-      showToast,
-    ],
-  );
-
-  const applyAdaptiveSchedule = useCallback(
-    (next: AdaptiveScheduleResult) => {
-      applyAdaptiveResult(next);
-      schedulePersist();
-    },
-    [applyAdaptiveResult, schedulePersist],
-  );
-
   useEffect(() => {
     if (!hydrated || initDone.current) return;
     initDone.current = true;
@@ -447,28 +288,6 @@ export function useRecipeForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated]);
 
-  const buildSimpleTimeline = useCallback(() => {
-    if (!targetBakeTime.trim()) {
-      showToast(toasts.selectBakeTime);
-      return null;
-    }
-    try {
-      const plan = buildReverseTimeline(timelineInput);
-      if (!plan) {
-        showToast(toasts.invalidDateTime);
-        return null;
-      }
-      setTimelinePlan(plan);
-      setAdaptiveSchedule(null);
-      setShowTimeline(true);
-      return plan;
-    } catch (err) {
-      console.error("buildReverseTimeline failed", err);
-      showToast(toasts.invalidDateTime);
-      return null;
-    }
-  }, [targetBakeTime, timelineInput, showToast]);
-
   const runCalculate = useCallback(() => {
     commitFlourPcts(flourDraft);
     const dough = math.calculate();
@@ -482,7 +301,7 @@ export function useRecipeForm() {
     persistState(true);
 
     requestAnimationFrame(() => {
-      document.getElementById("recipe-results")?.scrollIntoView({
+      document.getElementById("section-guide")?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
@@ -506,19 +325,6 @@ export function useRecipeForm() {
     [flourDraft],
   );
 
-  const handleBuildTimeline = useCallback(() => {
-    const plan = rebuildTimeline(false);
-    if (plan) {
-      setState({ ...state, calculated: showResults });
-      setTimeout(() => {
-        document.getElementById("section-schedule")?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 80);
-    }
-  }, [rebuildTimeline, setState, state, showResults]);
-
   const handleCopyLink = useCallback(async () => {
     commitStateToUrl((prev) => ({
       ...prev,
@@ -533,80 +339,14 @@ export function useRecipeForm() {
     }
   }, [commitStateToUrl, showResults, showToast]);
 
-  const selectScheduleOption = useCallback(
-    (option: ScheduleOption) => {
-      if (!option.feasible) {
-        showToast(option.infeasibleReason ?? toasts.scheduleUnavailable);
-        return;
-      }
-      setTargetBakeTime(option.targetBakeTime);
-      setColdRetardHours(option.coldRetardHours);
-      setFermentationPace(option.isExpress ? "express" : "standard");
-      if (option.isExpress) {
-        setStarterRatioPreset("equal");
-      }
-      const result = SchedulingEngine.buildAdaptivePlan({
-        ...schedulingEngineInput,
-        targetBakeTime: option.targetBakeTime,
-        coldRetardHours: option.coldRetardHours,
-        fermentationPace: option.isExpress ? "express" : "standard",
-      });
-      if (result) applyAdaptiveResult(result);
-      else {
-        setTimelinePlan(option.plan);
-        setShowTimeline(true);
-      }
-      setState({ ...state, calculated: showResults });
-    },
-    [
-      setTargetBakeTime,
-      setColdRetardHours,
-      setFermentationPace,
-      setStarterRatioPreset,
-      schedulingEngineInput,
-      applyAdaptiveResult,
-      setState,
-      state,
-      showResults,
-      showToast,
-    ],
-  );
-
   const applyWeatherPlan = useCallback(
     (plan: BakingWeatherPlan) => {
       setStarterPct(plan.starterPct);
       setRoomTemp(plan.roomTemp);
       setHoursToAutolyse(plan.hoursToAutolyse);
-      setBulkHoursOverride(plan.bulkHours);
       setState({ ...state, calculated: showResults });
-
-      if (targetBakeTime && showTimeline) {
-        const nextInput = {
-          ...timelineInput,
-          starterPct: plan.starterPct,
-          roomTemp: plan.roomTemp,
-          hoursToAutolyse: plan.hoursToAutolyse,
-          bulkHours: plan.bulkHours,
-          starterPeakHours: plan.hoursToAutolyse,
-        };
-        const rebuilt = buildReverseTimeline(nextInput);
-        if (rebuilt) {
-          setTimelinePlan(rebuilt);
-          setShowTimeline(true);
-        }
-      }
     },
-    [
-      setStarterPct,
-      setRoomTemp,
-      setHoursToAutolyse,
-      setState,
-      state,
-      showResults,
-      targetBakeTime,
-      timelineInput,
-      showTimeline,
-    ],
+    [setStarterPct, setRoomTemp, setHoursToAutolyse, setState, state, showResults],
   );
 
   const openStarterOnlyGuide = useCallback(() => {
@@ -653,8 +393,6 @@ export function useRecipeForm() {
     runCalculate,
     presetNote,
     setPresetNote,
-    targetBakeTime,
-    setTargetBakeTime,
     coldRetardHours,
     setColdRetardHours,
     hoursToAutolyse,
@@ -671,21 +409,12 @@ export function useRecipeForm() {
     starterOnlyMode,
     openStarterOnlyGuide,
     applyWeatherPlan,
-    selectScheduleOption,
-    timelineInput,
     fermentationPace,
     setFermentationPace,
     starterRatioPreset,
     setStarterRatioPreset,
     results,
     showResults,
-    timelinePlan,
-    adaptiveSchedule,
-    applyAdaptiveSchedule,
-    blackouts,
-    setBlackouts,
-    schedulingEngineInput,
-    showTimeline,
     mix,
     toast,
     showToast,
@@ -693,11 +422,8 @@ export function useRecipeForm() {
     schedulePersist,
     persistState,
     handleCalculate,
-    handleBuildTimeline,
     handleCopyLink,
     handleClearStorage,
-    rebuildTimeline,
-    buildSimpleTimeline,
     recipeParams: state,
     isParamsReady: hydrated,
     sourdoughMath: math,
