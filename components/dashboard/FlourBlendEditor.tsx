@@ -68,7 +68,8 @@ export function FlourBlendEditor({
             type="button"
             onClick={() => handlePreset(opt.value)}
             className={cn(
-              "min-h-11 rounded-sm border px-4 py-2.5 text-sm font-medium transition-colors",
+              "min-h-11 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+              inSidebar && "px-2.5 py-2 text-xs",
               preset === opt.value
                 ? "brand-choice-active"
                 : "brand-choice-idle",
@@ -120,6 +121,7 @@ export function FlourBlendEditor({
             minusLabel={`הפחת ${field.label}`}
             plusLabel={`הוסף ${field.label}`}
             compact
+            narrow={inSidebar}
           />
         ))}
       </div>

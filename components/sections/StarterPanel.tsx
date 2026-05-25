@@ -11,7 +11,13 @@ import type { StarterFeedResult } from "@/lib/starter";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import { cn } from "@/lib/cn";
 
-export function StarterPanel({ form }: { form: RecipeForm }) {
+export function StarterPanel({
+  form,
+  inSidebar = false,
+}: {
+  form: RecipeForm;
+  inSidebar?: boolean;
+}) {
   const [starterResult, setStarterResult] = useState<StarterFeedResult | null>(
     null,
   );
@@ -115,7 +121,12 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
           </span>
         </label>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-5",
+            !inSidebar && "sm:grid-cols-2",
+          )}
+        >
           <div
             className={cn(
               useRecipeStarter && "pointer-events-none opacity-50",
@@ -134,6 +145,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
               minusLabel="הפחת מחמצת"
               plusLabel="הוסף מחמצת"
               compact
+              narrow={inSidebar}
             />
           </div>
           <SmartNumberInput
@@ -148,6 +160,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
             minusLabel="הפחת"
             plusLabel="הוסף"
             compact
+            narrow={inSidebar}
           />
           <SmartNumberInput
             id="roomTempGuide"
@@ -161,6 +174,7 @@ export function StarterPanel({ form }: { form: RecipeForm }) {
             minusLabel="הפחת טמפרטורה"
             plusLabel="הוסף טמפרטורה"
             compact
+            narrow={inSidebar}
           />
           <div className="col-span-full">
             <RangeSlider

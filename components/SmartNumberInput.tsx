@@ -21,6 +21,8 @@ export interface SmartNumberInputProps {
   onDeferredBlur?: () => void;
   suffix?: string;
   jumpStep?: number;
+  /** Sidebar / narrow column — tighter stepper, no clipping */
+  narrow?: boolean;
   error?: boolean;
   warning?: boolean;
   hint?: string;
@@ -114,11 +116,19 @@ export function SmartNumberInput({
     applyDelta(dir === "plus" ? step : -step);
   };
 
-  const stepBtn =
-    "touch-target inline-flex shrink-0 items-center justify-center rounded-xl border border-border-subtle bg-surface text-text-primary shadow-sm hover:border-accent/40 hover:bg-accent-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
+  const stepBtn = cn(
+    "inline-flex shrink-0 items-center justify-center rounded-lg border border-border-subtle bg-surface text-text-primary shadow-sm",
+    "hover:border-accent/40 hover:bg-accent-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+    narrow
+      ? "h-10 w-10 min-h-10 min-w-10"
+      : "touch-target min-h-11 min-w-11",
+  );
 
-  const jumpPillClass =
-    "touch-target min-h-[44px] rounded-xl border border-border-subtle bg-surface-elevated px-3 text-xs font-semibold text-text-secondary hover:border-accent/40 hover:bg-accent-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent";
+  const jumpPillClass = cn(
+    "rounded-lg border border-border-subtle bg-surface-elevated text-xs font-semibold text-text-secondary",
+    "hover:border-accent/40 hover:bg-accent-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+    narrow ? "min-h-10 flex-1 px-2 py-2" : "touch-target min-h-[44px] px-3",
+  );
 
   return (
     <div className="flex flex-col gap-2">
@@ -126,12 +136,13 @@ export function SmartNumberInput({
         <label
           htmlFor={id}
           className={cn(
-            "text-sm font-medium",
+            "block leading-snug",
+            narrow ? "text-xs font-medium" : "text-sm font-medium",
             error ? "text-error" : warning ? "text-accent" : "text-text-primary",
           )}
         >
           {label}
-          {suffix && (
+          {suffix && !narrow && (
             <span className="ms-1 font-normal text-text-muted">{suffix}</span>
           )}
         </label>
@@ -140,6 +151,9 @@ export function SmartNumberInput({
           {suffix}
         </span>
       ) : null}
+      {label && suffix && narrow && (
+        <span className="-mt-1 block text-xs text-text-muted">{suffix}</span>
+      )}
       {hint && (
         <p
           id={`${id}-hint`}
@@ -154,7 +168,12 @@ export function SmartNumberInput({
           {hint}
         </p>
       )}
-      <div className="@container/stepper flex w-full min-w-0 items-center gap-2">
+      <div
+        className={cn(
+          "flex w-full min-w-0 max-w-full items-center",
+          narrow ? "gap-1.5" : "gap-2 @container/stepper",
+        )}
+      >
         <button type="button" className={stepBtn} onClick={() => adjust("minus")} aria-label={minusLabel}>
           <MinusIcon className={compact ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2} />
         </button>
@@ -207,7 +226,7 @@ export function SmartNumberInput({
         </button>
       </div>
       {jumpStep != null && jumpStep > 0 && (
-        <div className="flex justify-center gap-2">
+        <div className={cn("flex gap-2", narrow ? "w-full" : "justify-center")}>
           <button
             type="button"
             className={jumpPillClass}

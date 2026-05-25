@@ -42,6 +42,7 @@ export function RecipeInputsPanel({
   surface = "default",
 }: RecipeInputsPanelProps) {
   const isSidebar = surface === "sidebar";
+  const fieldNarrow = isSidebar || compact;
   const {
     totalWeight,
     setWeightDraftValue,
@@ -145,6 +146,7 @@ export function RecipeInputsPanel({
               jumpStep={100}
               suffix="גרם"
               compact
+              narrow={fieldNarrow}
               error={validation.fields.totalWeight?.invalid}
               hint={validation.fields.totalWeight?.message}
             />
@@ -192,6 +194,7 @@ export function RecipeInputsPanel({
                 minusLabel={inp.actions.decreaseInoculation}
                 plusLabel={inp.actions.increaseInoculation}
                 compact
+                narrow={fieldNarrow}
                 error={validation.fields.starterPct?.invalid}
                 warning={validation.fields.starterPct?.warning}
                 hint={validation.fields.starterPct?.message}
@@ -211,6 +214,7 @@ export function RecipeInputsPanel({
                 minusLabel={inp.actions.decreaseSalt}
                 plusLabel={inp.actions.increaseSalt}
                 compact
+                narrow={fieldNarrow}
                 error={validation.fields.saltPct?.invalid}
                 warning={validation.fields.saltPct?.warning}
                 hint={validation.fields.saltPct?.message}
@@ -251,6 +255,7 @@ export function RecipeInputsPanel({
               minusLabel={inp.actions.decreaseSalt}
               plusLabel={inp.actions.increaseSalt}
               compact
+              narrow={fieldNarrow}
               error={validation.fields.saltPct?.invalid}
               warning={validation.fields.saltPct?.warning}
               hint={validation.fields.saltPct?.message}
@@ -266,7 +271,7 @@ export function RecipeInputsPanel({
             title="מחמצת (אופציונלי)"
             icon={<BeakerIcon className="h-5 w-5" strokeWidth={1.75} />}
           >
-            <StarterPanel form={form} />
+            <StarterPanel form={form} inSidebar={isSidebar} />
             <div className="mt-4">
               <SmartNumberInput
                 id="keepInJar"
@@ -279,6 +284,7 @@ export function RecipeInputsPanel({
                 minusLabel="הפחת"
                 plusLabel="הוסף"
                 compact
+                narrow={fieldNarrow}
               />
             </div>
           </AccordionItem>

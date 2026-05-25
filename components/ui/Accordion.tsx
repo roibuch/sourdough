@@ -132,15 +132,15 @@ export function AccordionItem({
         aria-labelledby={`${panelId}-trigger`}
         aria-hidden={!isOpen}
         className={cn(
-          "grid transition-[grid-template-rows] duration-200 ease-out",
-          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+          "grid min-w-0 transition-[grid-template-rows] duration-200 ease-out",
+          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr] overflow-hidden",
           !isOpen && "pointer-events-none",
         )}
       >
-        <div className="overflow-hidden">
+        <div className="min-h-0 min-w-0">
           <div
             className={cn(
-              "min-w-0 border-t border-border-subtle px-4 pb-5 pt-4",
+              "min-w-0 max-w-full border-t border-border-subtle px-3 pb-5 pt-4 sm:px-4",
               contentClassName,
             )}
           >

@@ -102,14 +102,14 @@ export function DashboardShell({
         <aside
           className={cn(
             "order-1 w-full min-w-0 shrink-0 overflow-x-hidden lg:order-none",
-            "lg:w-[min(100%,22rem)] lg:max-w-[38%] xl:w-80",
+            "lg:w-[26rem] lg:max-w-[42%] xl:w-[28rem]",
             "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+1rem)]",
             "lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-2rem)]",
             "lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain scrollbar-thin",
           )}
           aria-label={heContent.luxury.editorTitle}
         >
-          <div className="app-card overflow-hidden p-4 sm:p-5">
+          <div className="app-card max-w-full overflow-x-clip p-4 ps-5 pe-4 sm:p-5">
             <h2 className="mb-4 font-serif text-lg font-medium text-text-primary">
               {heContent.luxury.editorTitle}
             </h2>
