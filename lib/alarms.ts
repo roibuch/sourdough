@@ -46,19 +46,15 @@ export const isIOSDevice = isIOS;
 export function buildPrimaryAndroidAlarmUri(
   timestampMs: number,
   message: string,
-  fallbackUrl?: string,
 ): string {
   const date = new Date(timestampMs);
   const hours = Math.max(0, Math.min(23, date.getHours()));
   const minutes = Math.max(0, Math.min(59, date.getMinutes()));
   const msg = encodeURIComponent(message.slice(0, 120));
-  const fallbackExtra = fallbackUrl
-    ? `;S.browser_fallback_url=${encodeURIComponent(fallbackUrl)}`
-    : "";
 
   return (
     `intent://set_alarm?hour=${hours}&minute=${minutes}&message=${msg}` +
-    `#Intent;scheme=android-app;action=android.intent.action.SET_ALARM${fallbackExtra};end;`
+    "#Intent;scheme=android-app;action=android.intent.action.SET_ALARM;end;"
   );
 }
 
@@ -76,15 +72,11 @@ export function buildPrimaryAndroidAlarmUriParts(
 export function buildAndroidAlarmIntents(
   timestampMs: number,
   message: string,
-  fallbackUrl?: string,
 ): string[] {
   const date = new Date(timestampMs);
   const h = Math.max(0, Math.min(23, date.getHours()));
   const m = Math.max(0, Math.min(59, date.getMinutes()));
   const msg = encodeURIComponent(message.slice(0, 120));
-  const fallbackExtra = fallbackUrl
-    ? `S.browser_fallback_url=${encodeURIComponent(fallbackUrl)};`
-    : "";
 
   const base =
     `i.android.intent.extra.alarm.HOUR=${h};` +
@@ -94,36 +86,29 @@ export function buildAndroidAlarmIntents(
     `i.android.intent.extra.MINUTES=${m};`;
 
   return [
-    buildPrimaryAndroidAlarmUri(timestampMs, message, fallbackUrl),
-    `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.google.android.deskclock;${base}${fallbackExtra}end`,
-    `intent:#Intent;action=android.intent.action.SET_ALARM;${base}${fallbackExtra}end`,
-    `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.sec.android.app.clockpackage;${base}${fallbackExtra}end`,
+    buildPrimaryAndroidAlarmUri(timestampMs, message),
+    `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.google.android.deskclock;${base}end`,
+    `intent:#Intent;action=android.intent.action.SET_ALARM;${base}end`,
+    `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.sec.android.app.clockpackage;${base}end`,
   ];
 }
 
-/** Best href for a real <a> tap — Chrome requires user gesture, not location.assign. */
+/** Legacy-compatible SET_ALARM intent (no browser_fallback_url — avoids PWA reload). */
 export function getAndroidAlarmHref(
   timestampMs: number,
   message: string,
 ): string {
-  const fallback =
-    typeof window !== "undefined"
-      ? window.location.href
-      : "https://roibuch.github.io/sourdough/";
-  const intents = buildAndroidAlarmIntents(timestampMs, message, fallback);
-  const deskclock = intents.find((u) =>
-    u.includes("com.google.android.deskclock"),
-  );
-  return deskclock ?? intents[0];
+  return buildPrimaryAndroidAlarmUri(timestampMs, message);
 }
 
 /**
- * Programmatic anchor click — fallback when a visible <a> is not used.
- * Do not use window.location.href (Chrome blocks intents without anchor gesture).
+ * Open Clock intent from a button click without navigating the PWA frame.
+ * Uses target=_blank so standalone PWAs do not reload on failed intents.
  */
 export function launchAndroidIntentViaAnchor(uri: string): void {
   const anchor = document.createElement("a");
   anchor.href = uri;
+  anchor.target = "_blank";
   anchor.rel = "noopener noreferrer";
   anchor.style.display = "none";
   document.body.appendChild(anchor);

@@ -25,19 +25,18 @@ describe("buildAndroidAlarmIntents", () => {
     expect(uris.length).toBeGreaterThan(1);
   });
 
-  it("adds browser_fallback_url when fallback provided", () => {
+  it("does not add browser_fallback_url (avoids PWA reload loop)", () => {
     const ts = new Date(2026, 4, 20, 8, 5, 0, 0).getTime();
-    const uri = buildPrimaryAndroidAlarmUri(ts, "test", "https://example.com/app");
-    expect(uri).toContain("S.browser_fallback_url=");
-    expect(uri).toContain(encodeURIComponent("https://example.com/app"));
+    const uri = buildPrimaryAndroidAlarmUri(ts, "test");
+    expect(uri).not.toContain("browser_fallback_url");
   });
 });
 
 describe("getAndroidAlarmHref", () => {
-  it("prefers Google Deskclock package intent", () => {
+  it("uses legacy set_alarm intent format", () => {
     const ts = new Date(2026, 4, 20, 8, 5, 0, 0).getTime();
     const href = getAndroidAlarmHref(ts, "test");
-    expect(href).toContain("com.google.android.deskclock");
+    expect(href).toContain("intent://set_alarm");
     expect(href).toContain("SET_ALARM");
   });
 });

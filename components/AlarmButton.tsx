@@ -10,6 +10,7 @@ import {
   getAndroidAlarmHref,
   isAndroid,
   isIOS,
+  launchAndroidIntentViaAnchor,
   openGoogleCalendarEvent,
   scheduleTimestampTriggerNotification,
   scheduleWebNotification,
@@ -38,14 +39,7 @@ export function AlarmButton({
   const [busy, setBusy] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
   const mobile = isAndroid() || isIOS();
-  const isValidFuture =
-    Boolean(timestampMs) &&
-    !Number.isNaN(timestampMs) &&
-    timestampMs > Date.now();
-  const androidHref =
-    isAndroid() && isValidFuture
-      ? getAndroidAlarmHref(timestampMs, message)
-      : null;
+  const android = isAndroid();
 
   const notify = (result: AlarmResult) => {
     onResult?.(result);
@@ -104,6 +98,17 @@ export function AlarmButton({
       return;
     }
 
+    if (android) {
+      try {
+        launchAndroidIntentViaAnchor(getAndroidAlarmHref(timestampMs, message));
+        window.setTimeout(() => notify("android"), 300);
+      } catch {
+        fallbackToIcsSync();
+        notify("android-fallback");
+      }
+      return;
+    }
+
     setBusy(true);
     void handleIOSAndDesktopFlow()
       .catch(() => {
@@ -136,38 +141,21 @@ export function AlarmButton({
 
   return (
     <div className={cn("inline-flex flex-col gap-1.5", compact && "w-full min-w-0")}>
-      {androidHref ? (
-        <a
-          href={androidHref}
-          className={cn(
-            btnClass,
-            "bg-accent shadow-sm hover:bg-accent-hover no-underline",
-            compact && "w-full justify-center",
-          )}
-          title={alarmTimeTitle(timestampMs)}
-          aria-label={`${alarmUi.clock} · ${shortLabel}`}
-          onClick={() => notify("android")}
-        >
-          <ClockIcon className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
-          <span>{alarmLabel}</span>
-        </a>
-      ) : (
-        <button
-          type="button"
-          disabled={busy}
-          className={cn(
-            btnClass,
-            "bg-accent shadow-sm hover:bg-accent-hover",
-            compact && "w-full justify-center",
-          )}
-          title={alarmTimeTitle(timestampMs)}
-          onClick={handleAlarmClick}
-          aria-label={`${alarmUi.clock} · ${shortLabel}`}
-        >
-          <ClockIcon className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
-          <span>{alarmLabel}</span>
-        </button>
-      )}
+      <button
+        type="button"
+        disabled={busy}
+        className={cn(
+          btnClass,
+          "bg-accent shadow-sm hover:bg-accent-hover",
+          compact && "w-full justify-center",
+        )}
+        title={alarmTimeTitle(timestampMs)}
+        onClick={handleAlarmClick}
+        aria-label={`${alarmUi.clock} · ${shortLabel}`}
+      >
+        <ClockIcon className="h-5 w-5 shrink-0" strokeWidth={2} aria-hidden />
+        <span>{alarmLabel}</span>
+      </button>
 
       {mobile && !compact && (
         <>
