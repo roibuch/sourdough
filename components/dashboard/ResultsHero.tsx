@@ -30,9 +30,7 @@ export function ResultsHero({ form }: { form: RecipeForm }) {
     <section
       id="recipe-results"
       aria-live="polite"
-      className={cn(
-        "results-hero-enter w-full px-4 py-6 sm:px-6 sm:py-8 lg:min-h-[min(68vh,36rem)] lg:px-10 lg:py-10",
-      )}
+      className={cn("results-hero-enter w-full")}
     >
       <p className="mb-4 text-sm font-medium text-text-secondary lg:mb-6">
         המתכון שלכם

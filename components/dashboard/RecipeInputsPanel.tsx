@@ -9,8 +9,6 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
-import { alarmToastMessage } from "@/components/AlarmButton";
-import { BakingTimeline } from "@/components/BakingTimeline";
 import { FlourBlendEditor } from "@/components/dashboard/FlourBlendEditor";
 import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
@@ -285,24 +283,6 @@ export function RecipeInputsPanel({
           </AccordionItem>
         )}
       </Accordion>
-
-      {!compact && (
-      <div className={cn(isSidebar && "lg:hidden")}>
-        <BakingTimeline
-          dough={{
-            starterPct,
-            waterPct,
-            flourPcts: flourDraft,
-            roomTempC: roomTemp,
-            hoursToAutolyse,
-            coldRetardHours,
-            fermentationPace,
-          }}
-          showFloatTestReminder={false}
-          onAlarmResult={(type) => showToast(alarmToastMessage(type))}
-        />
-      </div>
-      )}
 
       {isSidebar && (
         <div className="hidden lg:block">

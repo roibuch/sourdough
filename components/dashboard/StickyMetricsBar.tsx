@@ -43,8 +43,8 @@ export function StickyMetricsBar({ form }: { form: RecipeForm }) {
   return (
     <div
       className={cn(
-        "sticky top-14 z-20 border-b border-warm-border/60",
-        "bg-dough/85 px-3 py-2 backdrop-blur-xl sm:top-16 sm:px-6 sm:py-2.5",
+        "sticky top-14 z-20 border-b border-border-subtle",
+        "bg-surface/90 px-3 py-2 backdrop-blur-xl sm:top-16 sm:px-6 sm:py-2.5",
       )}
       aria-live="polite"
       aria-atomic="true"
@@ -62,7 +62,7 @@ export function StickyMetricsBar({ form }: { form: RecipeForm }) {
           />
           <MetricPill
             icon={<BeakerIcon className="h-4 w-4" />}
-            label="הידרציה"
+            label="אחוז נוזלים"
             value={
               metrics.hydrationPercent != null
                 ? `${metrics.hydrationPercent}%`
@@ -75,8 +75,8 @@ export function StickyMetricsBar({ form }: { form: RecipeForm }) {
           className={cn(
             "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide",
             metrics.isCalculated
-              ? "bg-wheat-muted text-crust ring-1 ring-wheat/50"
-              : "bg-wheat/30 text-crust-dark",
+              ? "bg-accent-muted text-accent ring-1 ring-accent/20"
+              : "bg-stone-100 text-text-secondary",
           )}
         >
           {metrics.label}
@@ -100,21 +100,21 @@ function MetricPill({
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 shadow-sm backdrop-blur-md",
+        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 shadow-sm",
         highlight
-          ? "border-wheat/70 bg-wheat-muted/90 shadow-[0_0_10px_rgb(212_165_116_/_0.25)]"
-          : "border-warm-border/80 bg-white/80",
+          ? "border-accent/30 bg-accent-muted"
+          : "border-border-subtle bg-surface",
       )}
     >
-      <span className="text-crust" aria-hidden>
+      <span className="text-accent" aria-hidden>
         {icon}
       </span>
-      <span className="text-xs font-medium text-charcoal-muted">{label}</span>
+      <span className="text-xs font-medium text-text-muted">{label}</span>
       <MorphingValue
         value={value}
         className={cn(
-          "font-serif text-sm font-semibold",
-          highlight ? "text-crust" : "text-charcoal",
+          "font-serif text-sm font-semibold tabular-nums",
+          highlight ? "text-accent" : "text-text-primary",
         )}
       />
     </div>

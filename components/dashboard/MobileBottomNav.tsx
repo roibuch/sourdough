@@ -37,8 +37,8 @@ export function MobileBottomNav({
   return (
     <nav
       className={cn(
-        "fixed inset-x-0 bottom-0 z-40 border-t border-warm-border/80 lg:hidden",
-        "bg-dough/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl",
+        "fixed inset-x-0 bottom-0 z-40 border-t border-border-subtle lg:hidden",
+        "bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl",
       )}
       aria-label="ניווט ראשי"
     >
@@ -52,10 +52,10 @@ export function MobileBottomNav({
               type="button"
               onClick={() => onSelect(tab.id)}
               className={cn(
-                "flex min-h-[3rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-2xl px-0.5 py-1.5 transition sm:min-h-[3.25rem] sm:px-1 sm:py-2",
+                "flex min-h-[3rem] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-0.5 py-1.5 transition sm:min-h-[3.25rem] sm:px-1 sm:py-2",
                 isActive
-                  ? "bg-wheat-muted text-crust shadow-[0_0_12px_rgb(212_165_116_/_0.35)] ring-1 ring-wheat/60"
-                  : "text-charcoal-muted hover:bg-wheat-muted/40",
+                  ? "bg-accent-muted text-accent ring-1 ring-accent/25"
+                  : "text-text-muted hover:bg-stone-50 hover:text-text-primary",
               )}
               aria-current={isActive ? "page" : undefined}
             >

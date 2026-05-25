@@ -34,7 +34,7 @@ export function DesktopViewTabs({
 
   return (
     <nav
-      className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-warm-border/80 bg-white/60 p-1.5 shadow-sm backdrop-blur-sm"
+      className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-border-subtle bg-surface p-1.5 shadow-sm"
       aria-label="תצוגת תוכן ראשי"
     >
       {tabs.map((tab) => {
@@ -49,8 +49,8 @@ export function DesktopViewTabs({
             className={cn(
               "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition sm:flex-none",
               isActive
-                ? "bg-crust text-dough shadow-md shadow-crust/20"
-                : "text-charcoal-muted hover:bg-wheat-muted/60 hover:text-charcoal",
+                ? "bg-accent text-white shadow-sm"
+                : "text-text-secondary hover:bg-accent-muted/60 hover:text-text-primary",
             )}
           >
             <Icon className="h-5 w-5 shrink-0" strokeWidth={isActive ? 2 : 1.5} />

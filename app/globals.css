@@ -104,9 +104,9 @@
 
   .dashboard-shell {
     --shell-header-h: 3.5rem;
-    --shell-metrics-h: 0px;
+    --shell-metrics-h: 2.75rem;
     --shell-nav-h: 3.75rem;
-    --shell-sticky-cta-h: 3.75rem;
+    --shell-sticky-cta-h: 3.5rem;
   }
 
   @media (min-width: 640px) {
