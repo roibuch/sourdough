@@ -46,15 +46,19 @@ export const isIOSDevice = isIOS;
 export function buildPrimaryAndroidAlarmUri(
   timestampMs: number,
   message: string,
+  fallbackUrl?: string,
 ): string {
   const date = new Date(timestampMs);
   const hours = Math.max(0, Math.min(23, date.getHours()));
   const minutes = Math.max(0, Math.min(59, date.getMinutes()));
   const msg = encodeURIComponent(message.slice(0, 120));
+  const fallbackExtra = fallbackUrl
+    ? `;S.browser_fallback_url=${encodeURIComponent(fallbackUrl)}`
+    : "";
 
   return (
     `intent://set_alarm?hour=${hours}&minute=${minutes}&message=${msg}` +
-    "#Intent;scheme=android-app;action=android.intent.action.SET_ALARM;end;"
+    `#Intent;scheme=android-app;action=android.intent.action.SET_ALARM${fallbackExtra};end;`
   );
 }
 
@@ -72,11 +76,15 @@ export function buildPrimaryAndroidAlarmUriParts(
 export function buildAndroidAlarmIntents(
   timestampMs: number,
   message: string,
+  fallbackUrl?: string,
 ): string[] {
   const date = new Date(timestampMs);
   const h = Math.max(0, Math.min(23, date.getHours()));
   const m = Math.max(0, Math.min(59, date.getMinutes()));
   const msg = encodeURIComponent(message.slice(0, 120));
+  const fallbackExtra = fallbackUrl
+    ? `S.browser_fallback_url=${encodeURIComponent(fallbackUrl)};`
+    : "";
 
   const base =
     `i.android.intent.extra.alarm.HOUR=${h};` +
@@ -86,49 +94,54 @@ export function buildAndroidAlarmIntents(
     `i.android.intent.extra.MINUTES=${m};`;
 
   return [
-    buildPrimaryAndroidAlarmUri(timestampMs, message),
-    `intent:#Intent;action=android.intent.action.SET_ALARM;${base}end`,
-    `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.google.android.deskclock;${base}end`,
-    `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.sec.android.app.clockpackage;${base}end`,
+    buildPrimaryAndroidAlarmUri(timestampMs, message, fallbackUrl),
+    `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.google.android.deskclock;${base}${fallbackExtra}end`,
+    `intent:#Intent;action=android.intent.action.SET_ALARM;${base}${fallbackExtra}end`,
+    `intent:#Intent;action=android.intent.action.SET_ALARM;package=com.sec.android.app.clockpackage;${base}${fallbackExtra}end`,
   ];
 }
 
-/** Synchronous — preserves user activation on Android Chrome. */
-export function openAndroidClockAlarm(timestampMs: number, message: string): void {
-  window.location.href = buildPrimaryAndroidAlarmUri(timestampMs, message);
+/** Best href for a real <a> tap — Chrome requires user gesture, not location.assign. */
+export function getAndroidAlarmHref(
+  timestampMs: number,
+  message: string,
+): string {
+  const fallback =
+    typeof window !== "undefined"
+      ? window.location.href
+      : "https://roibuch.github.io/sourdough/";
+  const intents = buildAndroidAlarmIntents(timestampMs, message, fallback);
+  const deskclock = intents.find((u) =>
+    u.includes("com.google.android.deskclock"),
+  );
+  return deskclock ?? intents[0];
 }
 
 /**
- * Try several Clock intents in one click (location + hidden iframes).
- * Must stay synchronous — no await before navigation.
+ * Programmatic anchor click — fallback when a visible <a> is not used.
+ * Do not use window.location.href (Chrome blocks intents without anchor gesture).
  */
+export function launchAndroidIntentViaAnchor(uri: string): void {
+  const anchor = document.createElement("a");
+  anchor.href = uri;
+  anchor.rel = "noopener noreferrer";
+  anchor.style.display = "none";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
+/** @deprecated Prefer visible <a href={getAndroidAlarmHref(...)}> */
+export function openAndroidClockAlarm(timestampMs: number, message: string): void {
+  launchAndroidIntentViaAnchor(getAndroidAlarmHref(timestampMs, message));
+}
+
+/** @deprecated Prefer visible <a href={getAndroidAlarmHref(...)}> */
 export function openAndroidClockAlarmMultiSync(
   timestampMs: number,
   message: string,
 ): void {
-  const uris = buildAndroidAlarmIntents(timestampMs, message);
-  try {
-    window.location.href = uris[0];
-  } catch {
-    try {
-      window.location.assign(uris[0]);
-    } catch {
-      /* blocked */
-    }
-  }
-  for (let i = 1; i < uris.length; i++) {
-    try {
-      const iframe = document.createElement("iframe");
-      iframe.setAttribute("aria-hidden", "true");
-      iframe.style.cssText =
-        "position:absolute;width:0;height:0;border:0;visibility:hidden";
-      iframe.src = uris[i];
-      document.body.appendChild(iframe);
-      window.setTimeout(() => iframe.remove(), 2000);
-    } catch {
-      /* alternate package unavailable */
-    }
-  }
+  launchAndroidIntentViaAnchor(getAndroidAlarmHref(timestampMs, message));
 }
 
 export function supportsScheduledNotifications(): boolean {
