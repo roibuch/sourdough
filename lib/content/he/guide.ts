@@ -22,7 +22,10 @@ export const GUIDE_HE = {
   masses: {
     title: "כמויות לשלבים",
     autolyse: "אוטוליזה: {flour} גרם קמח + {water} גרם מים",
+    fermentolyse:
+      "פרמנטוליזה: {flour} גרם קמח + {water} גרם מים + {starter} גרם מחמצת",
     mix: "לישה סופית: {starter} גרם מחמצת, {salt} גרם מלח{bassinage}",
+    mixFermentolyse: "אחרי המנוחה: {salt} גרם מלח{bassinage}",
     bassinage: ", ו־{hold} גרם מים (בסינאז׳)",
   },
   tipBassinage:

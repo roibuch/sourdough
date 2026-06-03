@@ -5,6 +5,7 @@ import {
   pickStarterFeedRatio,
 } from "@/lib/fermentationTiming";
 import { describeFlourMix, getHydrationRecommendation } from "@/lib/flour";
+import { isFermentolyse, type RestMethod } from "@/lib/restMethod";
 import { getDoughWorkflow } from "@/lib/workflow";
 import type { DoughWorkflow, FlourMix } from "@/lib/types";
 
@@ -59,7 +60,9 @@ export function buildBakingGuidePlan(input: {
   hoursToAutolyse: number;
   coldRetardHours: number;
   fermentationPace: FermentationPace;
+  restMethod?: RestMethod;
 }): BakingGuidePlan {
+  const fermentolyse = isFermentolyse(input.restMethod ?? "autolyse");
   const adj = applyExpressToTimeline({
     targetBakeTime: "",
     coldRetardHours: input.coldRetardHours,
@@ -120,43 +123,86 @@ export function buildBakingGuidePlan(input: {
         },
       ],
     },
-    {
-      id: "autolyse",
-      icon: "🥣",
-      title: "מנוחת בצק ראשונית (אוטוליזה)",
-      timerMinutes: autolyseTimerMin,
-      duration: formatMinutesHours(adj.autolyseHours),
-      summary: "קמח + מים בלבד, בלי מחמצת ובלי מלח. מחזקים את הגלוטן לפני הלישה הסופית.",
-      details: [
-        {
-          title: "להאריך",
-          body: "30–90 דקות לרוב המתכונים; בצקים עם הרבה מלא או קמח חלש — עד 2 שעות.",
+    fermentolyse
+      ? {
+          id: "rest",
+          icon: "🥣",
+          title: "מנוחת בצק (פרמנטוליזה)",
+          timerMinutes: autolyseTimerMin,
+          duration: formatMinutesHours(adj.autolyseHours),
+          summary:
+            "קמח, מים ומחמצת יחד — בלי מלח. התסיסה מתחילה במנוחה; מלח יתווסף אחר כך.",
+          details: [
+            {
+              title: "להאריך",
+              body: "30–60 דקות לרוב; בצקים חלשים — עד 90 דקות. עקבו אחרי נפח וריח.",
+            },
+            {
+              title: "לפי ההידרציה",
+              body: `טווח מומלץ לתערובת: ${hydration.low}–${hydration.high}% (הגדרתכם ${input.waterPct}%).`,
+            },
+            {
+              title:
+                input.fermentationPace === "express" ? "קצב מואץ" : "קצב רגיל",
+              body: paceNote,
+            },
+          ],
+        }
+      : {
+          id: "autolyse",
+          icon: "🥣",
+          title: "מנוחת בצק ראשונית (אוטוליזה)",
+          timerMinutes: autolyseTimerMin,
+          duration: formatMinutesHours(adj.autolyseHours),
+          summary:
+            "קמח + מים בלבד, בלי מחמצת ובלי מלח. מחזקים את הגלוטן לפני הלישה הסופית.",
+          details: [
+            {
+              title: "להאריך",
+              body: "30–90 דקות לרוב המתכונים; בצקים עם הרבה מלא או קמח חלש — עד 2 שעות.",
+            },
+            {
+              title: "לפי ההידרציה",
+              body: `טווח מומלץ לתערובת: ${hydration.low}–${hydration.high}% (הגדרתכם ${input.waterPct}%).`,
+            },
+            {
+              title:
+                input.fermentationPace === "express" ? "קצב מואץ" : "קצב רגיל",
+              body: paceNote,
+            },
+          ],
         },
-        {
-          title: "לפי ההידרציה",
-          body: `טווח מומלץ לתערובת: ${hydration.low}–${hydration.high}% (הגדרתכם ${input.waterPct}%).`,
+    fermentolyse
+      ? {
+          id: "mix",
+          icon: "🧂",
+          title: "מלח ולישה סופית",
+          timerMinutes: 15,
+          duration: "כ־10–20 דק׳",
+          summary:
+            "אחרי המנוחה: מלח בלבד (ומי בסינאז׳ אם הוחזקו בצד). מתחילה ההתפחה בקערה.",
+          details: [
+            {
+              title: "בסינאז׳",
+              body: "בהידרציה גבוהה — החזיקו חלק מהמים להוספה כאן לשליטה טובה יותר.",
+            },
+          ],
+        }
+      : {
+          id: "mix",
+          icon: "🧂",
+          title: "מחמצת, מלח ולישה סופית",
+          timerMinutes: 15,
+          duration: "כ־10–20 דק׳",
+          summary:
+            "שילוב מחמצת (אחרי מבחן הציפה), מלח ומים שנותרו. מתחילה ההתפחה בקערה.",
+          details: [
+            {
+              title: "בסינאז׳",
+              body: "בהידרציה גבוהה — החזיקו חלק מהמים להוספה כאן לשליטה טובה יותר.",
+            },
+          ],
         },
-        {
-          title: input.fermentationPace === "express" ? "קצב מואץ" : "קצב רגיל",
-          body: paceNote,
-        },
-      ],
-    },
-    {
-      id: "mix",
-      icon: "🧂",
-      title: "מחמצת, מלח ולישה סופית",
-      timerMinutes: 15,
-      duration: "כ־10–20 דק׳",
-      summary:
-        "שילוב מחמצת (אחרי מבחן הציפה), מלח ומים שנותרו. מתחילה ההתפחה בקערה.",
-      details: [
-        {
-          title: "בסינאז׳",
-          body: "בהידרציה גבוהה — החזיקו חלק מהמים להוספה כאן לשליטה טובה יותר.",
-        },
-      ],
-    },
     {
       id: "bulk",
       icon: "🧂",

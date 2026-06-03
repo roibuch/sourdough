@@ -18,6 +18,7 @@ import {
   type FermentationPace,
   type StarterRatioPreset,
 } from "@/lib/expressMode";
+import type { RestMethod } from "@/lib/restMethod";
 import { heContent } from "@/lib/content";
 import { sumFlourPcts } from "@/lib/flourBalance";
 import { normalizeFlourPercentages } from "@/lib/schemas/recipeParamsSchema";
@@ -102,6 +103,7 @@ export function useRecipeForm() {
       ? String(state.starter.manualGrams)
       : "";
   const fermentationPace = state.schedule.fermentationPace;
+  const restMethod = state.schedule.restMethod;
   const starterRatioPreset = state.starter.ratioPreset;
 
   const mix = useMemo(() => buildFlourMix(flourDraft), [flourDraft]);
@@ -239,6 +241,10 @@ export function useRecipeForm() {
   const setFermentationPace = useCallback(
     (v: FermentationPace) =>
       patchState({ schedule: { fermentationPace: v } }),
+    [patchState],
+  );
+  const setRestMethod = useCallback(
+    (v: RestMethod) => patchState({ schedule: { restMethod: v } }),
     [patchState],
   );
   const setStarterRatioPreset = useCallback(
@@ -432,6 +438,8 @@ export function useRecipeForm() {
     applyWeatherPlan,
     fermentationPace,
     setFermentationPace,
+    restMethod,
+    setRestMethod,
     starterRatioPreset,
     setStarterRatioPreset,
     results,

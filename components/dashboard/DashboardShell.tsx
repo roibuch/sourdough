@@ -246,15 +246,6 @@ export function DashboardShell({
             <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
             {heContent.luxury.applyRecipe}
           </button>
-        ) : showResults ? (
-          <button
-            type="button"
-            className="cta-primary flex items-center justify-center gap-2"
-            onClick={() => setEditSheetOpen(true)}
-          >
-            <PencilSquareIcon className="h-5 w-5" aria-hidden />
-            {heContent.luxury.editRecipe}
-          </button>
         ) : (
           <>
             <FloatTestCompact />
@@ -265,8 +256,19 @@ export function DashboardShell({
               onClick={requestCalculate}
             >
               <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-              {heContent.inputs.actions.calculate}
+              {showResults
+                ? heContent.luxury.applyRecipe
+                : heContent.inputs.actions.calculate}
             </button>
+            {showResults && (
+              <button
+                type="button"
+                className="min-h-[44px] rounded-xl border border-border-subtle px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface-elevated"
+                onClick={() => setEditSheetOpen(true)}
+              >
+                {heContent.luxury.editRecipe}
+              </button>
+            )}
           </>
         )}
       </div>

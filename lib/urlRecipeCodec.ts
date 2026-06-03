@@ -3,6 +3,7 @@ import {
   parseRecipeParamsFromSearch,
   type ParseRecipeParamsResult,
 } from "@/lib/schemas/recipeParamsSchema";
+import { restMethodToUrl } from "@/lib/restMethod";
 import type { RecipeState } from "@/lib/types/recipe";
 import type { RecipeState as LegacyUrlRecipeState } from "@/lib/types";
 
@@ -32,6 +33,7 @@ export function recipeStateToUrlRecord(
         : undefined,
     pace: state.schedule.fermentationPace,
     sr: state.starter.ratioPreset,
+    rm: restMethodToUrl(state.schedule.restMethod),
     calc: state.calculated ? "1" : undefined,
   };
 }
@@ -70,6 +72,7 @@ export function legacyUrlRecordToRecipeState(
     ms: legacy.ms,
     pace: legacy.pace,
     sr: legacy.sr,
+    rm: legacy.rm,
     calc: legacy.calc,
   };
   return parseRecipeParamsFromRecord(record);

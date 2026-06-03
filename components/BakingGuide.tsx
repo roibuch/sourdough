@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { MasterBakerTip } from "@/components/ui/MasterBakerTip";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { buildBakingGuidePlan } from "@/lib/bakingGuidePlan";
+import { isFermentolyse } from "@/lib/restMethod";
 import { expressModeSummary } from "@/lib/expressMode";
 import { heContent, t } from "@/lib/content";
 import { getBassinageAmounts } from "@/lib/bakingMath";
@@ -33,6 +34,7 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
     coldRetardHours,
     fermentationPace,
     setFermentationPace,
+    restMethod,
     setRoomTemp,
     roomTempUnknown,
     setRoomTempUnknownMode,
@@ -55,6 +57,7 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
       hoursToAutolyse,
       coldRetardHours,
       fermentationPace,
+      restMethod,
     });
   }, [
     mix,
@@ -64,6 +67,7 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
     hoursToAutolyse,
     coldRetardHours,
     fermentationPace,
+    restMethod,
     showResults,
     starterOnlyMode,
   ]);
@@ -183,21 +187,43 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
           {results && (
             <div className="mb-6 rounded-xl border border-dashed border-border-subtle px-4 py-3 text-sm text-text-secondary">
               <p className="mb-1 font-medium text-text-primary">{g.masses.title}</p>
-              <p>
-                {t(g.masses.autolyse, {
-                  flour: results.flour,
-                  water: bassinage?.autolyseG ?? results.water,
-                })}
-              </p>
-              <p className="mt-1">
-                {t(g.masses.mix, {
-                  starter: results.starter,
-                  salt: results.salt,
-                  bassinage: bassinage
-                    ? t(g.masses.bassinage, { hold: bassinage.holdG })
-                    : "",
-                })}
-              </p>
+              {isFermentolyse(restMethod) ? (
+                <>
+                  <p>
+                    {t(g.masses.fermentolyse, {
+                      flour: results.flour,
+                      water: bassinage?.autolyseG ?? results.water,
+                      starter: results.starter,
+                    })}
+                  </p>
+                  <p className="mt-1">
+                    {t(g.masses.mixFermentolyse, {
+                      salt: results.salt,
+                      bassinage: bassinage
+                        ? t(g.masses.bassinage, { hold: bassinage.holdG })
+                        : "",
+                    })}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p>
+                    {t(g.masses.autolyse, {
+                      flour: results.flour,
+                      water: bassinage?.autolyseG ?? results.water,
+                    })}
+                  </p>
+                  <p className="mt-1">
+                    {t(g.masses.mix, {
+                      starter: results.starter,
+                      salt: results.salt,
+                      bassinage: bassinage
+                        ? t(g.masses.bassinage, { hold: bassinage.holdG })
+                        : "",
+                    })}
+                  </p>
+                </>
+              )}
             </div>
           )}
 

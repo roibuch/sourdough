@@ -5,6 +5,7 @@ import {
   recipeStateToUrlRecord,
   urlRecordToSearchParams,
 } from "./urlRecipeCodec";
+import { REST_METHOD_DEFAULT } from "./restMethod";
 import type { RecipeState } from "./types/recipe";
 
 export { STORAGE_KEY } from "./recipeState.types";
@@ -44,6 +45,9 @@ export function buildRecipeState(
       fermentationPace:
         (params.fermentationPace as RecipeState["schedule"]["fermentationPace"]) ??
         "standard",
+      restMethod:
+        (params.restMethod as RecipeState["schedule"]["restMethod"]) ??
+        REST_METHOD_DEFAULT,
     },
     starter: {
       useFromRecipe: params.useRecipeStarter,
@@ -86,6 +90,7 @@ export function parseRecipeStateFromSearch(
     urs: params.get("urs") ?? undefined,
     ms: params.get("ms") ?? undefined,
     pace: params.get("pace") ?? undefined,
+    rm: params.get("rm") ?? undefined,
     sr: params.get("sr") ?? undefined,
     calc: params.get("calc") ?? undefined,
   };

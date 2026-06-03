@@ -9,6 +9,7 @@ import {
   FLOUR_COUNT,
   RECIPE_DEFAULTS,
 } from "@/lib/constants/recipeDefaults";
+import { parseRestMethod, type RestMethod } from "@/lib/restMethod";
 import type { PresetKey } from "@/lib/types";
 import type {
   BakingSchedule,
@@ -45,6 +46,10 @@ export const starterRatioPresetSchema = z.enum([
   "half",
   "peak",
 ]);
+
+export const restMethodSchema = z
+  .union([z.literal("a"), z.literal("f"), z.literal(""), z.undefined()])
+  .transform((v): RestMethod => parseRestMethod(v === "" ? undefined : v));
 
 /** "1" = true; absent or "0" = false — except useRecipeStarter (see ursField) */
 const calcFlagSchema = z
@@ -88,6 +93,7 @@ export const urlRecipeParamsRawSchema = z
     ms: optionalString,
     pace: fermentationPaceSchema.catch(RECIPE_DEFAULTS.fermentationPace),
     sr: starterRatioPresetSchema.catch(RECIPE_DEFAULTS.starterRatioPreset),
+    rm: restMethodSchema,
     calc: calcFlagSchema,
   })
   .partial();
@@ -191,6 +197,7 @@ export function rawParamsToRecipeState(
     hoursToAutolyse: raw.hta ?? RECIPE_DEFAULTS.hoursToAutolyse,
     roomTempC: raw.rt ?? RECIPE_DEFAULTS.roomTempC,
     fermentationPace: raw.pace ?? RECIPE_DEFAULTS.fermentationPace,
+    restMethod: raw.rm ?? RECIPE_DEFAULTS.restMethod,
   };
 
   const starter: StarterPreferences = {

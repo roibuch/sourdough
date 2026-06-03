@@ -17,6 +17,7 @@ export interface RecipeFormSnapshot {
   useRecipeStarter: boolean;
   manualStarterG: string;
   fermentationPace?: string;
+  restMethod?: string;
   starterRatioPreset?: string;
   calculated?: boolean;
 }

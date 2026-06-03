@@ -1,6 +1,7 @@
 import { defaultFlourPcts } from "@/lib/flour";
 import type { FermentationPace, StarterRatioPreset } from "@/lib/expressMode";
 import type { PresetKey } from "@/lib/types";
+import { REST_METHOD_DEFAULT } from "@/lib/restMethod";
 import type { RecipeState } from "@/lib/types/recipe";
 
 export const FLOUR_COUNT = 6;
@@ -19,6 +20,7 @@ export const RECIPE_DEFAULTS = {
   preset: "classic" as PresetKey,
   fermentationPace: "standard" as FermentationPace,
   starterRatioPreset: "auto" as StarterRatioPreset,
+  restMethod: REST_METHOD_DEFAULT,
 } as const;
 
 export function createDefaultRecipeState(): RecipeState {
@@ -39,6 +41,7 @@ export function createDefaultRecipeState(): RecipeState {
       hoursToAutolyse: RECIPE_DEFAULTS.hoursToAutolyse,
       roomTempC: RECIPE_DEFAULTS.roomTempC,
       fermentationPace: RECIPE_DEFAULTS.fermentationPace,
+      restMethod: RECIPE_DEFAULTS.restMethod,
     },
     starter: {
       useFromRecipe: true,

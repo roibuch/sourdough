@@ -11,6 +11,7 @@ import {
   parseRecipeParamsFromSearch,
   type ParseRecipeParamsResult,
 } from "@/lib/schemas/recipeParamsSchema";
+import type { RestMethod } from "@/lib/restMethod";
 import type { RecipeState } from "@/lib/types/recipe";
 import {
   legacyUrlRecordToRecipeState,

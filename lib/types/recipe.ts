@@ -1,4 +1,5 @@
 import type { FermentationPace, StarterRatioPreset } from "@/lib/expressMode";
+import type { RestMethod } from "@/lib/restMethod";
 import type { PresetKey } from "@/lib/types";
 
 /** Baker's-percentage blend of flour types (must sum to 100%). */
@@ -17,6 +18,8 @@ export interface BakingSchedule {
   hoursToAutolyse: number;
   roomTempC: number;
   fermentationPace: FermentationPace;
+  /** Autolyse (flour+water) vs fermentolyse (flour+water+starter, salt later) */
+  restMethod: RestMethod;
 }
 
 export interface StarterPreferences {

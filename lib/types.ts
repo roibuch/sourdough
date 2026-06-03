@@ -77,6 +77,8 @@ export interface RecipeState {
   ms?: string;
   pace?: string;
   sr?: string;
+  /** a = autolyse, f = fermentolyse */
+  rm?: string;
   calc?: string;
 }
 

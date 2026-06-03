@@ -44,4 +44,24 @@ describe("buildBakingGuidePlan", () => {
       standard.adjusted.coldRetardHours,
     );
   });
+
+  it("uses fermentolyse mix steps when restMethod is fermentolyse", () => {
+    const mix = buildFlourMix([100, 0, 0, 0, 0, 0]);
+    const plan = buildBakingGuidePlan({
+      mix,
+      waterPct: 72,
+      starterPct: 20,
+      roomTempC: 22,
+      hoursToAutolyse: 5,
+      coldRetardHours: 12,
+      fermentationPace: "standard",
+      restMethod: "fermentolyse",
+    });
+    const rest = plan.steps.find((s) => s.id === "rest");
+    const mixStep = plan.steps.find((s) => s.id === "mix");
+    expect(rest?.title).toContain("פרמנטוליזה");
+    expect(rest?.summary).toMatch(/מחמצת/);
+    expect(mixStep?.title).toMatch(/מלח/);
+    expect(mixStep?.summary).not.toMatch(/מחמצת/);
+  });
 });

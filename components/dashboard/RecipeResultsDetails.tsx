@@ -12,11 +12,14 @@ import {
 } from "@/lib/flour";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import { heContent } from "@/lib/content";
+import { isFermentolyse } from "@/lib/restMethod";
+import { t } from "@/lib/i18n";
 
 const res = heContent.inputs.results;
+const g = heContent.guide.masses;
 
 export function RecipeResultsDetails({ form }: { form: RecipeForm }) {
-  const { results, showResults, mix, waterPct } = form;
+  const { results, showResults, mix, waterPct, restMethod } = form;
 
   if (!showResults || !results) return null;
 
@@ -30,6 +33,49 @@ export function RecipeResultsDetails({ form }: { form: RecipeForm }) {
         <span>מה זה «{res.trueHydration}»?</span>
         <InfoTooltip term="true-hydration" />
       </p>
+
+      <div className="app-card border-border-subtle p-4 sm:p-5">
+        <h4 className="mb-2 font-serif text-lg font-normal text-text-primary">
+          {g.title}
+        </h4>
+        {isFermentolyse(restMethod) ? (
+          <>
+            <p className="text-sm text-text-secondary">
+              {t(g.fermentolyse, {
+                flour: results.flour,
+                water: bassinage?.autolyseG ?? results.water,
+                starter: results.starter,
+              })}
+            </p>
+            <p className="mt-1 text-sm text-text-secondary">
+              {t(g.mixFermentolyse, {
+                salt: results.salt,
+                bassinage: bassinage
+                  ? t(g.bassinage, { hold: bassinage.holdG })
+                  : "",
+              })}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-text-secondary">
+              {t(g.autolyse, {
+                flour: results.flour,
+                water: bassinage?.autolyseG ?? results.water,
+              })}
+            </p>
+            <p className="mt-1 text-sm text-text-secondary">
+              {t(g.mix, {
+                starter: results.starter,
+                salt: results.salt,
+                bassinage: bassinage
+                  ? t(g.bassinage, { hold: bassinage.holdG })
+                  : "",
+              })}
+            </p>
+          </>
+        )}
+      </div>
 
       {bassinage && (
         <MasterBakerTip>
