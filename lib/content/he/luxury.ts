@@ -5,6 +5,8 @@ export const LUXURY_HE = {
   },
   editorTitle: "עריכת מתכון",
   editRecipe: "ערוך מתכון",
+  applyRecipe: "עדכן מתכון",
+  cancelEdit: "ביטול",
   mobileTabs: {
     timeline: "לוח זמנים",
     starter: "האכלת מחמצת",

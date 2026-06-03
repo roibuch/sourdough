@@ -34,7 +34,7 @@ export function useRecipeCalculateFlow(form: RecipeForm) {
 
   const [balanceOpen, setBalanceOpen] = useState(false);
 
-  const requestCalculate = useCallback(() => {
+  const requestCalculate = useCallback((): boolean => {
     if (!validation.canCalculate) {
       const flourMsg = validation.fields.flourTotal?.message;
       const first =
@@ -42,11 +42,11 @@ export function useRecipeCalculateFlow(form: RecipeForm) {
         validation.fields.waterPct?.message ??
         flourMsg;
       showToast(first ?? VALIDATION_BLOCKED_MESSAGE);
-      return;
+      return false;
     }
     commitTotalWeight();
     commitFlourPcts(flourDraft);
-    runCalculate();
+    return runCalculate();
   }, [
     validation,
     commitTotalWeight,

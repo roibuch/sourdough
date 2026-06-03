@@ -60,6 +60,33 @@ export function DashboardShell({
     }
   }, [segment, sections.guide]);
 
+  const handleApplyEdit = () => {
+    if (requestCalculate()) {
+      setEditSheetOpen(false);
+    }
+  };
+
+  const editSheetFooter = (
+    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+      <button
+        type="button"
+        className="min-h-[44px] rounded-xl border border-border-subtle px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface-elevated"
+        onClick={() => setEditSheetOpen(false)}
+      >
+        {heContent.luxury.cancelEdit}
+      </button>
+      <button
+        type="button"
+        className="cta-primary flex min-h-[44px] items-center justify-center gap-2 disabled:opacity-50"
+        disabled={!calculateFlow.validation.canCalculate}
+        onClick={handleApplyEdit}
+      >
+        <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        {heContent.luxury.applyRecipe}
+      </button>
+    </div>
+  );
+
   const segmentPanel = (() => {
     if (!showResults) return null;
     switch (segment) {
@@ -85,7 +112,11 @@ export function DashboardShell({
             <button
               type="button"
               className="touch-target hidden items-center gap-2 rounded-xl border border-border-subtle bg-surface px-3 text-sm font-medium text-text-secondary shadow-sm hover:border-accent/30 hover:text-accent lg:inline-flex"
-              onClick={() => setEditSheetOpen(true)}
+              onClick={() => {
+                document
+                  .getElementById("recipe-editor-panel")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
             >
               <PencilSquareIcon className="h-5 w-5" aria-hidden />
               {heContent.luxury.editRecipe}
@@ -99,6 +130,7 @@ export function DashboardShell({
       <div className="content-safe-bottom mx-auto flex w-full min-w-0 max-w-[100rem] flex-1 flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-start lg:gap-8 lg:py-6">
         {/* עורך — RTL ראשון = ימין */}
         <aside
+          id="recipe-editor-panel"
           className={cn(
             "order-1 w-full min-w-0 shrink-0 overflow-x-hidden lg:order-none",
             "lg:w-[26rem] lg:max-w-[42%] xl:w-[28rem]",
@@ -155,6 +187,7 @@ export function DashboardShell({
         open={editSheetOpen}
         onOpenChange={setEditSheetOpen}
         title={heContent.luxury.editRecipe}
+        footer={editSheetFooter}
       >
         <RecipeInputsPanel
           form={form}
@@ -179,29 +212,41 @@ export function DashboardShell({
             className="shadow-sm"
           />
         )}
-        <button
-          type="button"
-          className="cta-primary flex items-center justify-center gap-2"
-          onClick={() => {
-            if (showResults) {
-              setEditSheetOpen(true);
-              return;
-            }
-            requestCalculate();
-          }}
-        >
-          {showResults ? (
-            <>
-              <PencilSquareIcon className="h-5 w-5" aria-hidden />
-              {heContent.luxury.editRecipe}
-            </>
-          ) : (
-            <>
-              <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-              {heContent.inputs.actions.calculate}
-            </>
-          )}
-        </button>
+        {showResults && editSheetOpen ? (
+          <button
+            type="button"
+            className="cta-primary flex items-center justify-center gap-2 disabled:opacity-50"
+            disabled={!calculateFlow.validation.canCalculate}
+            onClick={handleApplyEdit}
+          >
+            <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+            {heContent.luxury.applyRecipe}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="cta-primary flex items-center justify-center gap-2"
+            onClick={() => {
+              if (showResults) {
+                setEditSheetOpen(true);
+                return;
+              }
+              requestCalculate();
+            }}
+          >
+            {showResults ? (
+              <>
+                <PencilSquareIcon className="h-5 w-5" aria-hidden />
+                {heContent.luxury.editRecipe}
+              </>
+            ) : (
+              <>
+                <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                {heContent.inputs.actions.calculate}
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -9,6 +9,8 @@ interface SheetProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   children: ReactNode;
+  /** Sticky footer (e.g. confirm / cancel) */
+  footer?: ReactNode;
   className?: string;
 }
 
@@ -17,6 +19,7 @@ export function Sheet({
   onOpenChange,
   title,
   children,
+  footer,
   className,
 }: SheetProps) {
   useEffect(() => {
@@ -78,6 +81,11 @@ export function Sheet({
         <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-5 py-5">
           {children}
         </div>
+        {footer ? (
+          <footer className="shrink-0 border-t border-border-subtle bg-surface px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+            {footer}
+          </footer>
+        ) : null}
       </div>
     </div>
   );
