@@ -18,6 +18,8 @@ export interface BakingGuideStep {
   icon: string;
   title: string;
   duration: string;
+  /** Approximate timer length in minutes (for «הפעל טיימר») */
+  timerMinutes?: number;
   summary: string;
   details: GuideStepDetail[];
 }
@@ -77,6 +79,8 @@ export function buildBakingGuidePlan(input: {
   );
 
   const starterPick = pickStarterFeedRatio(adj.hoursToAutolyse, adj.roomTemp);
+  const starterTimerMin = Math.round(starterPick.peakHours * 60);
+  const autolyseTimerMin = Math.max(15, Math.round(adj.autolyseHours * 60));
   const bulkCenter = estimateBulkFermentationHours(
     adj.starterPct,
     adj.roomTemp,
@@ -95,6 +99,7 @@ export function buildBakingGuidePlan(input: {
       id: "starter",
       icon: "🦠",
       title: "האכלת מחמצת",
+      timerMinutes: starterTimerMin,
       duration: formatHoursRange(
         Math.max(2, starterPick.peakHours - 0.5),
         starterPick.peakHours + 1,
@@ -119,6 +124,7 @@ export function buildBakingGuidePlan(input: {
       id: "autolyse",
       icon: "🥣",
       title: "מנוחת בצק ראשונית (אוטוליזה)",
+      timerMinutes: autolyseTimerMin,
       duration: formatMinutesHours(adj.autolyseHours),
       summary: "קמח + מים בלבד, בלי מחמצת ובלי מלח. מחזקים את הגלוטן לפני הלישה הסופית.",
       details: [
@@ -140,6 +146,7 @@ export function buildBakingGuidePlan(input: {
       id: "mix",
       icon: "🧂",
       title: "מחמצת, מלח ולישה סופית",
+      timerMinutes: 15,
       duration: "כ־10–20 דק׳",
       summary: "שילוב מחמצת (אחרי מבחן ציפה), מלח ומים שנותרו. מתחילה ההתפחה בקערה.",
       details: [
@@ -153,6 +160,7 @@ export function buildBakingGuidePlan(input: {
       id: "bulk",
       icon: "🧂",
       title: "התפחה ראשונית בקערה",
+      timerMinutes: Math.round(bulkCenter * 60),
       duration: formatHoursRange(workflow.bulkLow, workflow.bulkHigh),
       summary: `${workflow.profile} · ${workflow.foldCount} סטים ${workflow.foldStyle}, כל ${workflow.foldEvery}. ${workflow.riseTarget}.`,
       details: [
@@ -191,6 +199,7 @@ export function buildBakingGuidePlan(input: {
       id: "retard",
       icon: "❄️",
       title: "התפחה שנייה במקרר",
+      timerMinutes: Math.round(adj.coldRetardHours * 60),
       duration: formatHoursRange(
         Math.max(4, adj.coldRetardHours - 2),
         adj.coldRetardHours + 2,

@@ -162,7 +162,8 @@ export function validateRecipeForm(
     fields.totalWeight?.invalid ||
     fields.waterPct?.invalid ||
     fields.starterPct?.invalid ||
-    fields.saltPct?.invalid;
+    fields.saltPct?.invalid ||
+    flourTotalInvalid;
 
   return {
     fields,

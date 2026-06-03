@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
-import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
+import { FloatTestReminderContent } from "@/components/feedback/FloatTestReminder";
+import { StepTimerButton } from "@/components/StepTimerButton";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { Card } from "@/components/ui/Card";
 import { MasterBakerTip } from "@/components/ui/MasterBakerTip";
@@ -34,6 +36,7 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
     setRoomTemp,
     setColdRetardHours,
     setHoursToAutolyse,
+    showToast,
   } = form;
 
   const [showDetails, setShowDetails] = useState(true);
@@ -75,8 +78,6 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
         title={g.title}
         subtitle={g.subtitle}
       />
-
-      <StarterFloatTestAlert />
 
       {starterOnlyMode && !showResults && (
         <p className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
@@ -212,11 +213,30 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <h3 className="font-serif text-lg font-semibold text-text-primary">
                         {index + 1}. {step.title}
+                        {step.id === "mix" && (
+                          <span className="ms-2 inline-flex align-middle">
+                            <InfoTooltip term="float-test" hover />
+                          </span>
+                        )}
                       </h3>
-                      <span className="shrink-0 rounded-full bg-accent-muted px-3 py-1 text-xs font-semibold text-accent">
-                        {step.duration}
-                      </span>
+                      <div className="flex shrink-0 flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-accent-muted px-3 py-1 text-xs font-semibold text-accent">
+                          {step.duration}
+                        </span>
+                        {step.timerMinutes && (
+                          <StepTimerButton
+                            label={step.title}
+                            durationMinutes={step.timerMinutes}
+                            onToast={showToast}
+                          />
+                        )}
+                      </div>
                     </div>
+                    {step.id === "mix" && (
+                      <div className="mt-3">
+                        <FloatTestReminderContent />
+                      </div>
+                    )}
                     <p className="mt-2 text-sm leading-relaxed text-text-secondary">
                       {step.summary}
                     </p>

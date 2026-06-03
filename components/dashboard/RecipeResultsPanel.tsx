@@ -34,15 +34,11 @@ export function RecipeResultsPanel({ form }: { form: RecipeForm }) {
             aria-hidden
           />
         </div>
-        <h2
+        <p
           id="welcome-empty-title"
-          className="font-serif text-2xl font-semibold text-stone-900 sm:text-3xl"
+          className="max-w-lg text-lg leading-relaxed text-stone-700 sm:text-xl"
         >
-          {res.emptyTitle}
-        </h2>
-        <p className="mt-3 max-w-lg text-base leading-relaxed text-stone-700">
-          <span className="hidden lg:inline">{res.emptyBodyDesktop}</span>
-          <span className="lg:hidden">{res.emptyBody}</span>
+          {res.emptyHint}
         </p>
       </div>
     );

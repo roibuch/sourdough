@@ -24,7 +24,7 @@ export const INPUTS_HE = {
   actions: {
     calculate: "יצירת מתכון",
     share: "שיתוף קישור לנוסחה",
-    clearStorage: "איפוס שמירה מקומית",
+    clearStorage: "איפוס מתכון",
     starterOnly: "מדריך מחמצת בלבד",
     decreaseWeight: "הפחת משקל",
     increaseWeight: "הוסף משקל",
@@ -65,11 +65,8 @@ export const INPUTS_HE = {
     readyAt: "לחם מוכן: {time}",
   },
   results: {
-    emptyTitle: "בואו נאפה לחם מושלם",
-    emptyBody:
-      "הזינו את הנתונים מימין (במובייל: «התאמה») ולחצו «צור מתכון עכשיו» — כאן יופיעו הקמח, המים והמחמצת בגרמים.",
-    emptyBodyDesktop:
-      "הזינו את הנתונים מימין ולחצו «צור מתכון עכשיו» — כאן יופיעו הקמח, המים והמחמצת בגרמים.",
+    emptyHint:
+      "המתכון שלך יופיע כאן. מלא את נתוני הבצק ולחץ על «יצירת מתכון».",
     flour: "קמח",
     water: "מים",
     starter: "מחמצת",

@@ -4,13 +4,14 @@ import { useEffect, useMemo } from "react";
 import {
   BeakerIcon,
   CalculatorIcon,
+  FireIcon,
   LinkIcon,
   ScaleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
+import { DoughTemperatureCalculator } from "@/components/DoughTemperatureCalculator";
 import { FlourBlendEditor } from "@/components/dashboard/FlourBlendEditor";
-import { StarterFloatTestAlert } from "@/components/StarterFloatTestAlert";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { StarterPanel } from "@/components/sections/StarterPanel";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
@@ -29,10 +30,10 @@ const inp = heContent.inputs;
 interface RecipeInputsPanelProps {
   form: RecipeForm;
   calculateFlow: RecipeCalculateFlow;
-  /** Mobile bottom sheet — tighter single-column layout */
   compact?: boolean;
-  /** Desktop sticky sidebar vs full-width contexts */
   surface?: "sidebar" | "sheet" | "default";
+  /** Hide primary CTA when shell renders it elsewhere */
+  hidePrimaryCta?: boolean;
 }
 
 export function RecipeInputsPanel({
@@ -40,6 +41,7 @@ export function RecipeInputsPanel({
   calculateFlow,
   compact,
   surface = "default",
+  hidePrimaryCta = false,
 }: RecipeInputsPanelProps) {
   const isSidebar = surface === "sidebar";
   const fieldNarrow = isSidebar || compact;
@@ -56,24 +58,15 @@ export function RecipeInputsPanel({
     preset,
     mix,
     setPresetNote,
-    flourDraft,
     commitFlourPcts,
     handleCopyLink,
     handleClearStorage,
     openStarterOnlyGuide,
-    showToast,
     keepInJarG,
     setKeepInJarG,
-    hoursToAutolyse,
-    roomTemp,
-    coldRetardHours,
-    fermentationPace,
   } = form;
 
-  const {
-    validation,
-    requestCalculate,
-  } = calculateFlow;
+  const { validation, requestCalculate } = calculateFlow;
 
   const fermentationAlert = useMemo(
     () => getFermentationFactorWarning(mix),
@@ -86,10 +79,10 @@ export function RecipeInputsPanel({
     }
   }, [mix.totalPct, preset, setPresetNote]);
 
-  const calculateBtn = (
+  const primaryCta = (
     <button
       type="button"
-      className="cta-primary flex items-center justify-center gap-2 disabled:opacity-50"
+      className="cta-primary flex w-full items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
       onClick={requestCalculate}
       disabled={!validation.canCalculate}
     >
@@ -103,24 +96,13 @@ export function RecipeInputsPanel({
       className={cn(
         "@container/panel flex min-w-0 max-w-full flex-col overflow-x-hidden",
         compact && "pb-2",
-        (isSidebar || compact) && "space-y-4",
-        !isSidebar && !compact && "space-y-4",
+        "space-y-4",
       )}
     >
-      {!compact && (
-        <div className={cn(isSidebar && "lg:hidden")}>
-          <StarterFloatTestAlert />
-        </div>
-      )}
-
       <Accordion
         type="multiple"
         defaultValue={
-          compact
-            ? ["dough"]
-            : isSidebar
-              ? ["dough", "flour"]
-              : ["dough", "flour"]
+          compact ? ["dough", "flour"] : ["dough", "flour", "starter", "ddt"]
         }
       >
         <AccordionItem
@@ -155,7 +137,7 @@ export function RecipeInputsPanel({
               <span className="text-sm font-medium text-text-primary">
                 {inp.fields.hydration}
               </span>
-              <InfoTooltip term="hydration" />
+              <InfoTooltip term="hydration" hover />
             </div>
             <RangeSlider
               id="hydration-slider"
@@ -180,7 +162,7 @@ export function RecipeInputsPanel({
                 >
                   {inp.fields.inoculation}
                 </label>
-                <InfoTooltip term="inoculation" />
+                <InfoTooltip term="inoculation" hover />
               </div>
               <SmartNumberInput
                 id="starterPct"
@@ -220,8 +202,6 @@ export function RecipeInputsPanel({
                 hint={validation.fields.saltPct?.message}
               />
             )}
-
-            {!compact && !isSidebar && calculateBtn}
           </div>
         </AccordionItem>
 
@@ -261,43 +241,43 @@ export function RecipeInputsPanel({
               hint={validation.fields.saltPct?.message}
             />
           )}
-
-          {!compact && <div className="mt-4">{calculateBtn}</div>}
         </AccordionItem>
 
-        {!compact && (
-          <AccordionItem
-            id="starter"
-            title="מחמצת (אופציונלי)"
-            icon={<BeakerIcon className="h-5 w-5" strokeWidth={1.75} />}
-          >
-            <StarterPanel form={form} inSidebar={isSidebar} />
-            <div className="mt-4">
-              <SmartNumberInput
-                id="keepInJar"
-                label="כמות להשאיר בצנצנת (גרם)"
-                value={keepInJarG}
-                min={0}
-                max={500}
-                step={5}
-                onChange={setKeepInJarG}
-                minusLabel="הפחת"
-                plusLabel="הוסף"
-                compact
-                narrow={fieldNarrow}
-              />
-            </div>
-          </AccordionItem>
-        )}
+        <AccordionItem
+          id="starter"
+          title="האכלת מחמצת"
+          icon={<BeakerIcon className="h-5 w-5" strokeWidth={1.75} />}
+        >
+          <StarterPanel form={form} inSidebar={isSidebar} />
+          <div className="mt-4">
+            <SmartNumberInput
+              id="keepInJar"
+              label="כמות להשאיר בצנצנת (גרם)"
+              value={keepInJarG}
+              min={0}
+              max={500}
+              step={5}
+              onChange={setKeepInJarG}
+              minusLabel="הפחת"
+              plusLabel="הוסף"
+              compact
+              narrow={fieldNarrow}
+            />
+          </div>
+        </AccordionItem>
+
+        <AccordionItem
+          id="ddt"
+          title={heContent.ddt.title}
+          icon={<FireIcon className="h-5 w-5" strokeWidth={1.75} />}
+        >
+          <DoughTemperatureCalculator form={form} />
+        </AccordionItem>
       </Accordion>
 
-      {isSidebar && (
-        <div className="hidden lg:block">
-          {calculateBtn}
-        </div>
-      )}
+      {!hidePrimaryCta && <div className="pt-1">{primaryCta}</div>}
 
-      <div className="flex flex-col gap-2 pt-2">
+      <div className="flex flex-col gap-2 border-t border-border-subtle pt-3">
         <Button variant="ghost" fullWidth onClick={handleCopyLink}>
           <LinkIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
           {inp.actions.share}

@@ -117,16 +117,6 @@ export function DashboardShell({
               calculateFlow={calculateFlow}
               surface="sidebar"
             />
-            <div className="mt-4 hidden lg:block">
-              <button
-                type="button"
-                className="cta-primary flex items-center justify-center gap-2"
-                onClick={() => requestCalculate()}
-              >
-                <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                {heContent.inputs.actions.calculate}
-              </button>
-            </div>
           </div>
         </aside>
 
@@ -171,6 +161,7 @@ export function DashboardShell({
           calculateFlow={calculateFlow}
           surface="sheet"
           compact
+          hidePrimaryCta
         />
       </Sheet>
 

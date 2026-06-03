@@ -10,6 +10,11 @@ export type GlossaryTerm =
   | "float-test"
   | "true-hydration"
   | "manitoba"
+  | "whole-wheat"
+  | "whole-rye"
+  | "bread-flour"
+  | "white-wheat"
+  | "all-purpose"
   | "levain";
 
 export interface GlossaryEntry {

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRecipeValidation } from "@/hooks/useRecipeValidation";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
+import { buildFlourMix } from "@/lib/flour";
 import { VALIDATION_BLOCKED_MESSAGE } from "@/lib/validation/recipeValidation";
 
 export type RecipeCalculateFlow = ReturnType<typeof useRecipeCalculateFlow>;
@@ -14,46 +15,43 @@ export function useRecipeCalculateFlow(form: RecipeForm) {
     waterPct,
     starterPct,
     saltPct,
-    mix,
     flourDraft,
     commitTotalWeight,
     commitFlourPcts,
-    needsFlourBalance,
     runCalculate,
     showToast,
   } = form;
+
+  const draftMix = useMemo(() => buildFlourMix(flourDraft), [flourDraft]);
 
   const validation = useRecipeValidation({
     totalWeight,
     waterPct,
     starterPct,
     saltPct,
-    mix,
+    mix: draftMix,
   });
 
   const [balanceOpen, setBalanceOpen] = useState(false);
 
   const requestCalculate = useCallback(() => {
     if (!validation.canCalculate) {
+      const flourMsg = validation.fields.flourTotal?.message;
       const first =
         validation.fields.totalWeight?.message ??
-        validation.fields.waterPct?.message;
+        validation.fields.waterPct?.message ??
+        flourMsg;
       showToast(first ?? VALIDATION_BLOCKED_MESSAGE);
       return;
     }
     commitTotalWeight();
     commitFlourPcts(flourDraft);
-    if (needsFlourBalance(flourDraft)) {
-      setBalanceOpen(true);
-      return;
-    }
     runCalculate();
   }, [
     validation,
     commitTotalWeight,
     commitFlourPcts,
     flourDraft,
-    needsFlourBalance,
     runCalculate,
     showToast,
   ]);

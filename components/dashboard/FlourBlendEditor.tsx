@@ -3,7 +3,10 @@
 import { useMemo } from "react";
 import { FlourPieChart } from "@/components/FlourPieChart";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
+import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { FLOUR_FIELDS, PRESET_OPTIONS, buildFlourMix } from "@/lib/flour";
+import type { FlourKey } from "@/lib/types";
+import type { GlossaryTerm } from "@/lib/glossary";
 import { FLOUR_TOTAL_TARGET, FLOUR_TOTAL_TOLERANCE } from "@/lib/validation/recipeValidation";
 import { sumFlourPcts } from "@/lib/flourBalance";
 import { heContent } from "@/lib/content";
@@ -13,11 +16,19 @@ import { cn } from "@/lib/cn";
 
 const fl = heContent.flour;
 
+const FLOUR_TOOLTIP: Partial<Record<FlourKey, GlossaryTerm>> = {
+  bread: "bread-flour",
+  whiteWheat: "white-wheat",
+  manitoba: "manitoba",
+  wholeWheat: "whole-wheat",
+  wholeRye: "whole-rye",
+  allPurpose: "all-purpose",
+};
+
 interface FlourBlendEditorProps {
   form: RecipeForm;
   flourTotalInvalid: boolean;
   flourTotalMessage?: string;
-  /** Sidebar column — single column, compact chart */
   inSidebar?: boolean;
 }
 
@@ -55,7 +66,7 @@ export function FlourBlendEditor({
         "min-w-0 max-w-full",
         flourTotalInvalid &&
           !totalOk &&
-          "rounded-lg border-2 border-amber-400/80",
+          "rounded-lg border-2 border-red-400/70",
       )}
     >
       <p className="mb-2 text-sm font-medium text-text-primary">
@@ -85,16 +96,21 @@ export function FlourBlendEditor({
           "mb-4 border px-3 py-2.5",
           totalOk
             ? "border-accent-gold/30 bg-accent-gold-muted/20"
-            : "border-accent-gold/50 bg-accent-gold-muted/30",
+            : "border-red-300/80 bg-red-50/50",
         )}
       >
-        <span className="text-sm font-medium text-text-primary">
+        <span
+          className={cn(
+            "text-sm font-medium",
+            totalOk ? "text-text-primary" : "text-red-700",
+          )}
+        >
           {fl.totalLabel}:{" "}
           <span className="tabular-nums">{total.toFixed(1)}%</span>
         </span>
         {!totalOk && (
-          <p className="mt-1 text-xs text-text-secondary">
-            {flourTotalMessage ?? "בלחיצה על «יצירת מתכון» תבחרו איך לעגל ל־100%."}
+          <p className="mt-1 text-xs text-red-700">
+            {flourTotalMessage ?? "סך הקמחים חייב להיות בדיוק 100%."}
           </p>
         )}
       </div>
@@ -105,25 +121,35 @@ export function FlourBlendEditor({
           !inSidebar && "@2xl/panel:grid-cols-2",
         )}
       >
-        {FLOUR_FIELDS.map((field, i) => (
-          <SmartNumberInput
-            key={field.key}
-            id={`flour-${field.key}`}
-            label={`${field.label} (%)`}
-            value={flourDraft[i] ?? 0}
-            min={0}
-            max={100}
-            step={5}
-            jumpStep={5}
-            suffix="%"
-            deferCommit
-            onChange={(v) => handlePct(i, v)}
-            minusLabel={`הפחת ${field.label}`}
-            plusLabel={`הוסף ${field.label}`}
-            compact
-            narrow={inSidebar}
-          />
-        ))}
+        {FLOUR_FIELDS.map((field, i) => {
+          const tip = FLOUR_TOOLTIP[field.key];
+          return (
+            <div key={field.key} className="min-w-0">
+              <div className="mb-1 flex items-center gap-1">
+                <span className="text-xs font-medium text-text-primary sm:text-sm">
+                  {field.label}
+                </span>
+                {tip && <InfoTooltip term={tip} hover />}
+              </div>
+              <SmartNumberInput
+                id={`flour-${field.key}`}
+                label=""
+                value={flourDraft[i] ?? 0}
+                min={0}
+                max={100}
+                step={2}
+                jumpStep={10}
+                suffix="%"
+                deferCommit
+                onChange={(v) => handlePct(i, v)}
+                minusLabel={`הפחת ${field.label}`}
+                plusLabel={`הוסף ${field.label}`}
+                compact
+                narrow={inSidebar}
+              />
+            </div>
+          );
+        })}
       </div>
 
       <FlourPieChart

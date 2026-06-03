@@ -8,15 +8,21 @@ import { cn } from "@/lib/cn";
 interface InfoTooltipProps {
   term: GlossaryTerm;
   className?: string;
+  /** Desktop: show on hover; mobile still uses tap */
+  hover?: boolean;
 }
 
-export function InfoTooltip({ term, className }: InfoTooltipProps) {
+export function InfoTooltip({ term, className, hover = false }: InfoTooltipProps) {
   const entry = GLOSSARY[term];
   const [open, setOpen] = useState(false);
   const tooltipId = useId();
 
   return (
-    <span className={cn("relative inline-flex align-middle", className)}>
+    <span
+      className={cn("relative inline-flex align-middle", className)}
+      onMouseEnter={hover ? () => setOpen(true) : undefined}
+      onMouseLeave={hover ? () => setOpen(false) : undefined}
+    >
       <button
         type="button"
         className={cn(

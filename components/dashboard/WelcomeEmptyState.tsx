@@ -14,15 +14,11 @@ export function WelcomeEmptyState() {
       <div className="mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-accent-muted text-accent">
         <CalculatorIcon className="h-10 w-10" strokeWidth={1.5} aria-hidden />
       </div>
-      <h2
+      <p
         id="welcome-heading"
-        className="max-w-md font-serif text-2xl font-medium text-text-primary sm:text-3xl"
+        className="max-w-md text-lg leading-relaxed text-text-secondary sm:text-xl"
       >
-        {copy.quote}
-      </h2>
-      <p className="mt-4 max-w-sm text-base leading-relaxed text-text-secondary">
-        <span className="hidden lg:inline">{copy.hint}</span>
-        <span className="lg:hidden">{copy.hintMobile}</span>
+        {copy.body}
       </p>
     </div>
   );

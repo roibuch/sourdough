@@ -5,6 +5,7 @@ import { BeakerIcon } from "@heroicons/react/24/outline";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { Button } from "@/components/ui/Button";
 import { RangeSlider } from "@/components/ui/RangeSlider";
+import { FloatTestReminderContent } from "@/components/feedback/FloatTestReminder";
 import { pickRatio } from "@/lib/starter";
 import { calculateStarterFeed } from "@/lib/starter";
 import type { StarterFeedResult } from "@/lib/starter";
@@ -93,6 +94,10 @@ export function StarterPanel({
           מחמצת בלבד
         </Button>
       </div>
+      <div className="mb-4">
+        <FloatTestReminderContent />
+      </div>
+
       <p className="mb-4 text-sm leading-relaxed text-text-secondary">
         {showResults ? (
           <>

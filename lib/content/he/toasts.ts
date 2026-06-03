@@ -6,7 +6,7 @@ export const TOASTS_HE = {
   invalidDoughWeight: "כתבו כמה בצק תרצו (בגרמים) לפני «צור מתכון עכשיו».",
   flourNot100:
     "סך הקמחים חורג מ-100%. תרצו שנתקן זאת אוטומטית? (כרגע: {total}%)",
-  linkCopied: "הקישור הועתק — אפשר לשתף את הנוסחה.",
+  linkCopied: "הקישור הועתק ללוח! ✅",
   storageCleared: "השמירה המקומית אופסה.",
   scheduleUnavailable: "המועד לא זמין עם ההגדרות הנוכחיות.",
   swUpdate: {
