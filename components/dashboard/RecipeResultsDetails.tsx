@@ -88,6 +88,16 @@ export function RecipeResultsDetails({ form }: { form: RecipeForm }) {
         <h4 className="mb-3 font-serif text-lg font-normal text-text-primary">
           {res.flourSplit}
         </h4>
+
+        {warnings.length > 0 && (
+          <div className="mb-4 rounded-xl border border-border-subtle bg-surface-elevated/80 p-3">
+            <p className="mb-2 text-xs font-semibold text-text-muted">
+              הערות לתערובת
+            </p>
+            <AdviceList items={warnings} className="mt-0 gap-2" />
+          </div>
+        )}
+
         <FlourPieChart
           mix={mix}
           flourGrams={results.flour}
@@ -109,11 +119,10 @@ export function RecipeResultsDetails({ form }: { form: RecipeForm }) {
               </div>
             ))}
         </div>
-        <p className="mt-4 text-sm">
-          {describeFlourMix(mix)}. טווח מומלץ: {hydration.low}%–
+        <p className="mt-3 text-xs leading-relaxed text-text-muted">
+          {describeFlourMix(mix)} · טווח מומלץ: {hydration.low}%–
           {hydration.high}% נוזלים.
         </p>
-        <AdviceList items={warnings} />
       </div>
     </div>
   );

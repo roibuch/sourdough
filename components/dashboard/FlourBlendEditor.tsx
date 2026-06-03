@@ -72,6 +72,11 @@ export function FlourBlendEditor({
       <p className="mb-2 text-sm font-medium text-text-primary">
         {heContent.inputs.fields.flourPreset}
       </p>
+      {presetNote && (
+        <p className="mb-3 rounded-lg border border-border-subtle bg-surface-elevated px-3 py-2 text-xs leading-relaxed text-text-secondary">
+          {presetNote}
+        </p>
+      )}
       <div className="mb-4 flex min-w-0 flex-wrap gap-2">
         {PRESET_OPTIONS.map((opt) => (
           <button
@@ -155,9 +160,8 @@ export function FlourBlendEditor({
       <FlourPieChart
         mix={draftMix}
         stacked={inSidebar}
-        className="mt-3 mb-1"
+        className="mt-3"
       />
-      <p className="text-xs leading-relaxed text-text-muted">{presetNote}</p>
     </div>
   );
 }
