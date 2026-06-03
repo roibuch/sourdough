@@ -14,7 +14,6 @@ import { FlourBlendEditor } from "@/components/dashboard/FlourBlendEditor";
 import { ShareRecipeLinkButton } from "@/components/dashboard/ShareRecipeLinkButton";
 import { useRecipeNav } from "@/components/dashboard/RecipeNavContext";
 import { RestMethodSelector } from "@/components/dashboard/RestMethodSelector";
-import { FloatTestCompact } from "@/components/feedback/FloatTestReminder";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { StarterPanel } from "@/components/sections/StarterPanel";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
@@ -293,15 +292,7 @@ export function RecipeInputsPanel({
       />
 
       {showPrimaryCta && (
-        <div
-          className={cn(
-            "sticky bottom-0 z-10 hidden space-y-3 border-t border-border-subtle bg-surface/95 py-3 backdrop-blur-sm lg:block",
-            isSidebar ? "-mx-5 px-5" : "-mx-4 px-4 sm:-mx-5 sm:px-5",
-          )}
-        >
-          <FloatTestCompact />
-          {primaryCta}
-        </div>
+        <div className="hidden pt-1 lg:block">{primaryCta}</div>
       )}
 
       <div className="flex flex-col gap-2 border-t border-border-subtle pt-3">

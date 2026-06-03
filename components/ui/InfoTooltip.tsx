@@ -52,7 +52,8 @@ export function InfoTooltip({ term, className, hover = false }: InfoTooltipProps
             className={cn(
               "z-50 w-[min(17rem,calc(100vw-2rem))] rounded-xl border border-stone-200/90",
               "bg-white/95 px-3 py-2.5 text-start text-xs leading-relaxed text-slate-800 shadow-xl backdrop-blur-md",
-              "fixed bottom-24 start-4 end-4 lg:absolute lg:bottom-auto lg:start-auto lg:end-0 lg:top-full lg:mt-2",
+              "fixed start-4 end-4 lg:absolute lg:bottom-auto lg:start-auto lg:end-0 lg:top-full lg:mt-2",
+              "bottom-[calc(var(--shell-sticky-cta-h,3.75rem)+env(safe-area-inset-bottom,0px)+0.75rem)]",
             )}
           >
             <strong className="block font-semibold text-charcoal">

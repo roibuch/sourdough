@@ -5,6 +5,7 @@ import { BeakerIcon } from "@heroicons/react/24/outline";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { TemperatureInput } from "@/components/ui/TemperatureInput";
 import { ESTIMATED_ROOM_TEMP_C } from "@/lib/constants/recipeDefaults";
+import { FloatTestCompact } from "@/components/feedback/FloatTestReminder";
 import { Button } from "@/components/ui/Button";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { pickRatio } from "@/lib/starter";
@@ -104,6 +105,8 @@ export function StarterPanel({
           מחמצת בלבד
         </Button>
       </div>
+
+      <FloatTestCompact variant="inline" className="mb-3" />
 
       <p className="mb-4 text-sm leading-relaxed text-text-secondary">
         {showResults ? (

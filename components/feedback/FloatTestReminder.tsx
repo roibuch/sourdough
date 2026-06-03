@@ -4,21 +4,44 @@ import { BeakerIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { cn } from "@/lib/cn";
 
-/** Compact hint above «יצירת מתכון» in the inputs flow */
-export function FloatTestCompact({ className }: { className?: string }) {
+/** Float-test hint — inline in starter section, or card in guide */
+export function FloatTestCompact({
+  className,
+  variant = "card",
+}: {
+  className?: string;
+  variant?: "card" | "inline";
+}) {
+  if (variant === "inline") {
+    return (
+      <p
+        className={cn(
+          "m-0 text-xs leading-relaxed text-text-secondary",
+          className,
+        )}
+      >
+        <span className="font-medium text-amber-900">מבחן הציפה</span> לפני
+        הלישה — כף במים:{" "}
+        <strong className="text-amber-950">צפה = מוכנה</strong>
+        <InfoTooltip term="float-test" hover />
+      </p>
+    );
+  }
+
   return (
     <div
       className={cn(
-        "rounded-xl border border-amber-400/70 bg-gradient-to-br from-amber-50/90 to-wheat-50/80 px-3 py-2.5",
+        "rounded-lg border border-amber-400/60 bg-amber-50/80 px-3 py-2",
         className,
       )}
     >
-      <p className="m-0 text-sm font-medium text-amber-950">
+      <p className="m-0 text-xs font-medium text-amber-950">
         לפני הלישה — מבחן הציפה
         <InfoTooltip term="float-test" hover />
-      </p>
-      <p className="mt-1 mb-0 text-xs leading-relaxed text-stone-700">
-        כף מחמצת במים: <strong>צפה = מוכנה</strong> לערבוב; שוקעת = עוד האכלה או חום עדין.
+        <span className="font-normal text-stone-700">
+          {" "}
+          · צפה = מוכנה; שוקעת = עוד המתנה
+        </span>
       </p>
     </div>
   );

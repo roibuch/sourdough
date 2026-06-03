@@ -106,7 +106,7 @@
     --shell-header-h: 3.5rem;
     --shell-metrics-h: 2.75rem;
     --shell-nav-h: 0px;
-    --shell-sticky-cta-h: 5.5rem;
+    --shell-sticky-cta-h: 3.75rem;
   }
 
   @media (min-width: 640px) {
@@ -124,7 +124,7 @@
   .content-safe-bottom {
     padding-bottom: calc(
       var(--shell-nav-h) + var(--shell-sticky-cta-h) +
-        env(safe-area-inset-bottom, 0px) + 0.5rem
+        env(safe-area-inset-bottom, 0px) + 0.25rem
     );
   }
 
@@ -208,7 +208,7 @@
   }
 
   .cta-primary {
-    @apply min-h-12 w-full rounded-xl bg-accent text-base font-semibold text-white;
+    @apply flex min-h-11 w-full items-center justify-center rounded-xl bg-accent text-sm font-semibold text-white sm:min-h-12 sm:text-base;
     @apply shadow-sm transition-colors hover:bg-accent-hover active:scale-[0.99];
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }

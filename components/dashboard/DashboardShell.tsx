@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { CalculatorIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import { AppBrandHeader } from "@/components/brand/AppBrandHeader";
 import { AppSegmentNav, type AppSegment } from "@/components/dashboard/AppSegmentNav";
 import { FlourBalanceDialog } from "@/components/dashboard/FlourBalanceDialog";
+import { MobileRecipeActionBar } from "@/components/dashboard/MobileRecipeActionBar";
 import { RecipeInputsPanel } from "@/components/dashboard/RecipeInputsPanel";
 import { RecipeNavProvider } from "@/components/dashboard/RecipeNavContext";
-import { FloatTestCompact } from "@/components/feedback/FloatTestReminder";
 import { Sheet } from "@/components/ui/Sheet";
 import { StickyMetricsBar } from "@/components/dashboard/StickyMetricsBar";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
@@ -47,6 +47,7 @@ export function DashboardShell({
 
   const [segment, setSegment] = useState<AppSegment>("recipe");
   const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const shellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (showResults && showGuide) {
@@ -119,7 +120,10 @@ export function DashboardShell({
 
   return (
     <RecipeNavProvider value={{ navigateToGuide }}>
-    <div className="dashboard-shell flex min-h-screen min-w-0 max-w-[100vw] flex-col overflow-x-clip bg-background">
+    <div
+      ref={shellRef}
+      className="dashboard-shell flex min-h-screen min-w-0 max-w-[100vw] flex-col overflow-x-clip bg-background"
+    >
       <header className="sticky top-0 z-30 border-b border-border-subtle bg-surface/95 shadow-sm backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-[100rem] items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
           <AppBrandHeader tagline={heContent.app.brandSubtitle} logoSize={40} />
@@ -196,7 +200,7 @@ export function DashboardShell({
         </main>
       </div>
 
-      <footer className="border-t border-border-subtle py-5 text-center text-xs text-text-muted">
+      <footer className="hidden border-t border-border-subtle py-5 text-center text-xs text-text-muted lg:block">
         {heContent.app.footerShort}
       </footer>
 
@@ -222,56 +226,14 @@ export function DashboardShell({
         />
       </Sheet>
 
-      <div
-        className={cn(
-          "fixed inset-x-0 z-40 flex flex-col gap-2 border-t border-border-subtle bg-surface/98 px-4 py-2.5 backdrop-blur-md lg:hidden",
-          "bottom-[env(safe-area-inset-bottom,0px)]",
-        )}
-      >
-        {showResults && (
-          <AppSegmentNav
-            active={segment}
-            onSelect={setSegment}
-            guideVisible={!!sections.guide}
-            className="shadow-sm"
-          />
-        )}
-        {showResults && editSheetOpen ? (
-          <button
-            type="button"
-            className="cta-primary flex items-center justify-center gap-2 disabled:opacity-50"
-            disabled={!calculateFlow.validation.canCalculate}
-            onClick={handleApplyEdit}
-          >
-            <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-            {heContent.luxury.applyRecipe}
-          </button>
-        ) : (
-          <>
-            <FloatTestCompact />
-            <button
-              type="button"
-              className="cta-primary flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!calculateFlow.validation.canCalculate}
-              onClick={requestCalculate}
-            >
-              <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-              {showResults
-                ? heContent.luxury.applyRecipe
-                : heContent.inputs.actions.calculate}
-            </button>
-            {showResults && (
-              <button
-                type="button"
-                className="min-h-[44px] rounded-xl border border-border-subtle px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface-elevated"
-                onClick={() => setEditSheetOpen(true)}
-              >
-                {heContent.luxury.editRecipe}
-              </button>
-            )}
-          </>
-        )}
-      </div>
+      <MobileRecipeActionBar
+        shellRef={shellRef}
+        showResults={showResults}
+        canCalculate={calculateFlow.validation.canCalculate}
+        onCalculate={requestCalculate}
+        onOpenEdit={() => setEditSheetOpen(true)}
+        hidden={editSheetOpen}
+      />
     </div>
     </RecipeNavProvider>
   );

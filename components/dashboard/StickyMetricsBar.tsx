@@ -44,7 +44,7 @@ export function StickyMetricsBar({ form }: { form: RecipeForm }) {
     <div
       className={cn(
         "sticky top-14 z-20 border-b border-border-subtle",
-        "bg-surface/90 px-3 py-2 backdrop-blur-xl sm:top-16 sm:px-6 sm:py-2.5",
+        "bg-surface/90 px-3 py-1.5 backdrop-blur-xl sm:top-16 sm:px-6 sm:py-2",
       )}
       aria-live="polite"
       aria-atomic="true"
