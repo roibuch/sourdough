@@ -11,9 +11,8 @@ import {
   getHydrationRecommendation,
 } from "@/lib/flour";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
-import { heContent } from "@/lib/content";
+import { heContent, t } from "@/lib/content";
 import { isFermentolyse } from "@/lib/restMethod";
-import { t } from "@/lib/i18n";
 
 const res = heContent.inputs.results;
 const g = heContent.guide.masses;
