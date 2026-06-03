@@ -62,6 +62,8 @@
   body {
     @apply min-h-screen bg-background text-text-primary leading-relaxed antialiased;
     overflow-x: clip;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   h1,

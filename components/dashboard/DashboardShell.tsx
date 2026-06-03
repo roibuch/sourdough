@@ -195,7 +195,7 @@ export function DashboardShell({
     <RecipeNavProvider value={{ navigateToGuide }}>
       <div
         ref={shellRef}
-        className="dashboard-shell flex min-h-[100dvh] min-w-0 max-w-[100vw] flex-col overflow-x-clip bg-background"
+        className="dashboard-shell flex min-h-screen min-w-0 flex-col bg-background lg:min-h-[100dvh] lg:max-w-[100vw] lg:overflow-x-clip"
       >
         <MobileAppHeader form={form} className="lg:hidden" />
 
@@ -221,15 +221,13 @@ export function DashboardShell({
 
         <StickyMetricsBar form={form} className="hidden lg:block" />
 
-        <div className="content-safe-bottom mx-auto flex w-full min-w-0 max-w-[100rem] flex-1 flex-col lg:flex-row lg:items-start lg:gap-8 lg:px-6 lg:py-6">
-          {/* Mobile — single tab panel */}
-          <div className="flex min-h-0 flex-1 flex-col lg:hidden">
+        <div className="content-safe-bottom mx-auto w-full min-w-0 max-w-[100rem] lg:flex lg:flex-1 lg:flex-row lg:items-start lg:gap-8 lg:px-6 lg:py-6">
+          {/* Mobile — document scroll (no nested overflow trap) */}
+          <div className="lg:hidden">
             {sections.warnings && (
               <div className="px-4 pt-3">{sections.warnings}</div>
             )}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-              {mobilePanel}
-            </div>
+            {mobilePanel}
           </div>
 
           {/* Desktop — sidebar + main */}
