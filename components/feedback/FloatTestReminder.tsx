@@ -18,7 +18,7 @@ export function FloatTestCompact({ className }: { className?: string }) {
         <InfoTooltip term="float-test" hover />
       </p>
       <p className="mt-1 mb-0 text-xs leading-relaxed text-stone-700">
-        כף מחמצת במים: <strong>צפה = מוכנה</strong> לערבוב; שוקעת = עוד האכלה או חום.
+        כף מחמצת במים: <strong>צפה = מוכנה</strong> לערבוב; שוקעת = עוד האכלה או חום עדין.
       </p>
     </div>
   );
@@ -46,13 +46,13 @@ export function FloatTestReminderContent() {
         <p className="m-0 text-sm leading-relaxed text-stone-700">
           לפני הוספת מחמצת ומלח — ודאו שהמחמצת בשיא. כף קטנה במים:
           <strong className="text-amber-950"> צפה = מוכנה</strong>, שוקעת =
-          עוד האכלה או חום.
+          עוד האכלה או חום עדין.
         </p>
 
         <ul className="mt-4 space-y-2 text-sm text-stone-700">
           {[
             "מלאו כוס/קערית במים בטמפרטורת החדר",
-            "טבלת כף מחמצת בעדינות — לא לדחוף",
+            "הניחו כף מחמצת בעדינות — לא לדחוץ",
             "צפה בשטח כמה שניות → מערבבים בבצק",
             "שוקעת? המתינו 1–2 שעות או חממו מעט את המחמצת",
           ].map((line) => (

@@ -29,7 +29,10 @@ import {
   getHydrationRecommendation,
 } from "@/lib/flour";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
+import { heContent } from "@/lib/content";
 import type { PresetKey } from "@/lib/types";
+
+const inp = heContent.inputs;
 
 export function RecipeCalculator({ form }: { form: RecipeForm }) {
   const {
@@ -89,7 +92,9 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
     commitTotalWeight();
     commitFlourPcts(flourDraft);
     if (needsFlourBalance(flourDraft)) {
-      showToast("סך הקמחים אינו 100% — עגלו בלוח הבקרה או התאימו את האחוזים.");
+      showToast(
+        "סך הקמחים אינו 100% — עגלו בלוח הבקרה או התאימו את האחוזים.",
+      );
       return;
     }
     if (!validation.canCalculate) {
@@ -99,7 +104,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
         validation.fields.waterPct?.message ??
         validation.fields.starterPct?.message ??
         validation.fields.saltPct?.message;
-      showToast(first ?? "תקנו את השדות המסומנים לפני החישוב.");
+      showToast(first ?? heContent.validation.calculateBlocked);
       return;
     }
     handleCalculate();
@@ -141,7 +146,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             onClick={handleCopyLink}
           >
             <LinkIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-            העתקת קישור
+            {inp.actions.share}
           </Button>
           <Button
             variant="ghost"
@@ -149,7 +154,7 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             onClick={handleClearStorage}
           >
             <TrashIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-            איפוס שמירה
+            {inp.actions.clearStorage}
           </Button>
         </div>
 
@@ -328,11 +333,11 @@ export function RecipeCalculator({ form }: { form: RecipeForm }) {
             disabled={!validation.canCalculate}
           >
             <ScaleIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-            חישוב מרכיבים
+            {inp.actions.calculate}
           </Button>
           <Button variant="ghost" fullWidth onClick={openStarterOnlyGuide}>
             <BeakerIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-            מדריך האכלת מחמצת בלבד
+            {inp.actions.starterOnly}
           </Button>
         </div>
       </Card>

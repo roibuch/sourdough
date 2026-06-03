@@ -12,7 +12,7 @@ const ITEMS: { id: AppSegment; label: string }[] = [
   { id: "recipe", label: "המתכון" },
   { id: "guide", label: "מדריך" },
   { id: "starter", label: "האכלת מחמצת" },
-  { id: "reference", label: "טבלאות" },
+  { id: "reference", label: "טבלאות עזר" },
 ];
 
 export function AppSegmentNav({

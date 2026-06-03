@@ -28,6 +28,11 @@ import { CUSTOM_FLOUR_NOTE } from "@/lib/validation/recipeValidation";
 import { cn } from "@/lib/cn";
 
 const inp = heContent.inputs;
+const ddt = heContent.ddt;
+
+/** Sections open on first paint — DDT stays closed so it does not clutter the main flow. */
+const DEFAULT_OPEN_SECTIONS = (compact: boolean) =>
+  compact ? ["dough", "flour"] : ["dough", "flour", "starter"];
 
 interface RecipeInputsPanelProps {
   form: RecipeForm;
@@ -110,9 +115,7 @@ export function RecipeInputsPanel({
     >
       <Accordion
         type="multiple"
-        defaultValue={
-          compact ? ["dough", "flour"] : ["dough", "flour", "starter", "ddt"]
-        }
+        defaultValue={DEFAULT_OPEN_SECTIONS(!!compact)}
       >
         <AccordionItem
           id="dough"
@@ -262,10 +265,16 @@ export function RecipeInputsPanel({
 
         <AccordionItem
           id="ddt"
-          title={heContent.ddt.title}
+          title={inp.accordion.ddt}
+          subtitle={ddt.accordionSubtitle}
           icon={<FireIcon className="h-5 w-5" strokeWidth={1.75} />}
+          badge={
+            <span className="shrink-0 rounded-full bg-surface-elevated px-2.5 py-0.5 text-xs font-medium text-text-muted">
+              {ddt.optionalBadge}
+            </span>
+          }
         >
-          <DoughTemperatureCalculator form={form} />
+          <DoughTemperatureCalculator form={form} embedded />
         </AccordionItem>
       </Accordion>
 

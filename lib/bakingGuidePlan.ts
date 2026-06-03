@@ -104,7 +104,7 @@ export function buildBakingGuidePlan(input: {
         Math.max(2, starterPick.peakHours - 0.5),
         starterPick.peakHours + 1,
       ),
-      summary: `${starterPick.note} מבחן ציפה לפני השילוב בבצק.`,
+      summary: `${starterPick.note} מבחן הציפה לפני השילוב בבצק.`,
       details: [
         {
           title: "להאיץ",
@@ -148,7 +148,8 @@ export function buildBakingGuidePlan(input: {
       title: "מחמצת, מלח ולישה סופית",
       timerMinutes: 15,
       duration: "כ־10–20 דק׳",
-      summary: "שילוב מחמצת (אחרי מבחן ציפה), מלח ומים שנותרו. מתחילה ההתפחה בקערה.",
+      summary:
+        "שילוב מחמצת (אחרי מבחן הציפה), מלח ומים שנותרו. מתחילה ההתפחה בקערה.",
       details: [
         {
           title: "בסינאז׳",

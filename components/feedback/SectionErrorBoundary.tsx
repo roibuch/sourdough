@@ -34,8 +34,8 @@ export class SectionErrorBoundary extends Component<Props, State> {
             {this.props.title ?? "שגיאה בטעינת החלק"}
           </p>
           <p className="mt-2 leading-relaxed opacity-90">
-            נסו לרענן את הדף. אם הבעיה נמשכת — נקו מטמון הדפדפן (או הסירו את האפליקיה
-            מהמסך הבית והתקינו מחדש).
+            נסו לרענן את הדף. אם הבעיה נמשכת — נקו את מטמון הדפדפן (או הסירו את
+            האפליקציה מהמסך הבית והתקינו מחדש).
           </p>
           <button
             type="button"

@@ -40,7 +40,7 @@ export const GLOSSARY_HE: Record<GlossaryTerm, GlossaryEntry> = {
   },
   ddt: {
     label: "טמפרטורת מים ללישה",
-    short: "חישוב כמה חמים צריכים להיות המים לבצק בטמפרטורה נכונה.",
+    short: "חישוב באיזו טמפרטורה לשפוך את המים כדי להגיע ליעד טמפרטורת הבצק.",
     detail: "לפי טמפרטורת החדר, הקמח והמחמצת — בדרך כלל ~24°C לפני התפחה.",
   },
   "float-test": {
@@ -49,7 +49,7 @@ export const GLOSSARY_HE: Record<GlossaryTerm, GlossaryEntry> = {
     detail: "לפני הלישה. שקיעה = האכלה נוספת או חום עדין.",
   },
   "true-hydration": {
-    label: "כמה נוזלים באמת בבצק",
+    label: "שיעור הנוזלים האמיתי בבצק",
     short: "כולל מים במחמצת — לא רק אחוזי הנוסחה.",
     detail: "חשוב בבצקים רטובים. לא כולל מי בסינאז׳ בצד.",
   },

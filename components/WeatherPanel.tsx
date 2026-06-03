@@ -132,7 +132,7 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
           </h3>
           <p className="text-sm text-stone-600">
             בודקים תחזית לכל שעות העבודה — האכלה, אוטוליזה והתפחה הראשונית — ומתאימים
-            אחוזים ושעות בהתאם
+            אחוזים ושעות בהתאם.
           </p>
         </div>
       </div>
@@ -215,7 +215,7 @@ export function WeatherPanel({ form }: { form: RecipeForm }) {
 
           {rec.tier !== "error" && plan && (
             <Button variant="primary" className="mt-4" onClick={handleApply}>
-              החלת תכנון — {plan.starterPct}% מחמצת · {plan.hoursToAutolyse} שעות · התפחה{" "}
+              החלת התכנון — {plan.starterPct}% מחמצת · {plan.hoursToAutolyse} שעות · התפחה{" "}
               {plan.bulkHours} שעות
             </Button>
           )}

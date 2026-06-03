@@ -61,7 +61,7 @@ export interface UseRecipeParamsResult {
   setState: (next: RecipeState) => void;
   patchState: (patch: RecipeParamsPatch) => void;
   updateState: (fn: (prev: RecipeState) => RecipeState) => void;
-  /** Persist draft to URL + localStorage (e.g. after «צור מתכון עכשיו»). */
+  /** Persist draft to URL + localStorage (e.g. after «יצירת מתכון»). */
   commitStateToUrl: (
     next?: RecipeState | ((prev: RecipeState) => RecipeState),
   ) => void;

@@ -58,10 +58,10 @@ export function RecipeResultsPanel({ form }: { form: RecipeForm }) {
         <SectionHeader
           icon={<CakeIcon className="h-6 w-6" strokeWidth={1.75} />}
           title="תוצאות המתכון"
-          subtitle="כמה נוזלים באמת בבצק — כולל מים במחמצת."
+          subtitle="שיעור הנוזלים האמיתי בבצק — כולל מים במחמצת."
         />
         <p className="-mt-4 mb-6 flex items-center gap-1.5 text-sm text-stone-700">
-          <span>מה זה «כמה נוזלים באמת»?</span>
+          <span>מה זה «{res.trueHydration}»?</span>
           <InfoTooltip term="true-hydration" />
         </p>
 

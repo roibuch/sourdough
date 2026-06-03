@@ -18,7 +18,14 @@ import { cn } from "@/lib/cn";
 
 const d = heContent.ddt;
 
-export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
+export function DoughTemperatureCalculator({
+  form,
+  embedded = false,
+}: {
+  form: RecipeForm;
+  /** Inside inputs accordion — hide duplicate page title */
+  embedded?: boolean;
+}) {
   const { results, showResults, roomTemp } = form;
 
   const [targetDdt, setTargetDdt] = useState(DDT_TARGET_DEFAULT);
@@ -72,21 +79,34 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
   );
 
   return (
-    <article className="rounded-2xl border border-stone-200/80 bg-white/60 p-4 sm:p-5">
-      <div className="mb-4 flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-wheat-100 text-amber-900">
-          <FireIcon className="h-5 w-5" strokeWidth={1.75} />
-        </span>
-        <div>
-          <h3 className="flex flex-wrap items-center gap-2 font-serif text-lg font-semibold text-charcoal">
-            {d.title}
-            <InfoTooltip term="ddt" />
-          </h3>
-          <p className="mt-1 text-sm leading-relaxed text-stone-600">
-            {d.subtitle}
-          </p>
+    <article
+      className={cn(
+        embedded ? "min-w-0" : "rounded-2xl border border-stone-200/80 bg-white/60 p-4 sm:p-5",
+      )}
+    >
+      {!embedded && (
+        <div className="mb-4 flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-wheat-100 text-amber-900">
+            <FireIcon className="h-5 w-5" strokeWidth={1.75} />
+          </span>
+          <div>
+            <h3 className="flex flex-wrap items-center gap-2 font-serif text-lg font-semibold text-charcoal">
+              {d.title}
+              <InfoTooltip term="ddt" />
+            </h3>
+            <p className="mt-1 text-sm leading-relaxed text-stone-600">
+              {d.subtitle}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
+
+      {embedded && (
+        <p className="mb-4 text-sm leading-relaxed text-text-secondary">
+          {d.subtitle}
+          <InfoTooltip term="ddt" hover />
+        </p>
+      )}
 
       {!fromRecipe && (
         <p className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-xs text-amber-950">

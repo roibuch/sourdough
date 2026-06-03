@@ -12,8 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: heContent.app.metadata.title,
     short_name: "מחמצת",
-    description:
-      "מחשבון בצק מחמצת, מדריך שלבים ולוח זמנים הפוך — עובד גם ללא אינטרנט.",
+    description: heContent.app.metadata.description,
     start_url: startUrl,
     scope: startUrl,
     display: "standalone",

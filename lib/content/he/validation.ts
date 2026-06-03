@@ -22,5 +22,6 @@ export const VALIDATION_HE = {
     under: "סך הקמחים {total}% — חייב להיות בדיוק 100%.",
   },
   calculateBlocked: "תקנו את השדות המסומנים לפני «יצירת מתכון».",
-  customFlourNote: "עריכה ידנית: סך הקמחים {total}%. בלחיצה על «צור מתכון» נאזן ל־100%.",
+  customFlourNote:
+    "עריכה ידנית: סך הקמחים {total}%. בלחיצה על «יצירת מתכון» יואזן ל־100%.",
 } as const;

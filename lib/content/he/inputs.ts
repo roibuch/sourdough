@@ -4,7 +4,7 @@ export const INPUTS_HE = {
     dough: "כמה בצק ומה בו?",
     flour: "אילו קמחים?",
     flourBlend: "עריכת תערובת קמחים",
-    starter: "מחמצת (אופציונלי)",
+    starter: "האכלת מחמצת",
     timing: "מתי לאפות?",
     ddt: "טמפרטורת מים ללישה",
   },
@@ -44,7 +44,7 @@ export const INPUTS_HE = {
       adjustments: "התאמות ללוח",
       adjustmentsHint: "מזג אוויר, טמפרטורת החדר וחלונות חסומים",
       timeline: "לוח זמני האפייה",
-      timelineHint: "שלבים, תזכורות והזכר לי בזמן",
+      timelineHint: "שלבים, תזכורות ו«הזכר לי בזמן»",
       interactiveDay: "תצוגת יום אינטראקטיבית",
       summary: "סיכום",
     },
@@ -67,12 +67,12 @@ export const INPUTS_HE = {
   },
   results: {
     emptyHint:
-      "המתכון שלך יופיע כאן. מלא את נתוני הבצק ולחץ על «יצירת מתכון».",
+      "המתכון שלכם יופיע כאן. מלאו את נתוני הבצק ולחצו על «יצירת מתכון».",
     flour: "קמח",
     water: "מים",
     starter: "מחמצת",
     salt: "מלח",
-    trueHydration: "כמה נוזלים באמת בבצק",
+    trueHydration: "שיעור הנוזלים האמיתי בבצק",
     flourSplit: "חלוקת קמח",
   },
 } as const;

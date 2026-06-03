@@ -64,7 +64,7 @@ export default function GlobalError({
                 cursor: "pointer",
               }}
             >
-              נסה שוב
+              נסו שוב
             </button>
             <button
               type="button"

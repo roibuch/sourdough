@@ -62,7 +62,7 @@ export function StarterPanel({
 
   const handleCalcStarter = () => {
     if (useRecipeStarter && (!results || results.starter <= 0)) {
-      showToast("קודם לחצו «יצירת מתכון», ואז נחשב את המחמצת.");
+      showToast("קודם לחצו על «יצירת מתכון», ואז נחשב את המחמצת.");
       return;
     }
     if (!useRecipeStarter && starterNeedG <= 0) {
@@ -116,7 +116,9 @@ export function StarterPanel({
             22°C).
           </>
         ) : (
-          <>הוציאו מהמקרר והאכלו. צרו מתכון קודם לכמויות מדויקות.</>
+          <>
+            הוציאו מהמקרר והאכלו. לחצו על «יצירת מתכון» קודם לכמויות מדויקות.
+          </>
         )}
       </p>
 
@@ -129,7 +131,7 @@ export function StarterPanel({
             onChange={(e) => setUseRecipeStarter(e.target.checked)}
           />
           <span className="text-sm font-medium text-text-primary">
-            השתמשו בכמות המחמצת מחישוב הבצק
+            השתמשו בכמות המחמצת ממתכון הבצק
           </span>
         </label>
 
@@ -162,7 +164,7 @@ export function StarterPanel({
           </div>
           <SmartNumberInput
             id="keepInJarG"
-            label="לשמור בצנצנת אחרי"
+            label="להשאיר בצנצנת (גרם)"
             suffix="גרם"
             value={keepInJarG}
             min={0}
