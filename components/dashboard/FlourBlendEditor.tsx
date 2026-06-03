@@ -137,7 +137,7 @@ export function FlourBlendEditor({
                 value={flourDraft[i] ?? 0}
                 min={0}
                 max={100}
-                step={2}
+                step={1}
                 jumpStep={10}
                 suffix="%"
                 deferCommit

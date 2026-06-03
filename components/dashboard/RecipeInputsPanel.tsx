@@ -5,13 +5,15 @@ import {
   BeakerIcon,
   CalculatorIcon,
   FireIcon,
-  LinkIcon,
   ScaleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
 import { DoughTemperatureCalculator } from "@/components/DoughTemperatureCalculator";
 import { FlourBlendEditor } from "@/components/dashboard/FlourBlendEditor";
+import { ShareRecipeLinkButton } from "@/components/dashboard/ShareRecipeLinkButton";
+import { useRecipeNav } from "@/components/dashboard/RecipeNavContext";
+import { FloatTestCompact } from "@/components/feedback/FloatTestReminder";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { StarterPanel } from "@/components/sections/StarterPanel";
 import { Accordion, AccordionItem } from "@/components/ui/Accordion";
@@ -62,11 +64,15 @@ export function RecipeInputsPanel({
     handleCopyLink,
     handleClearStorage,
     openStarterOnlyGuide,
-    keepInJarG,
-    setKeepInJarG,
   } = form;
 
+  const recipeNav = useRecipeNav();
   const { validation, requestCalculate } = calculateFlow;
+
+  const goToGuide = () => {
+    openStarterOnlyGuide();
+    recipeNav?.navigateToGuide();
+  };
 
   const fermentationAlert = useMemo(
     () => getFermentationFactorWarning(mix),
@@ -78,6 +84,9 @@ export function RecipeInputsPanel({
       setPresetNote(CUSTOM_FLOUR_NOTE(mix.totalPct));
     }
   }, [mix.totalPct, preset, setPresetNote]);
+
+  const showDesktopPrimaryCta =
+    !hidePrimaryCta && (surface === "sidebar" || surface === "default");
 
   const primaryCta = (
     <button
@@ -249,21 +258,6 @@ export function RecipeInputsPanel({
           icon={<BeakerIcon className="h-5 w-5" strokeWidth={1.75} />}
         >
           <StarterPanel form={form} inSidebar={isSidebar} />
-          <div className="mt-4">
-            <SmartNumberInput
-              id="keepInJar"
-              label="כמות להשאיר בצנצנת (גרם)"
-              value={keepInJarG}
-              min={0}
-              max={500}
-              step={5}
-              onChange={setKeepInJarG}
-              minusLabel="הפחת"
-              plusLabel="הוסף"
-              compact
-              narrow={fieldNarrow}
-            />
-          </div>
         </AccordionItem>
 
         <AccordionItem
@@ -275,21 +269,23 @@ export function RecipeInputsPanel({
         </AccordionItem>
       </Accordion>
 
-      {!hidePrimaryCta && <div className="pt-1">{primaryCta}</div>}
+      {showDesktopPrimaryCta && (
+        <div className="hidden space-y-3 pt-1 lg:block">
+          <FloatTestCompact />
+          {primaryCta}
+        </div>
+      )}
 
       <div className="flex flex-col gap-2 border-t border-border-subtle pt-3">
-        <Button variant="ghost" fullWidth onClick={handleCopyLink}>
-          <LinkIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-          {inp.actions.share}
-        </Button>
+        <ShareRecipeLinkButton onShare={handleCopyLink} />
         <Button variant="ghost" fullWidth onClick={handleClearStorage}>
           <TrashIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
           {inp.actions.clearStorage}
         </Button>
         {!compact && (
-          <Button variant="ghost" fullWidth onClick={openStarterOnlyGuide}>
+          <Button variant="ghost" fullWidth onClick={goToGuide}>
             <BeakerIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-            מדריך מחמצת בלבד
+            {inp.actions.starterOnly}
           </Button>
         )}
       </div>

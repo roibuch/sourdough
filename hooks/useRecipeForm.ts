@@ -9,6 +9,7 @@ import {
   PRESET_OPTIONS,
   buildFlourMix,
 } from "@/lib/flour";
+import { createDefaultRecipeState } from "@/lib/constants/recipeDefaults";
 import { STORAGE_KEY } from "@/lib/recipeState.types";
 import {
   type FermentationPace,
@@ -35,6 +36,7 @@ export function useRecipeForm() {
     patchState,
     setState,
     commitStateToUrl,
+    resetToCleanDefaults,
   } = useRecipeParams();
 
   const [presetNote, setPresetNote] = useState(FLOUR_PRESETS.classic.note);
@@ -333,7 +335,6 @@ export function useRecipeForm() {
     const url = window.location.href;
     try {
       await navigator.clipboard.writeText(url);
-      showToast(toasts.linkCopied);
     } catch {
       showToast(url);
     }
@@ -352,12 +353,6 @@ export function useRecipeForm() {
   const openStarterOnlyGuide = useCallback(() => {
     setShowGuide(true);
     setStarterOnlyMode(true);
-    setTimeout(() => {
-      document.getElementById("section-guide")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 80);
   }, []);
 
   const handleClearStorage = useCallback(() => {
@@ -366,10 +361,16 @@ export function useRecipeForm() {
     } catch {
       /* ignore */
     }
-    const path = window.location.pathname;
-    window.history.replaceState(null, "", path);
+    const defaults = createDefaultRecipeState();
+    resetToCleanDefaults();
+    setFlourDraft([...defaults.flourBlend.percentages]);
+    committedFlourKeyRef.current = defaults.flourBlend.percentages.join(",");
+    math.clearResults();
+    setShowGuide(false);
+    setStarterOnlyMode(false);
+    setPresetNote(FLOUR_PRESETS.classic.note);
     showToast(toasts.storageCleared);
-  }, [showToast]);
+  }, [resetToCleanDefaults, math, showToast]);
 
   return {
     totalWeight,

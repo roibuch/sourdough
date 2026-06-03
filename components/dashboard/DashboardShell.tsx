@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { CalculatorIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import { AppBrandHeader } from "@/components/brand/AppBrandHeader";
 import { AppSegmentNav, type AppSegment } from "@/components/dashboard/AppSegmentNav";
 import { FlourBalanceDialog } from "@/components/dashboard/FlourBalanceDialog";
 import { RecipeInputsPanel } from "@/components/dashboard/RecipeInputsPanel";
+import { RecipeNavProvider } from "@/components/dashboard/RecipeNavContext";
+import { FloatTestCompact } from "@/components/feedback/FloatTestReminder";
 import { Sheet } from "@/components/ui/Sheet";
 import { StickyMetricsBar } from "@/components/dashboard/StickyMetricsBar";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
@@ -66,6 +68,18 @@ export function DashboardShell({
     }
   };
 
+  const navigateToGuide = useCallback(() => {
+    setSegment("guide");
+    requestAnimationFrame(() => {
+      document.getElementById("section-guide")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }, []);
+
+  const starterOnlyView = showGuide && !showResults && !!sections.guide;
+
   const editSheetFooter = (
     <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
       <button
@@ -104,6 +118,7 @@ export function DashboardShell({
   })();
 
   return (
+    <RecipeNavProvider value={{ navigateToGuide }}>
     <div className="dashboard-shell flex min-h-screen min-w-0 max-w-[100vw] flex-col overflow-x-clip bg-background">
       <header className="sticky top-0 z-30 border-b border-border-subtle bg-surface/95 shadow-sm backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-[100rem] items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
@@ -153,10 +168,19 @@ export function DashboardShell({
         </aside>
 
         {/* תוצאות ותוכן — שמאל */}
-        <main className="order-2 min-w-0 flex-1 lg:order-none">
+        <main
+          id="main"
+          className={cn(
+            "order-2 min-w-0 flex-1 lg:order-none",
+            (showResults || starterOnlyView) &&
+              "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+1rem)] lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-2rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain scrollbar-thin",
+          )}
+        >
           {sections.warnings}
 
-          {!showResults ? (
+          {starterOnlyView ? (
+            <div className="space-y-4">{sections.guide}</div>
+          ) : !showResults ? (
             sections.empty
           ) : (
             <div className="space-y-5">
@@ -222,32 +246,31 @@ export function DashboardShell({
             <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
             {heContent.luxury.applyRecipe}
           </button>
-        ) : (
+        ) : showResults ? (
           <button
             type="button"
             className="cta-primary flex items-center justify-center gap-2"
-            onClick={() => {
-              if (showResults) {
-                setEditSheetOpen(true);
-                return;
-              }
-              requestCalculate();
-            }}
+            onClick={() => setEditSheetOpen(true)}
           >
-            {showResults ? (
-              <>
-                <PencilSquareIcon className="h-5 w-5" aria-hidden />
-                {heContent.luxury.editRecipe}
-              </>
-            ) : (
-              <>
-                <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                {heContent.inputs.actions.calculate}
-              </>
-            )}
+            <PencilSquareIcon className="h-5 w-5" aria-hidden />
+            {heContent.luxury.editRecipe}
           </button>
+        ) : (
+          <>
+            <FloatTestCompact />
+            <button
+              type="button"
+              className="cta-primary flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!calculateFlow.validation.canCalculate}
+              onClick={requestCalculate}
+            >
+              <CalculatorIcon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+              {heContent.inputs.actions.calculate}
+            </button>
+          </>
         )}
       </div>
     </div>
+    </RecipeNavProvider>
   );
 }

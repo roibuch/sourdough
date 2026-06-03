@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import { AdviceList } from "@/components/AdviceList";
-import { FloatTestReminderContent } from "@/components/feedback/FloatTestReminder";
 import { StepTimerButton } from "@/components/StepTimerButton";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
@@ -232,11 +231,6 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
                         )}
                       </div>
                     </div>
-                    {step.id === "mix" && (
-                      <div className="mt-3">
-                        <FloatTestReminderContent />
-                      </div>
-                    )}
                     <p className="mt-2 text-sm leading-relaxed text-text-secondary">
                       {step.summary}
                     </p>

@@ -5,10 +5,10 @@ import { BeakerIcon } from "@heroicons/react/24/outline";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
 import { Button } from "@/components/ui/Button";
 import { RangeSlider } from "@/components/ui/RangeSlider";
-import { FloatTestReminderContent } from "@/components/feedback/FloatTestReminder";
 import { pickRatio } from "@/lib/starter";
 import { calculateStarterFeed } from "@/lib/starter";
 import type { StarterFeedResult } from "@/lib/starter";
+import { useRecipeNav } from "@/components/dashboard/RecipeNavContext";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import { cn } from "@/lib/cn";
 
@@ -22,6 +22,7 @@ export function StarterPanel({
   const [starterResult, setStarterResult] = useState<StarterFeedResult | null>(
     null,
   );
+  const recipeNav = useRecipeNav();
 
   const {
     results,
@@ -40,6 +41,11 @@ export function StarterPanel({
     showToast,
     openStarterOnlyGuide,
   } = form;
+
+  const goToGuide = () => {
+    openStarterOnlyGuide();
+    recipeNav?.navigateToGuide();
+  };
 
   const starterNeedG = useRecipeStarter
     ? results?.starter ?? 0
@@ -90,12 +96,9 @@ export function StarterPanel({
             האכלת המחמצת
           </h3>
         </div>
-        <Button variant="ghost" onClick={openStarterOnlyGuide}>
+        <Button variant="ghost" onClick={goToGuide}>
           מחמצת בלבד
         </Button>
-      </div>
-      <div className="mb-4">
-        <FloatTestReminderContent />
       </div>
 
       <p className="mb-4 text-sm leading-relaxed text-text-secondary">

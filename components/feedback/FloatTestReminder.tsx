@@ -4,6 +4,26 @@ import { BeakerIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { cn } from "@/lib/cn";
 
+/** Compact hint above «יצירת מתכון» in the inputs flow */
+export function FloatTestCompact({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border border-amber-400/70 bg-gradient-to-br from-amber-50/90 to-wheat-50/80 px-3 py-2.5",
+        className,
+      )}
+    >
+      <p className="m-0 text-sm font-medium text-amber-950">
+        לפני הלישה — מבחן הציפה
+        <InfoTooltip term="float-test" hover />
+      </p>
+      <p className="mt-1 mb-0 text-xs leading-relaxed text-stone-700">
+        כף מחמצת במים: <strong>צפה = מוכנה</strong> לערבוב; שוקעת = עוד האכלה או חום.
+      </p>
+    </div>
+  );
+}
+
 export function FloatTestReminderContent() {
   return (
       <article

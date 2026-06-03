@@ -65,6 +65,8 @@ export interface UseRecipeParamsResult {
   commitStateToUrl: (
     next?: RecipeState | ((prev: RecipeState) => RecipeState),
   ) => void;
+  /** Defaults in state, empty query string, no localStorage write. */
+  resetToCleanDefaults: () => void;
 }
 
 export function useRecipeParams(): UseRecipeParamsResult {
@@ -184,6 +186,13 @@ export function useRecipeParams(): UseRecipeParamsResult {
     [writeUrlNow],
   );
 
+  const resetToCleanDefaults = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    pendingStateRef.current = null;
+    setDraft(createDefaultRecipeState());
+    replaceRecipeUrl(pathnameRef.current, "");
+  }, []);
+
   return {
     state: draft,
     hydrated,
@@ -193,6 +202,7 @@ export function useRecipeParams(): UseRecipeParamsResult {
     patchState,
     updateState,
     commitStateToUrl,
+    resetToCleanDefaults,
   };
 }
 

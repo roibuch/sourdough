@@ -13,7 +13,7 @@ export const INPUTS_HE = {
     hydration: "אחוז נוזלים (הידרציה)",
     hydrationHint:
       "כמה מים יש בבצק ביחס לקמח. בצק נוקשה ≈ 65%, בצק רך מאוד ≈ 80%.",
-    inoculation: "אחוז מחמצת בבצק (%)",
+    inoculation: "אחוז מחמצת בבצק",
     salt: "מלח (%)",
     flourPreset: "תערובת מומלצת",
     roomTemp: "טמפרטורת החדר (°C)",
@@ -24,6 +24,7 @@ export const INPUTS_HE = {
   actions: {
     calculate: "יצירת מתכון",
     share: "שיתוף קישור לנוסחה",
+    shareCopied: "הקישור הועתק! ✅",
     clearStorage: "איפוס מתכון",
     starterOnly: "מדריך מחמצת בלבד",
     decreaseWeight: "הפחת משקל",
