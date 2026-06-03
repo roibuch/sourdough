@@ -195,7 +195,7 @@ export function DashboardShell({
     <RecipeNavProvider value={{ navigateToGuide }}>
       <div
         ref={shellRef}
-        className="dashboard-shell flex min-h-screen min-w-0 flex-col bg-background lg:min-h-[100dvh] lg:max-w-[100vw] lg:overflow-x-clip"
+        className="dashboard-shell min-h-screen min-w-0 bg-background lg:flex lg:min-h-[100dvh] lg:max-w-[100vw] lg:flex-col lg:overflow-x-clip"
       >
         <MobileAppHeader form={form} className="lg:hidden" />
 
@@ -222,17 +222,15 @@ export function DashboardShell({
         <StickyMetricsBar form={form} className="hidden lg:block" />
 
         <div className="content-safe-bottom mx-auto w-full min-w-0 max-w-[100rem] lg:flex lg:flex-1 lg:flex-row lg:items-start lg:gap-8 lg:px-6 lg:py-6">
-          {/* Mobile — document scroll (no nested overflow trap) */}
+          {/* Mobile — native document scroll only (no nested overflow) */}
           <div className="lg:hidden">
             {sections.warnings && (
               <div className="px-4 pt-3">{sections.warnings}</div>
             )}
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain lg:hidden">
-              {mobilePanel}
-              <p className="px-4 pb-4 pt-8 text-center text-[10px] leading-relaxed text-text-muted">
-                {heContent.app.privacyNote}
-              </p>
-            </div>
+            {mobilePanel}
+            <p className="px-4 pb-4 pt-8 text-center text-[10px] leading-relaxed text-text-muted">
+              {heContent.app.privacyNote}
+            </p>
           </div>
 
           {/* Desktop — sidebar + main */}

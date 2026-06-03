@@ -57,13 +57,30 @@
     -webkit-tap-highlight-color: transparent;
     overflow-x: clip;
     color-scheme: light;
+    height: auto;
   }
 
   body {
     @apply min-h-screen bg-background text-text-primary leading-relaxed antialiased;
     overflow-x: clip;
     overflow-y: auto;
+    height: auto;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  @media (max-width: 1023px) {
+    html,
+    body {
+      overflow-y: scroll;
+      overscroll-behavior-y: auto;
+    }
+
+    .dashboard-shell {
+      display: block;
+      height: auto;
+      min-height: 100%;
+    }
   }
 
   h1,

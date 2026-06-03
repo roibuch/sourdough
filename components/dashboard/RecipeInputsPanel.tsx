@@ -115,7 +115,7 @@ export function RecipeInputsPanel({
   return (
     <div
       className={cn(
-        "@container/panel flex min-w-0 max-w-full flex-col overflow-x-hidden",
+        "@container/panel flex min-w-0 max-w-full flex-col",
         compact && "pb-2",
         "space-y-4",
       )}
