@@ -26,6 +26,7 @@ export interface SmartNumberInputProps {
   error?: boolean;
   warning?: boolean;
   hint?: string;
+  disabled?: boolean;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -73,6 +74,7 @@ export function SmartNumberInput({
   error,
   warning,
   hint,
+  disabled = false,
 }: SmartNumberInputProps) {
   const exact = exactCommit || deferCommit;
   const [text, setText] = useState(() => toDisplay(value, step, exact));
@@ -132,7 +134,12 @@ export function SmartNumberInput({
   );
 
   return (
-    <div className="flex flex-col gap-2">
+    <div
+      className={cn(
+        "flex flex-col gap-2",
+        disabled && "pointer-events-none opacity-60",
+      )}
+    >
       {label ? (
         <label
           htmlFor={id}
@@ -175,7 +182,13 @@ export function SmartNumberInput({
           narrow ? "gap-1.5" : "gap-2 @container/stepper",
         )}
       >
-        <button type="button" className={stepBtn} onClick={() => adjust("minus")} aria-label={minusLabel}>
+        <button
+          type="button"
+          className={stepBtn}
+          disabled={disabled}
+          onClick={() => adjust("minus")}
+          aria-label={minusLabel}
+        >
           <MinusIcon className={compact ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2} />
         </button>
         <input
@@ -193,6 +206,7 @@ export function SmartNumberInput({
           )}
           value={text}
           placeholder="—"
+          disabled={disabled}
           onFocus={() => setFocused(true)}
           onChange={(e) => {
             const raw = e.target.value;
@@ -222,7 +236,13 @@ export function SmartNumberInput({
             }
           }}
         />
-        <button type="button" className={stepBtn} onClick={() => adjust("plus")} aria-label={plusLabel}>
+        <button
+          type="button"
+          className={stepBtn}
+          disabled={disabled}
+          onClick={() => adjust("plus")}
+          aria-label={plusLabel}
+        >
           <PlusIcon className={compact ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2} />
         </button>
       </div>
@@ -231,6 +251,7 @@ export function SmartNumberInput({
           <button
             type="button"
             className={jumpPillClass}
+            disabled={disabled}
             onClick={() => applyDelta(-jumpStep)}
             aria-label={`הפחת ${jumpStep}${suffix ? ` ${suffix}` : ""}`}
           >
@@ -240,6 +261,7 @@ export function SmartNumberInput({
           <button
             type="button"
             className={jumpPillClass}
+            disabled={disabled}
             onClick={() => applyDelta(jumpStep)}
             aria-label={`הוסף ${jumpStep}${suffix ? ` ${suffix}` : ""}`}
           >

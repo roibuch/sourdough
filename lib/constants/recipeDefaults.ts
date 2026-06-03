@@ -5,13 +5,16 @@ import type { RecipeState } from "@/lib/types/recipe";
 
 export const FLOUR_COUNT = 6;
 
+/** Typical room temp when user has no thermometer (Israeli homes). */
+export const ESTIMATED_ROOM_TEMP_C = 22;
+
 export const RECIPE_DEFAULTS = {
   waterPercent: 73,
   starterPercent: 20,
   saltPercent: 2,
   coldRetardHours: 12,
   hoursToAutolyse: 8,
-  roomTempC: 22,
+  roomTempC: ESTIMATED_ROOM_TEMP_C,
   keepInJarG: 30,
   preset: "classic" as PresetKey,
   fermentationPace: "standard" as FermentationPace,

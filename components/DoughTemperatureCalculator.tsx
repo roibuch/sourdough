@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { FireIcon } from "@heroicons/react/24/outline";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
+import { TemperatureInput } from "@/components/ui/TemperatureInput";
 import { AnimatedStat } from "@/components/ui/AnimatedStat";
 import { FieldLabelWithTip, InfoTooltip } from "@/components/ui/InfoTooltip";
-import { heContent } from "@/lib/content";
+import { ESTIMATED_ROOM_TEMP_C } from "@/lib/constants/recipeDefaults";
+import { heContent, t } from "@/lib/content";
 import {
   calculateWaterTempDDT,
   DDT_FRICTION_OPTIONS,
@@ -25,38 +27,47 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
   const [friction, setFriction] = useState(0);
   const [starterTemp, setStarterTemp] = useState(roomTemp);
 
+  const [unknownAmbient, setUnknownAmbient] = useState(false);
+  const [unknownFlour, setUnknownFlour] = useState(false);
+  const [unknownStarter, setUnknownStarter] = useState(false);
+
   useEffect(() => {
-    setAmbientTemp(roomTemp);
-    setStarterTemp(roomTemp);
-    setFlourTemp(roomTemp);
-  }, [roomTemp]);
+    if (!unknownAmbient) setAmbientTemp(roomTemp);
+    if (!unknownFlour) setFlourTemp(unknownAmbient ? ESTIMATED_ROOM_TEMP_C : roomTemp);
+    if (!unknownStarter) setStarterTemp(unknownAmbient ? ESTIMATED_ROOM_TEMP_C : roomTemp);
+  }, [roomTemp, unknownAmbient, unknownFlour, unknownStarter]);
+
+  const effectiveAmbient = unknownAmbient ? ESTIMATED_ROOM_TEMP_C : ambientTemp;
+  const effectiveFlour = unknownFlour ? effectiveAmbient : flourTemp;
+  const effectiveStarter = unknownStarter ? effectiveAmbient : starterTemp;
 
   const flourG = results?.flour ?? 500;
   const waterG = results?.water ?? 350;
   const starterG = results?.starter ?? 100;
   const fromRecipe = showResults && !!results;
+  const anyUnknown = unknownAmbient || unknownFlour || unknownStarter;
 
   const ddt = useMemo(
     () =>
       calculateWaterTempDDT({
         targetDoughTempC: targetDdt,
-        flourTempC: flourTemp,
-        roomTempC: ambientTemp,
+        flourTempC: effectiveFlour,
+        roomTempC: effectiveAmbient,
         flourWeightG: flourG,
         waterWeightG: waterG,
         frictionFactorC: friction,
         starterWeightG: starterG,
-        starterTempC: starterTemp,
+        starterTempC: effectiveStarter,
       }),
     [
       targetDdt,
-      flourTemp,
-      ambientTemp,
+      effectiveFlour,
+      effectiveAmbient,
       flourG,
       waterG,
       friction,
       starterG,
-      starterTemp,
+      effectiveStarter,
     ],
   );
 
@@ -101,7 +112,7 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
           />
           <p className="mt-1 text-xs text-stone-500">{d.targetHint}</p>
         </div>
-        <SmartNumberInput
+        <TemperatureInput
           id="ddt-room"
           label={d.roomTemp}
           suffix="°C"
@@ -110,11 +121,13 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
           max={32}
           step={1}
           onChange={setAmbientTemp}
+          unknown={unknownAmbient}
+          onUnknownChange={setUnknownAmbient}
           minusLabel={d.lower}
           plusLabel={d.raise}
           compact
         />
-        <SmartNumberInput
+        <TemperatureInput
           id="ddt-flour-temp"
           label={d.flourTemp}
           suffix="°C"
@@ -123,11 +136,14 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
           max={35}
           step={1}
           onChange={setFlourTemp}
+          unknown={unknownFlour}
+          onUnknownChange={setUnknownFlour}
+          estimateC={effectiveAmbient}
           minusLabel={d.lower}
           plusLabel={d.raise}
           compact
         />
-        <SmartNumberInput
+        <TemperatureInput
           id="ddt-starter-temp"
           label={d.starterTemp}
           suffix="°C"
@@ -136,11 +152,20 @@ export function DoughTemperatureCalculator({ form }: { form: RecipeForm }) {
           max={35}
           step={1}
           onChange={setStarterTemp}
+          unknown={unknownStarter}
+          onUnknownChange={setUnknownStarter}
+          estimateC={effectiveAmbient}
           minusLabel={d.lower}
           plusLabel={d.raise}
           compact
         />
       </div>
+
+      {anyUnknown && (
+        <p className="mb-4 rounded-xl border border-border-subtle bg-surface px-3 py-2 text-xs text-text-secondary">
+          {t(d.estimateNote, { temp: ESTIMATED_ROOM_TEMP_C })}
+        </p>
+      )}
 
       <fieldset className="mb-5">
         <legend className="mb-2 text-sm font-semibold text-slate-800">

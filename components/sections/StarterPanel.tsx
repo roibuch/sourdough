@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { BeakerIcon } from "@heroicons/react/24/outline";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
+import { TemperatureInput } from "@/components/ui/TemperatureInput";
+import { ESTIMATED_ROOM_TEMP_C } from "@/lib/constants/recipeDefaults";
 import { Button } from "@/components/ui/Button";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import { pickRatio } from "@/lib/starter";
@@ -35,6 +37,8 @@ export function StarterPanel({
     setKeepInJarG,
     roomTemp,
     setRoomTemp,
+    roomTempUnknown,
+    setRoomTempUnknownMode,
     hoursToAutolyse,
     setHoursToAutolyse,
     starterRatioPreset,
@@ -170,7 +174,7 @@ export function StarterPanel({
             compact
             narrow={inSidebar}
           />
-          <SmartNumberInput
+          <TemperatureInput
             id="roomTempGuide"
             label="טמפרטורת חדר"
             suffix="°C"
@@ -179,6 +183,8 @@ export function StarterPanel({
             max={32}
             step={1}
             onChange={setRoomTemp}
+            unknown={roomTempUnknown}
+            onUnknownChange={setRoomTempUnknownMode}
             minusLabel="הפחת טמפרטורה"
             plusLabel="הוסף טמפרטורה"
             compact
@@ -202,7 +208,10 @@ export function StarterPanel({
                 1 : {ratioPreview.flourMult} : {ratioPreview.waterMult}
               </strong>
               {" · "}
-              שיא ~{ratioPreview.peakHours} שע׳ @ {Math.round(roomTemp)}°C
+              שיא ~{ratioPreview.peakHours} שע׳ @{" "}
+              {roomTempUnknown
+                ? `~${ESTIMATED_ROOM_TEMP_C}°C (הערכה)`
+                : `${Math.round(roomTemp)}°C`}
             </p>
           </div>
         </div>

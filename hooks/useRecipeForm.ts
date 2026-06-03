@@ -9,7 +9,10 @@ import {
   PRESET_OPTIONS,
   buildFlourMix,
 } from "@/lib/flour";
-import { createDefaultRecipeState } from "@/lib/constants/recipeDefaults";
+import {
+  createDefaultRecipeState,
+  ESTIMATED_ROOM_TEMP_C,
+} from "@/lib/constants/recipeDefaults";
 import { STORAGE_KEY } from "@/lib/recipeState.types";
 import {
   type FermentationPace,
@@ -42,6 +45,7 @@ export function useRecipeForm() {
   const [presetNote, setPresetNote] = useState(FLOUR_PRESETS.classic.note);
   const [showGuide, setShowGuide] = useState(false);
   const [starterOnlyMode, setStarterOnlyMode] = useState(false);
+  const [roomTempUnknown, setRoomTempUnknown] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [flourDraft, setFlourDraft] = useState<number[]>(() => [
     ...state.flourBlend.percentages,
@@ -197,7 +201,20 @@ export function useRecipeForm() {
     [patchState],
   );
   const setRoomTemp = useCallback(
-    (v: number) => patchState({ schedule: { roomTempC: v } }),
+    (v: number) => {
+      setRoomTempUnknown(false);
+      patchState({ schedule: { roomTempC: v } });
+    },
+    [patchState],
+  );
+
+  const setRoomTempUnknownMode = useCallback(
+    (unknown: boolean) => {
+      setRoomTempUnknown(unknown);
+      if (unknown) {
+        patchState({ schedule: { roomTempC: ESTIMATED_ROOM_TEMP_C } });
+      }
+    },
     [patchState],
   );
   const setKeepInJarG = useCallback(
@@ -368,6 +385,7 @@ export function useRecipeForm() {
     math.clearResults();
     setShowGuide(false);
     setStarterOnlyMode(false);
+    setRoomTempUnknown(false);
     setPresetNote(FLOUR_PRESETS.classic.note);
     showToast(toasts.storageCleared);
   }, [resetToCleanDefaults, math, showToast]);
@@ -400,6 +418,8 @@ export function useRecipeForm() {
     setHoursToAutolyse,
     roomTemp,
     setRoomTemp,
+    roomTempUnknown,
+    setRoomTempUnknownMode,
     keepInJarG,
     setKeepInJarG,
     useRecipeStarter,

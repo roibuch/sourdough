@@ -6,6 +6,7 @@ import { AdviceList } from "@/components/AdviceList";
 import { StepTimerButton } from "@/components/StepTimerButton";
 import { InfoTooltip } from "@/components/ui/InfoTooltip";
 import { SmartNumberInput } from "@/components/SmartNumberInput";
+import { TemperatureInput } from "@/components/ui/TemperatureInput";
 import { Card } from "@/components/ui/Card";
 import { MasterBakerTip } from "@/components/ui/MasterBakerTip";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -33,6 +34,8 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
     fermentationPace,
     setFermentationPace,
     setRoomTemp,
+    roomTempUnknown,
+    setRoomTempUnknownMode,
     setColdRetardHours,
     setHoursToAutolyse,
     showToast,
@@ -127,14 +130,17 @@ export function BakingGuide({ form }: { form: RecipeForm }) {
             )}
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <SmartNumberInput
+              <TemperatureInput
                 id="guideRoomTemp"
                 label={g.tuning.roomTemp}
+                suffix="°C"
                 value={roomTemp}
                 min={16}
                 max={32}
                 step={1}
                 onChange={setRoomTemp}
+                unknown={roomTempUnknown}
+                onUnknownChange={setRoomTempUnknownMode}
                 minusLabel="הפחת"
                 plusLabel="הוסף"
                 compact

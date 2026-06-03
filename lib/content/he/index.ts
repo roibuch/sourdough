@@ -16,6 +16,7 @@ import { BAKING_TIMELINE_HE } from "@/lib/content/he/bakingTimeline";
 import { TIMELINE_HE } from "@/lib/content/he/timeline";
 import { TOASTS_HE } from "@/lib/content/he/toasts";
 import { VALIDATION_HE } from "@/lib/content/he/validation";
+import { TEMPERATURE_HE } from "@/lib/content/he/temperature";
 import { WEATHER_HE } from "@/lib/content/he/weather";
 
 /** Primary UI locale — Hebrew (he-IL). */
@@ -37,6 +38,7 @@ export const heContent = {
   schedule: SCHEDULE_HE,
   express: EXPRESS_HE,
   weather: WEATHER_HE,
+  temperature: TEMPERATURE_HE,
   optionalSchedule: OPTIONAL_SCHEDULE_HE,
   luxury: LUXURY_HE,
 } as const;
