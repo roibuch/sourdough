@@ -7,7 +7,13 @@ import { computeRecipeMetrics } from "@/lib/recipeMetrics";
 import type { RecipeForm } from "@/hooks/useRecipeForm";
 import { cn } from "@/lib/cn";
 
-export function StickyMetricsBar({ form }: { form: RecipeForm }) {
+export function StickyMetricsBar({
+  form,
+  className,
+}: {
+  form: RecipeForm;
+  className?: string;
+}) {
   const {
     totalWeight,
     waterPct,
@@ -45,6 +51,7 @@ export function StickyMetricsBar({ form }: { form: RecipeForm }) {
       className={cn(
         "sticky top-14 z-20 border-b border-border-subtle",
         "bg-surface/90 px-3 py-1.5 backdrop-blur-xl sm:top-16 sm:px-6 sm:py-2",
+        className,
       )}
       aria-live="polite"
       aria-atomic="true"

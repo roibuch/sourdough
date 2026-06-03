@@ -5,7 +5,11 @@ import { CalculatorIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import { AppBrandHeader } from "@/components/brand/AppBrandHeader";
 import { AppSegmentNav, type AppSegment } from "@/components/dashboard/AppSegmentNav";
 import { FlourBalanceDialog } from "@/components/dashboard/FlourBalanceDialog";
-import { MobileRecipeActionBar } from "@/components/dashboard/MobileRecipeActionBar";
+import { MobileAppHeader } from "@/components/dashboard/MobileAppHeader";
+import {
+  MobileShellBottom,
+} from "@/components/dashboard/MobileShellBottom";
+import type { MobileTab } from "@/components/dashboard/MobileBottomNav";
 import { RecipeInputsPanel } from "@/components/dashboard/RecipeInputsPanel";
 import { RecipeNavProvider } from "@/components/dashboard/RecipeNavContext";
 import { Sheet } from "@/components/ui/Sheet";
@@ -46,14 +50,17 @@ export function DashboardShell({
   } = calculateFlow;
 
   const [segment, setSegment] = useState<AppSegment>("recipe");
+  const [mobileTab, setMobileTab] = useState<MobileTab>("inputs");
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const shellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (showResults && showGuide) {
       setSegment("guide");
+      setMobileTab("guide");
     } else if (showResults) {
       setSegment("recipe");
+      setMobileTab("outputs");
     }
   }, [showResults, showGuide]);
 
@@ -71,6 +78,7 @@ export function DashboardShell({
 
   const navigateToGuide = useCallback(() => {
     setSegment("guide");
+    setMobileTab("guide");
     requestAnimationFrame(() => {
       document.getElementById("section-guide")?.scrollIntoView({
         behavior: "smooth",
@@ -118,123 +126,201 @@ export function DashboardShell({
     }
   })();
 
-  return (
-    <RecipeNavProvider value={{ navigateToGuide }}>
-    <div
-      ref={shellRef}
-      className="dashboard-shell flex min-h-screen min-w-0 max-w-[100vw] flex-col overflow-x-clip bg-background"
-    >
-      <header className="sticky top-0 z-30 border-b border-border-subtle bg-surface/95 shadow-sm backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-[100rem] items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
-          <AppBrandHeader tagline={heContent.app.brandSubtitle} logoSize={40} />
-          {showResults && (
-            <button
-              type="button"
-              className="touch-target hidden items-center gap-2 rounded-xl border border-border-subtle bg-surface px-3 text-sm font-medium text-text-secondary shadow-sm hover:border-accent/30 hover:text-accent lg:inline-flex"
-              onClick={() => {
-                document
-                  .getElementById("recipe-editor-panel")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-            >
-              <PencilSquareIcon className="h-5 w-5" aria-hidden />
-              {heContent.luxury.editRecipe}
-            </button>
-          )}
-        </div>
-      </header>
-
-      <StickyMetricsBar form={form} />
-
-      <div className="content-safe-bottom mx-auto flex w-full min-w-0 max-w-[100rem] flex-1 flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-start lg:gap-8 lg:py-6">
-        {/* עורך — RTL ראשון = ימין */}
-        <aside
-          id="recipe-editor-panel"
-          className={cn(
-            "order-1 w-full min-w-0 shrink-0 overflow-x-hidden lg:order-none",
-            "lg:w-[26rem] lg:max-w-[42%] xl:w-[28rem]",
-            "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+1rem)]",
-            "lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-2rem)]",
-            "lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain scrollbar-thin",
-          )}
-          aria-label={heContent.luxury.editorTitle}
-        >
-          <div className="app-card max-w-full overflow-x-clip p-4 ps-5 pe-4 sm:p-5">
-            <h2 className="mb-4 font-serif text-lg font-medium text-text-primary">
+  const mobilePanel = (() => {
+    switch (mobileTab) {
+      case "inputs":
+        return (
+          <div className="px-4 py-4">
+            <h2 className="mb-3 font-serif text-lg font-medium text-text-primary">
               {heContent.luxury.editorTitle}
             </h2>
             <RecipeInputsPanel
               form={form}
               calculateFlow={calculateFlow}
-              surface="sidebar"
+              surface="default"
+              hidePrimaryCta
             />
           </div>
-        </aside>
-
-        {/* תוצאות ותוכן — שמאל */}
-        <main
-          id="main"
-          className={cn(
-            "order-2 min-w-0 flex-1 lg:order-none",
-            (showResults || starterOnlyView) &&
-              "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+1rem)] lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-2rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain scrollbar-thin",
-          )}
-        >
-          {sections.warnings}
-
-          {starterOnlyView ? (
-            <div className="space-y-4">{sections.guide}</div>
-          ) : !showResults ? (
-            sections.empty
-          ) : (
-            <div className="space-y-5">
-              {sections.hero}
-              <AppSegmentNav
-                active={segment}
-                onSelect={setSegment}
-                guideVisible={!!sections.guide}
-              />
-              <div className="min-w-0 space-y-4">{segmentPanel}</div>
+        );
+      case "outputs":
+        if (!showResults) {
+          return (
+            <div className="px-4 py-6">
+              {sections.empty}
+              <button
+                type="button"
+                className="mt-4 w-full rounded-xl border border-dashed border-accent/40 bg-accent-muted/50 px-4 py-3 text-sm font-medium text-accent"
+                onClick={() => setMobileTab("inputs")}
+              >
+                {heContent.luxury.mobileGoToInputs}
+              </button>
             </div>
-          )}
-        </main>
-      </div>
+          );
+        }
+        return (
+          <div className="space-y-4 px-4 py-4">
+            {sections.hero}
+            {sections.recipe}
+          </div>
+        );
+      case "guide":
+        if (starterOnlyView) {
+          return <div className="space-y-4 px-4 py-4">{sections.guide}</div>;
+        }
+        if (!showResults) {
+          return (
+            <div className="space-y-4 px-4 py-4">
+              {sections.guide ?? (
+                <p className="text-sm text-text-secondary">
+                  {heContent.guide.starterOnly}
+                </p>
+              )}
+            </div>
+          );
+        }
+        return (
+          <div className="space-y-4 px-4 py-4">
+            {sections.guide}
+            {sections.starter}
+          </div>
+        );
+      case "reference":
+        return <div className="px-4 py-4">{sections.reference}</div>;
+      default:
+        return null;
+    }
+  })();
 
-      <footer className="hidden border-t border-border-subtle py-5 text-center text-xs text-text-muted lg:block">
-        {heContent.app.footerShort}
-      </footer>
-
-      <FlourBalanceDialog
-        open={balanceOpen}
-        pcts={balancePcts}
-        onCancel={() => setBalanceOpen(false)}
-        onConfirm={onBalanceConfirm}
-      />
-
-      <Sheet
-        open={editSheetOpen}
-        onOpenChange={setEditSheetOpen}
-        title={heContent.luxury.editRecipe}
-        footer={editSheetFooter}
+  return (
+    <RecipeNavProvider value={{ navigateToGuide }}>
+      <div
+        ref={shellRef}
+        className="dashboard-shell flex min-h-[100dvh] min-w-0 max-w-[100vw] flex-col overflow-x-clip bg-background"
       >
-        <RecipeInputsPanel
-          form={form}
-          calculateFlow={calculateFlow}
-          surface="sheet"
-          compact
-          hidePrimaryCta
-        />
-      </Sheet>
+        <MobileAppHeader form={form} className="lg:hidden" />
 
-      <MobileRecipeActionBar
-        shellRef={shellRef}
-        showResults={showResults}
-        canCalculate={calculateFlow.validation.canCalculate}
-        onCalculate={requestCalculate}
-        onOpenEdit={() => setEditSheetOpen(true)}
-        hidden={editSheetOpen}
-      />
-    </div>
+        <header className="sticky top-0 z-30 hidden border-b border-border-subtle bg-surface/95 shadow-sm backdrop-blur-md lg:block">
+          <div className="mx-auto flex h-16 max-w-[100rem] items-center justify-between gap-3 px-6">
+            <AppBrandHeader tagline={heContent.app.brandSubtitle} logoSize={40} />
+            {showResults && (
+              <button
+                type="button"
+                className="touch-target inline-flex items-center gap-2 rounded-xl border border-border-subtle bg-surface px-3 text-sm font-medium text-text-secondary shadow-sm hover:border-accent/30 hover:text-accent"
+                onClick={() => {
+                  document
+                    .getElementById("recipe-editor-panel")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+              >
+                <PencilSquareIcon className="h-5 w-5" aria-hidden />
+                {heContent.luxury.editRecipe}
+              </button>
+            )}
+          </div>
+        </header>
+
+        <StickyMetricsBar form={form} className="hidden lg:block" />
+
+        <div className="content-safe-bottom mx-auto flex w-full min-w-0 max-w-[100rem] flex-1 flex-col lg:flex-row lg:items-start lg:gap-8 lg:px-6 lg:py-6">
+          {/* Mobile — single tab panel */}
+          <div className="flex min-h-0 flex-1 flex-col lg:hidden">
+            {sections.warnings && (
+              <div className="px-4 pt-3">{sections.warnings}</div>
+            )}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              {mobilePanel}
+            </div>
+          </div>
+
+          {/* Desktop — sidebar + main */}
+          <aside
+            id="recipe-editor-panel"
+            className={cn(
+              "hidden w-full min-w-0 shrink-0 overflow-x-hidden lg:block",
+              "lg:w-[26rem] lg:max-w-[42%] xl:w-[28rem]",
+              "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+1rem)]",
+              "lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-2rem)]",
+              "lg:overflow-y-auto lg:overflow-x-hidden lg:overscroll-contain scrollbar-thin",
+            )}
+            aria-label={heContent.luxury.editorTitle}
+          >
+            <div className="app-card max-w-full overflow-x-clip p-5">
+              <h2 className="mb-4 font-serif text-lg font-medium text-text-primary">
+                {heContent.luxury.editorTitle}
+              </h2>
+              <RecipeInputsPanel
+                form={form}
+                calculateFlow={calculateFlow}
+                surface="sidebar"
+              />
+            </div>
+          </aside>
+
+          <main
+            id="main"
+            className={cn(
+              "hidden min-w-0 flex-1 lg:block",
+              (showResults || starterOnlyView) &&
+                "lg:sticky lg:top-[calc(var(--shell-header-h)+var(--shell-metrics-h)+1rem)] lg:max-h-[calc(100vh-var(--shell-header-h)-var(--shell-metrics-h)-2rem)] lg:self-start lg:overflow-y-auto lg:overscroll-contain scrollbar-thin",
+            )}
+          >
+            {sections.warnings}
+
+            {starterOnlyView ? (
+              <div className="space-y-4">{sections.guide}</div>
+            ) : !showResults ? (
+              sections.empty
+            ) : (
+              <div className="space-y-5">
+                {sections.hero}
+                <AppSegmentNav
+                  active={segment}
+                  onSelect={setSegment}
+                  guideVisible={!!sections.guide}
+                />
+                <div className="min-w-0 space-y-4">{segmentPanel}</div>
+              </div>
+            )}
+          </main>
+        </div>
+
+        <footer className="hidden border-t border-border-subtle py-5 text-center text-xs text-text-muted lg:block">
+          {heContent.app.footerShort}
+        </footer>
+
+        <FlourBalanceDialog
+          open={balanceOpen}
+          pcts={balancePcts}
+          onCancel={() => setBalanceOpen(false)}
+          onConfirm={onBalanceConfirm}
+        />
+
+        <Sheet
+          open={editSheetOpen}
+          onOpenChange={setEditSheetOpen}
+          title={heContent.luxury.editRecipe}
+          footer={editSheetFooter}
+        >
+          <RecipeInputsPanel
+            form={form}
+            calculateFlow={calculateFlow}
+            surface="sheet"
+            compact
+            hidePrimaryCta
+          />
+        </Sheet>
+
+        <MobileShellBottom
+          shellRef={shellRef}
+          activeTab={mobileTab}
+          onSelectTab={setMobileTab}
+          guideVisible={!!sections.guide || starterOnlyView}
+          showCta={mobileTab === "inputs"}
+          showResults={showResults}
+          canCalculate={calculateFlow.validation.canCalculate}
+          onCalculate={requestCalculate}
+        />
+      </div>
     </RecipeNavProvider>
   );
 }

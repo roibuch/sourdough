@@ -117,6 +117,7 @@
 
   @media (min-width: 1024px) {
     .dashboard-shell {
+      --shell-nav-h: 0px;
       --shell-sticky-cta-h: 0px;
     }
   }
@@ -124,7 +125,7 @@
   .content-safe-bottom {
     padding-bottom: calc(
       var(--shell-nav-h) + var(--shell-sticky-cta-h) +
-        env(safe-area-inset-bottom, 0px) + 0.25rem
+        env(safe-area-inset-bottom, 0px) + 0.5rem
     );
   }
 

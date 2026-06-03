@@ -7,6 +7,7 @@ export const LUXURY_HE = {
   editRecipe: "ערוך מתכון",
   applyRecipe: "עדכן מתכון",
   cancelEdit: "ביטול",
+  mobileGoToInputs: "← מעבר להגדרת המתכון",
   mobileTabs: {
     timeline: "לוח זמנים",
     starter: "האכלת מחמצת",

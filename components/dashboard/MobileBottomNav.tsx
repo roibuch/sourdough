@@ -15,30 +15,34 @@ const TABS: {
   label: string;
   icon: typeof ChartBarIcon;
 }[] = [
-  { id: "outputs", label: "תוצאות", icon: ChartBarIcon },
-  { id: "inputs", label: "פרמטרים", icon: AdjustmentsHorizontalIcon },
+  { id: "inputs", label: "הגדרות", icon: AdjustmentsHorizontalIcon },
+  { id: "outputs", label: "מתכון", icon: ChartBarIcon },
   { id: "guide", label: "מדריך", icon: BookOpenIcon },
-  { id: "reference", label: "טבלאות", icon: TableCellsIcon },
+  { id: "reference", label: "עזר", icon: TableCellsIcon },
 ];
 
 interface MobileBottomNavProps {
   active: MobileTab;
   onSelect: (tab: MobileTab) => void;
   guideVisible: boolean;
+  /** When true, nav is embedded in MobileShellBottom (not fixed itself). */
+  embedded?: boolean;
 }
 
 export function MobileBottomNav({
   active,
   onSelect,
   guideVisible,
+  embedded = false,
 }: MobileBottomNavProps) {
   const tabs = TABS.filter((t) => t.id !== "guide" || guideVisible);
 
   return (
     <nav
       className={cn(
-        "fixed inset-x-0 bottom-0 z-40 border-t border-border-subtle lg:hidden",
-        "bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl",
+        embedded
+          ? "bg-transparent"
+          : "fixed inset-x-0 bottom-0 z-40 border-t border-border-subtle bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden",
       )}
       aria-label="ניווט ראשי"
     >
