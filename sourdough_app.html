@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="מחשבון אחוזי אופים מקצועי לאפיית לחמי מחמצת. חישוב אוטומטי של קמחים, הידרציה, אוטוליזה, וזמני האכלה ליצירת מתכון לחם מושלם.">
     <meta name="theme-color" content="#c9a87c">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -10,7 +11,7 @@
     <link rel="icon" href="icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icon.svg">
     <script src="config.js"></script>
-    <title>Sourdough Master | מחשבון ומדריך מחמצת</title>
+    <title>מחשבון מחמצת מקצועי | מאסטר מחמצת</title>
     <style>
         :root {
             --bg: #faf6f0;
@@ -229,6 +230,7 @@
         input[type="range"],
         select {
             width: 100%;
+            min-height: 44px;
             padding: 12px 14px;
             border: 2px solid var(--border);
             border-radius: var(--radius-md);
@@ -263,6 +265,8 @@
 
         .input-stepper .stepper-btn {
             flex: 0 0 44px;
+            min-width: 44px;
+            min-height: 44px;
             padding: 0;
             border: 2px solid var(--border);
             background: rgba(184, 149, 106, 0.15);
@@ -353,6 +357,50 @@
             transform: translateY(0);
         }
 
+        button.calc-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .flour-total-line {
+            margin: 0 0 14px;
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            border: 2px solid var(--border);
+            background: rgba(184, 149, 106, 0.08);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .flour-total-line.invalid {
+            border-color: #dc2626;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .flour-total-line.invalid #flourTotalSum {
+            color: #dc2626;
+        }
+
+        .results-empty {
+            margin-top: 20px;
+            padding: 22px 18px;
+            border-radius: var(--radius-md);
+            border: 2px dashed var(--border);
+            background: rgba(255, 252, 250, 0.85);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.65;
+        }
+
+        .results-empty[hidden] {
+            display: none !important;
+        }
+
         button.btn-ghost {
             display: block;
             width: 100%;
@@ -425,7 +473,6 @@
         }
 
         .results {
-            display: none;
             margin-top: 26px;
             padding: 22px;
             border-radius: var(--radius-md);
@@ -433,8 +480,8 @@
             border: 1px solid var(--success-border);
         }
 
-        .results.visible {
-            display: block;
+        .results[hidden] {
+            display: none !important;
         }
 
         .results h3 {
@@ -910,8 +957,9 @@
 
     <div class="container">
         <header>
-            <h1>🌾 מחשבון ומדריך מחמצת</h1>
-            <p class="subtitle">חישוב בצק, תכנון מחמצת מהמקרר וטבלאות זמני התפחה — במקום אחד, בניסוח שמותאם לכולם.</p>
+            <img src="logo.png" alt="לוגו מאסטר מחמצת - מחשבון בצק" width="72" height="72" style="display:block;margin:0 auto 12px;border-radius:50%;">
+            <h1>מאסטר מחמצת</h1>
+            <p class="subtitle">מחשבון אחוזי אופים מקצועי — קמחים, הידרציה, אוטוליזה וזמני האכלה.</p>
         </header>
 
         <main id="main">
@@ -1017,14 +1065,19 @@
                                 <input type="number" id="wholeBuckwheatFlourPct" class="flour-pct" value="0" min="0" max="100" step="1">
                             </div>
                         </div>
+                        <p class="flour-total-line" id="flourTotalLine">סך הקמחים: <strong id="flourTotalSum">100%</strong></p>
                         <p class="flour-note" id="flourPresetNote">תערובת יציבה וסלחנית, מתאימה ללחם ראשון או לבצק עם הידרציה בינונית.</p>
                         <div class="flour-advice" id="fermentationFactorAlert" hidden aria-live="polite"></div>
                     </div>
 
-                    <button type="button" class="calc-btn" id="btnCalcDough">יצירת מתכון והכנת מדריך</button>
+                    <button type="button" class="calc-btn" id="btnCalcDough" aria-label="יצירת מתכון">יצירת מתכון</button>
                     <button type="button" class="btn-ghost" id="btnShowStarterOnly">רק מחשבון מחמצת במדריך (בלי חישוב בצק)</button>
 
-                    <div class="results" id="results" aria-live="polite">
+                    <div class="results-empty" id="resultsEmpty" aria-live="polite">
+                        המתכון שלך יופיע כאן. מלא את נתוני הבצק ולחץ על «יצירת מתכון».
+                    </div>
+
+                    <div class="results" id="results" aria-live="polite" hidden>
                         <h3>המרכיבים למתכון</h3>
                         <div class="ingredients-list">
                             <div class="ingredient-item">
@@ -1298,7 +1351,8 @@
         </main>
 
         <footer>
-            Sourdough Master — הכל רץ מקומית בדפדפן. המתכון נשמר ב־localStorage; ניתן להתקין כאפליקציה (PWA) לשימוש לא מקוון.
+            <p>מאסטר מחמצת — הכל רץ מקומית בדפדפן. המתכון נשמר ב־localStorage; ניתן להתקין כאפליקציה (PWA) לשימוש לא מקוון.</p>
+            <p style="margin-top:10px;font-size:0.82rem;max-width:36em;margin-inline:auto;">הנתונים והמתכונים שלך נשמרים מקומית בדפדפן בלבד ואינם נאספים או נשמרים בשרת חיצוני.</p>
         </footer>
     </div>
 
@@ -2040,6 +2094,7 @@
                 });
                 document.getElementById('flourPresetNote').textContent = preset.note;
                 updateFermentationFactorAlert();
+                updateFlourValidation();
             }
 
             function getFlourMix() {
@@ -2376,6 +2431,23 @@
                 document.getElementById('guideFlourMix').textContent += ' טווח הידרציה מומלץ לתערובת: ' + hydration.low + '%–' + hydration.high + '%.';
             }
 
+            function updateFlourValidation() {
+                var mix = getFlourMix();
+                var total = Math.round(mix.totalPct * 10) / 10;
+                var ok = Math.abs(mix.totalPct - 100) <= 0.1;
+                var sumEl = document.getElementById('flourTotalSum');
+                var lineEl = document.getElementById('flourTotalLine');
+                var btn = document.getElementById('btnCalcDough');
+                if (sumEl) sumEl.textContent = total + '%';
+                if (lineEl) lineEl.classList.toggle('invalid', !ok);
+                if (btn) btn.disabled = !ok;
+            }
+
+            function showRecipeResults() {
+                document.getElementById('resultsEmpty').hidden = true;
+                document.getElementById('results').hidden = false;
+            }
+
             function calculateDough() {
                 var totalWeight = parseFloat(document.getElementById('totalWeight').value);
                 var waterPct = parseFloat(document.getElementById('waterPct').value) / 100;
@@ -2389,6 +2461,7 @@
                 }
                 if (Math.abs(flourMix.totalPct - 100) > 0.1) {
                     showToast('אחוזי הקמחים צריכים להסתכם ל־100%. כרגע: ' + flourMix.totalPct + '%.');
+                    updateFlourValidation();
                     return;
                 }
 
@@ -2421,7 +2494,7 @@
                 renderFlourBreakdown(rFlour, flourMix);
                 renderDoughWorkflow(flourMix, waterPct * 100, starterPct * 100);
 
-                document.getElementById('results').classList.add('visible');
+                showRecipeResults();
                 document.getElementById('guideSection').classList.add('visible');
 
                 setTimeout(function () {
@@ -2530,6 +2603,7 @@
             document.getElementById('flourPreset').addEventListener('change', function () {
                 if (this.value === 'custom') {
                     document.getElementById('flourPresetNote').textContent = 'עריכה ידנית: ודאו שהאחוזים מסתכמים ל־100%.';
+                    updateFlourValidation();
                     schedulePersist();
                     return;
                 }
@@ -2544,6 +2618,7 @@
                     document.getElementById('flourPresetNote').textContent =
                         'עריכה ידנית: סך הקמחים כרגע ' + mix.totalPct + '%. צריך להגיע ל־100%.';
                     updateFermentationFactorAlert();
+                    updateFlourValidation();
                     schedulePersist();
                 });
             });
@@ -2572,7 +2647,7 @@
             });
 
             document.getElementById('btnCopyRecipeLink').addEventListener('click', function () {
-                persistAppState({ calc: document.getElementById('results').classList.contains('visible') ? true : false });
+                persistAppState({ calc: !document.getElementById('results').hidden });
                 var url = window.location.href;
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(url).then(function () {
@@ -2633,6 +2708,10 @@
                 if (input.closest('.input-stepper')) return;
                 input.setAttribute('inputmode', 'decimal');
                 input.setAttribute('pattern', '[0-9]*');
+                var labelEl = document.querySelector('label[for="' + input.id + '"]');
+                var flourName = labelEl
+                    ? labelEl.textContent.replace(/\s*\(%\)\s*$/, '').trim()
+                    : input.id;
                 var wrap = document.createElement('div');
                 wrap.className = 'input-stepper';
                 var minusBtn = document.createElement('button');
@@ -2640,14 +2719,14 @@
                 minusBtn.className = 'stepper-btn';
                 minusBtn.setAttribute('data-stepper', input.id);
                 minusBtn.setAttribute('data-dir', 'minus');
-                minusBtn.setAttribute('aria-label', 'הפחת ' + (input.id || ''));
+                minusBtn.setAttribute('aria-label', 'הקטן אחוז ' + flourName);
                 minusBtn.textContent = '−';
                 var plusBtn = document.createElement('button');
                 plusBtn.type = 'button';
                 plusBtn.className = 'stepper-btn';
                 plusBtn.setAttribute('data-stepper', input.id);
                 plusBtn.setAttribute('data-dir', 'plus');
-                plusBtn.setAttribute('aria-label', 'הוסף ' + (input.id || ''));
+                plusBtn.setAttribute('aria-label', 'הגדל אחוז ' + flourName);
                 plusBtn.textContent = '+';
                 var parent = input.parentNode;
                 parent.insertBefore(wrap, input);
@@ -2669,6 +2748,7 @@
                 var cb = document.getElementById('useRecipeStarter');
                 document.getElementById('wrapManualStarter').style.opacity = cb.checked ? '0.65' : '1';
                 document.querySelectorAll('.flour-pct').forEach(wrapFlourStepper);
+                updateFlourValidation();
                 loadAppStateOnInit();
             })();
         })();

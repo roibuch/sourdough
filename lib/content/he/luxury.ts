@@ -1,7 +1,7 @@
 /** Luxury redesign copy */
 export const LUXURY_HE = {
   welcome: {
-    body: "המתכון שלכם יופיע כאן. מלאו את נתוני הבצק ולחצו על «יצירת מתכון».",
+    body: "המתכון שלך יופיע כאן. מלא את נתוני הבצק ולחץ על «יצירת מתכון».",
   },
   editorTitle: "עריכת מתכון",
   editRecipe: "ערוך מתכון",

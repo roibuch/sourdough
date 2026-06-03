@@ -227,7 +227,12 @@ export function DashboardShell({
             {sections.warnings && (
               <div className="px-4 pt-3">{sections.warnings}</div>
             )}
-            {mobilePanel}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain lg:hidden">
+              {mobilePanel}
+              <p className="px-4 pb-4 pt-8 text-center text-[10px] leading-relaxed text-text-muted">
+                {heContent.app.privacyNote}
+              </p>
+            </div>
           </div>
 
           {/* Desktop — sidebar + main */}
@@ -282,8 +287,11 @@ export function DashboardShell({
           </main>
         </div>
 
-        <footer className="hidden border-t border-border-subtle py-5 text-center text-xs text-text-muted lg:block">
-          {heContent.app.footerShort}
+        <footer className="hidden border-t border-border-subtle py-5 text-center lg:block">
+          <p className="text-xs text-text-muted">{heContent.app.footerShort}</p>
+          <p className="mx-auto mt-2 max-w-xl text-[11px] leading-relaxed text-text-muted/90">
+            {heContent.app.privacyNote}
+          </p>
         </footer>
 
         <FlourBalanceDialog

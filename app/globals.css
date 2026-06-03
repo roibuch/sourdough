@@ -214,6 +214,7 @@
     @apply flex min-h-11 w-full items-center justify-center rounded-xl bg-accent text-sm font-semibold text-white sm:min-h-12 sm:text-base;
     @apply shadow-sm transition-colors hover:bg-accent-hover active:scale-[0.99];
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-accent disabled:active:scale-100;
   }
 
   .cta-gold {

@@ -17,14 +17,14 @@ export function BrandLogo({ size = 48, className, priority = true }: BrandLogoPr
         className,
       )}
       style={{ width: size, height: size }}
-      aria-hidden
     >
       <Image
         src={brandAssetPath("logo.png")}
-        alt=""
-        fill
+        alt="לוגו מאסטר מחמצת - מחשבון בצק"
+        width={size}
+        height={size}
         sizes={`${size}px`}
-        className="object-contain object-center"
+        className="h-full w-full object-contain object-center"
         priority={priority}
       />
     </div>
